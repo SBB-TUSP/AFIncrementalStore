@@ -20,17 +20,17 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-#import "AFHTTPClient.h"
-#import "AFHTTPRequestOperation.h"
+
+@import AFNetworking;
 #import "AFIncrementalStore.h"
-#import "TTTStringInflector.h"
+@import InflectorKit;
 
 @protocol AFPaginator;
 
 /**
- `AFRESTClient` is a subclass of `AFHTTPClient` that implements the `AFIncrementalStoreHTTPClient` protocol in a way that follows the conventions of a RESTful web service.
+ `AFRESTClient` is a subclass of `AFHTTPClient` that implements the `AFHTTPSessionManager` protocol in a way that follows the conventions of a RESTful web service.
  */
-@interface AFRESTClient : AFHTTPClient <AFIncrementalStoreHTTPClient>
+@interface AFRESTClient : AFHTTPSessionManager <AFIncrementalStoreHTTPClient>
 
 /**
  
