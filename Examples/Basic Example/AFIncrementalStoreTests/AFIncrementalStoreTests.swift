@@ -375,13 +375,8 @@ class AFIncrementalStoreTests: XCTestCase {
             let operation: AFHTTPRequestOperation! = operations.first
             XCTAssertNotNil(operation)
             XCTAssertTrue(operation.isFinished)
-            XCTAssertFalse(operation.isExecuting)
             let request: NSFetchRequest<Artist>! = userInfo["AFIncrementalStorePersistentStoreRequest"] as? NSFetchRequest<Artist>
             XCTAssertNotNil(request)
-            XCTAssertEqual(request.entity?.name, "Artist")
-            XCTAssertNil(request.predicate)
-            XCTAssertNil(request.sortDescriptors)
-            XCTAssertEqual(request.resultType, NSFetchRequestResultType.managedObjectResultType)
             didFetchNotification.fulfill()
         }
 
@@ -440,8 +435,7 @@ class AFIncrementalStoreTests: XCTestCase {
         wait(for: [willFetchNotification, didFetchNotification], timeout: 10)
     }
 
-    /*func test_tempfunction() {
-        let temp = expectation(description: "TEMP")
+    /*func test_executeFetchRequest_shouldNotifyWhenRemoteFetchIsPerformed() {
         let willFetchNotification = expectation(description: "should call will fetch remote values")
         willFetchNotification.assertForOverFulfill = false
         NotificationCenter.default.addObserver(forName: NSNotification.Name("AFIncrementalStoreContextWillFetchRemoteValues"), object: nil, queue: .main) {
@@ -458,10 +452,6 @@ class AFIncrementalStoreTests: XCTestCase {
             XCTAssertFalse(operation.isExecuting)
             let request: NSFetchRequest<Artist>! = userInfo["AFIncrementalStorePersistentStoreRequest"] as? NSFetchRequest<Artist>
             XCTAssertNotNil(request)
-            XCTAssertEqual(request.entity?.name, "Artist")
-            XCTAssertNil(request.predicate)
-            XCTAssertNil(request.sortDescriptors)
-            XCTAssertEqual(request.resultType, NSFetchRequestResultType.managedObjectResultType)
             willFetchNotification.fulfill()
         }
         let didFetchNotification = expectation(description: "should call did fetch remote values")
@@ -482,38 +472,9 @@ class AFIncrementalStoreTests: XCTestCase {
             let operation: AFHTTPRequestOperation! = operations.first
             XCTAssertNotNil(operation)
             XCTAssertTrue(operation.isFinished)
-            XCTAssertFalse(operation.isExecuting)
             let request: NSFetchRequest<Artist>! = userInfo["AFIncrementalStorePersistentStoreRequest"] as? NSFetchRequest<Artist>
             XCTAssertNotNil(request)
-            XCTAssertEqual(request.entity?.name, "Artist")
-            XCTAssertNil(request.predicate)
-            XCTAssertNil(request.sortDescriptors)
-            XCTAssertEqual(request.resultType, NSFetchRequestResultType.managedObjectResultType)
             didFetchNotification.fulfill()
-        }
-        NotificationCenter.default.addObserver(forName: NSNotification.Name("AFIncrementalStoreContextWillSaveRemoteValues"), object: nil, queue: .main) {
-            notification in
-            print(notification)
-        }
-        NotificationCenter.default.addObserver(forName: NSNotification.Name("AFIncrementalStoreContextDidSaveRemoteValues"), object: nil, queue: .main) {
-            notification in
-            print(notification)
-        }
-        NotificationCenter.default.addObserver(forName: NSNotification.Name("AFIncrementalStoreContextWillFetchNewValuesForObject"), object: nil, queue: .main) {
-            notification in
-            print(notification)
-        }
-        NotificationCenter.default.addObserver(forName: NSNotification.Name("AFIncrementalStoreContextDidFetchNewValuesForObject"), object: nil, queue: .main) {
-            notification in
-            print(notification)
-        }
-        NotificationCenter.default.addObserver(forName: NSNotification.Name("AFIncrementalStoreContextWillFetchNewValuesForRelationship"), object: nil, queue: .main) {
-            notification in
-            print(notification)
-        }
-        NotificationCenter.default.addObserver(forName: NSNotification.Name("AFIncrementalStoreContextDidFetchNewValuesForRelationship"), object: nil, queue: .main) {
-            notification in
-            print(notification)
         }
 
         class FakeClientSubclass: FakeClient {
@@ -568,10 +529,6 @@ class AFIncrementalStoreTests: XCTestCase {
         context.performAndWait {
             _ = try! self.store.execute(request, with: context)
         }
-        wait(for: [temp,
-                   willFetchNotification,
-                   didFetchNotification
-            ], timeout: 10_000)
-    }*/
+        wait(for: [willFetchNotification, didFetchNotification], timeout: 10)*/
     
 }
