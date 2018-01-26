@@ -147,5 +147,58 @@ class AFIncrementalStoreTests: XCTestCase {
         XCTAssertTrue(results.isEmpty)
         wait(for: [testFinishExpectation], timeout: 1)
     }
+
+    func test_executeFetchRequestShouldReturnEmptyArrayAndEmptyDB_whenDBNotEmptyAndResponseEmpty() {
+        class FakeClientSubclass: FakeClient {
+
+            override func request(for fetchRequest: NSFetchRequest<NSFetchRequestResult>!, with context: NSManagedObjectContext!) -> NSMutableURLRequest! {
+                return NSMutableURLRequest(url: URL(string: "http://localhost")!)
+            }
+
+            var successClosure: ((AFHTTPRequestOperation?, Any?) -> Void)!
+
+            var testFinishedClosure: (() -> Void)!
+
+            override func httpRequestOperation(with urlRequest: URLRequest!, success: ((AFHTTPRequestOperation?, Any?) -> Void)!, failure: ((AFHTTPRequestOperation?, Error?) -> Void)!) -> AFHTTPRequestOperation! {
+                successClosure = success
+                return AFHTTPRequestOperation(request: urlRequest)
+            }
+
+            override func representationOrArrayOfRepresentations(ofEntity entity: NSEntityDescription!, fromResponseObject responseObject: Any!) -> Any! {
+                testFinishedClosure()
+                return [Artist]()
+            }
+
+            override func enqueue(_ operation: AFHTTPRequestOperation!) {
+                successClosure(operation, [String: Any]())
+            }
+
+        }
+        let testFinishExpectation = expectation(description: "shouldFinishExecutingTest")
+        let fakeClient = FakeClientSubclass(baseURL: URL(string: "http://localhost"))
+        fakeClient?.testFinishedClosure = {
+            testFinishExpectation.fulfill()
+        }
+        store.httpClient = fakeClient
+        let context = NSManagedObjectContext(concurrencyType: .mainQueueConcurrencyType)
+        context.persistentStoreCoordinator = coordinator
+        context.performAndWait {
+            _ = Artist(entity: NSEntityDescription.entity(forEntityName: "Artist", in: context)!, insertInto: context)
+            _ = try! context.save()
+        }
+        let request = NSFetchRequest<Artist>()
+        request.entity = NSEntityDescription.entity(forEntityName: "Artist", in: context)
+        var results: [Artist]!
+        context.performAndWait {
+            do {
+                results = try self.store.execute(request, with: context) as? [Artist]
+            } catch let e {
+                print(e)
+            }
+        }
+        XCTAssertNotNil(results)
+        XCTAssertTrue(results.isEmpty)
+        wait(for: [testFinishExpectation], timeout: 1)
+    }
     
 }
