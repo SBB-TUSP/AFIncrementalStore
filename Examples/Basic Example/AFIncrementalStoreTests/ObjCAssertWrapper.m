@@ -7,7 +7,7 @@
 
 #import "ObjCAssertWrapper.h"
 
-BOOL throwsToBool(VoidBlock const block) {
+BOOL blockThrowsException(VoidBlock const block) {
     @try {
         block();
     }

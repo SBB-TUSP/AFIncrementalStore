@@ -55,14 +55,14 @@ class AFIncrementalStoreTests: XCTestCase {
         XCTAssertNotNil(store)
     }
 
-    func test_typeShouldThrowError() {
-        XCTAssertTrue(throwsToBool {
+    func test_typeShouldThrowException() {
+        XCTAssertTrue(blockThrowsException {
             _ = AFIncrementalStore.type()
         })
     }
 
-    func test_modelShouldThrowError() {
-        XCTAssertTrue(throwsToBool {
+    func test_modelShouldThrowException() {
+        XCTAssertTrue(blockThrowsException {
             _ = AFIncrementalStore.model()
         })
     }

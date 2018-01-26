@@ -10,4 +10,4 @@
 typedef void (^VoidBlock)(void);
 
 /// Returns: true if the block throws an `NSException`, otherwise false
-BOOL throwsToBool(VoidBlock block);
+BOOL blockThrowsException(VoidBlock block);
