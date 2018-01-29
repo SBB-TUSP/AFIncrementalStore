@@ -27,6 +27,7 @@
 
 @property NSString *name;
 @property NSString *artistDescription;
+@property NSDate *birthDate;
 
 @property NSSet *songs;
 
