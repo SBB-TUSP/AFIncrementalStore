@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="13772" systemVersion="17D47" minimumToolsVersion="Xcode 7.3" sourceLanguage="Objective-C" userDefinedModelVersionIdentifier="">
-    <entity name="Artist" representedClassName=".Artist" syncable="YES">
+    <entity name="Artist" representedClassName="Artist" syncable="YES">
         <attribute name="artistDescription" optional="YES" attributeType="String" syncable="YES"/>
         <attribute name="name" optional="YES" attributeType="String" syncable="YES"/>
         <relationship name="songs" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="Song" inverseName="artist" inverseEntity="Song" syncable="YES"/>
     </entity>
-    <entity name="Song" representedClassName=".Song" syncable="YES">
+    <entity name="Song" representedClassName="" syncable="YES">
         <attribute name="title" optional="YES" attributeType="String" syncable="YES"/>
         <relationship name="artist" optional="YES" minCount="1" maxCount="1" deletionRule="Nullify" destinationEntity="Artist" inverseName="songs" inverseEntity="Artist" syncable="YES"/>
     </entity>
