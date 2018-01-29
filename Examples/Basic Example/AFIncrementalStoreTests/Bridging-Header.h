@@ -9,6 +9,7 @@
 #define Bridging_Header_h
 
 #import "AFIncrementalStore.h"
+#import "AFRESTClient.h"
 #import "Artist.h"
 #import "ObjCAssertWrapper.h"
 

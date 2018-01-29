@@ -9,9 +9,9 @@
 /* Begin PBXBuildFile section */
 		662023642019D0E3000F684D /* AFIncrementalStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 662023632019D0E3000F684D /* AFIncrementalStoreTests.swift */; };
 		6620236C2019E1C6000F684D /* IncrementalStoreExample.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = F8874F2115B08CA80048680F /* IncrementalStoreExample.xcdatamodeld */; };
-		6620236D2019E1CC000F684D /* Artist.m in Sources */ = {isa = PBXBuildFile; fileRef = F8874F0715B08B770048680F /* Artist.m */; };
-		6620236E2019E1CF000F684D /* Song.m in Sources */ = {isa = PBXBuildFile; fileRef = F8874F0B15B08B770048680F /* Song.m */; };
 		66202371201A1526000F684D /* ObjCAssertWrapper.m in Sources */ = {isa = PBXBuildFile; fileRef = 66202370201A1526000F684D /* ObjCAssertWrapper.m */; };
+		88E8B58F201B66B7000516ED /* AFRESTClientTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88E8B58E201B66B7000516ED /* AFRESTClientTests.swift */; };
+		88E8B596201F24C3000516ED /* FakeClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88E8B595201F24C3000516ED /* FakeClient.swift */; };
 		F81D904116F3DED80043C85A /* NSValueTransformer+TransformerKit.m in Sources */ = {isa = PBXBuildFile; fileRef = F81D903B16F3DED80043C85A /* NSValueTransformer+TransformerKit.m */; };
 		F81D904916F3DEEB0043C85A /* NSString+InflectorKit.m in Sources */ = {isa = PBXBuildFile; fileRef = F81D904616F3DEEB0043C85A /* NSString+InflectorKit.m */; };
 		F81D904A16F3DEEB0043C85A /* TTTStringInflector.m in Sources */ = {isa = PBXBuildFile; fileRef = F81D904816F3DEEB0043C85A /* TTTStringInflector.m */; };
@@ -64,6 +64,8 @@
 		6620236B2019DC06000F684D /* Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Bridging-Header.h"; sourceTree = "<group>"; };
 		6620236F201A1526000F684D /* ObjCAssertWrapper.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ObjCAssertWrapper.h; sourceTree = "<group>"; };
 		66202370201A1526000F684D /* ObjCAssertWrapper.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ObjCAssertWrapper.m; sourceTree = "<group>"; };
+		88E8B58E201B66B7000516ED /* AFRESTClientTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AFRESTClientTests.swift; sourceTree = "<group>"; };
+		88E8B595201F24C3000516ED /* FakeClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FakeClient.swift; sourceTree = "<group>"; };
 		F81D903A16F3DED80043C85A /* NSValueTransformer+TransformerKit.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSValueTransformer+TransformerKit.h"; sourceTree = "<group>"; };
 		F81D903B16F3DED80043C85A /* NSValueTransformer+TransformerKit.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSValueTransformer+TransformerKit.m"; sourceTree = "<group>"; };
 		F81D904016F3DED80043C85A /* TransformerKit.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TransformerKit.h; sourceTree = "<group>"; };
@@ -156,10 +158,12 @@
 			isa = PBXGroup;
 			children = (
 				662023632019D0E3000F684D /* AFIncrementalStoreTests.swift */,
+				88E8B58E201B66B7000516ED /* AFRESTClientTests.swift */,
 				662023652019D0E3000F684D /* Info.plist */,
 				6620236B2019DC06000F684D /* Bridging-Header.h */,
 				6620236F201A1526000F684D /* ObjCAssertWrapper.h */,
 				66202370201A1526000F684D /* ObjCAssertWrapper.m */,
+				88E8B595201F24C3000516ED /* FakeClient.swift */,
 			);
 			path = AFIncrementalStoreTests;
 			sourceTree = "<group>";
@@ -423,10 +427,10 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				6620236E2019E1CF000F684D /* Song.m in Sources */,
+				88E8B596201F24C3000516ED /* FakeClient.swift in Sources */,
 				662023642019D0E3000F684D /* AFIncrementalStoreTests.swift in Sources */,
 				66202371201A1526000F684D /* ObjCAssertWrapper.m in Sources */,
-				6620236D2019E1CC000F684D /* Artist.m in Sources */,
+				88E8B58F201B66B7000516ED /* AFRESTClientTests.swift in Sources */,
 				6620236C2019E1C6000F684D /* IncrementalStoreExample.xcdatamodeld in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -521,7 +525,7 @@
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 				SWIFT_OBJC_BRIDGING_HEADER = "AFIncrementalStoreTests/Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
-				SWIFT_VERSION = 4.0;
+				SWIFT_VERSION = 3.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Songs.app/Songs";
 			};
@@ -572,7 +576,7 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_OBJC_BRIDGING_HEADER = "AFIncrementalStoreTests/Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Owholemodule";
-				SWIFT_VERSION = 4.0;
+				SWIFT_VERSION = 3.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Songs.app/Songs";
 			};
