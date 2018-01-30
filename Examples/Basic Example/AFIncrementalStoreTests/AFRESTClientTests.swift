@@ -603,7 +603,7 @@ class AFRESTClientTests: XCTestCase {
 
         //encoding AFFormURLParameterEncoding
         XCTAssertNotNil(result , "should not be nil")
-        XCTAssertTrue(result?.httpMethod == "POST", "should be equals to PUT")
+        XCTAssertTrue(result?.httpMethod == "POST", "should be equals to POST")
         XCTAssertTrue(result?.url?.absoluteString == "https://localhost/artists" , "should be equals to https://localhost/artists")
         XCTAssertNotNil(result?.httpBody, "should not be nil")
 
@@ -733,6 +733,139 @@ class AFRESTClientTests: XCTestCase {
         XCTAssertNotNil(httpHeader?["User-Agent"], "should not be nil")
         XCTAssertNotNil(httpHeader?["Accept-Language"], "should not be nil")
 
+    }
+
+
+    func test_ShoulBeCreateARequestForDeleteObject() {
+        let instanceRestClient = AFRESTClient(baseURL: baseURL as URL!)
+
+        XCTAssertNotNil(instanceRestClient, "should be able to create an instance of AFRESTClient")
+        XCTAssertEqual(instanceRestClient?.baseURL, baseURL , "should be able to create an instance of AFRESTClient")
+
+        let artist = NSEntityDescription.insertNewObject(forEntityName: "Artist", into: moc) as? Artist
+        artist?.name = "test"
+        artist?.artistDescription = "test"
+        artist?.birthDate = Date.distantPast
+
+        createFakeClientHTTPandSaveContext(moc: moc)
+
+        var result = instanceRestClient?.request(forDeletedObject: artist)
+
+        //encoding AFFormURLParameterEncoding
+        XCTAssertNotNil(result , "should not be nil")
+        XCTAssertTrue(result?.httpMethod == "DELETE", "should be equals to DELETE")
+        XCTAssertTrue((result?.url?.absoluteString.contains("https://localhost/artists/"))!, "should contains https://localhost/artists/")
+
+        var httpHeader = result?.allHTTPHeaderFields
+        XCTAssertNotNil(httpHeader, "should not be nil")
+        XCTAssertNotNil(httpHeader?["User-Agent"], "should not be nil")
+        XCTAssertNotNil(httpHeader?["Accept-Language"], "should not be nil")
+
+        //encoding AFJSONParameterEncoding
+
+        instanceRestClient?.parameterEncoding = AFJSONParameterEncoding
+        result = instanceRestClient?.request(forDeletedObject: artist)
+
+        XCTAssertNotNil(result , "should not be nil")
+        XCTAssertTrue((result?.url?.absoluteString.contains("https://localhost/artists/"))!, "should contains https://localhost/artists/")
+
+        httpHeader = result?.allHTTPHeaderFields
+        XCTAssertNotNil(httpHeader, "should not be nil")
+        XCTAssertNotNil(httpHeader?["User-Agent"], "should not be nil")
+        XCTAssertNotNil(httpHeader?["Accept-Language"], "should not be nil")
+
+
+        //encoding AFPropertyListParameterEncoding
+
+        instanceRestClient?.parameterEncoding = AFPropertyListParameterEncoding
+        result = instanceRestClient?.request(forDeletedObject: artist)
+
+        XCTAssertNotNil(result , "should not be nil")
+        XCTAssertTrue((result?.url?.absoluteString.contains("https://localhost/artists/"))!, "should contains https://localhost/artists/")
+
+        httpHeader = result?.allHTTPHeaderFields
+        XCTAssertNotNil(httpHeader, "should not be nil")
+        XCTAssertNotNil(httpHeader?["User-Agent"], "should not be nil")
+        XCTAssertNotNil(httpHeader?["Accept-Language"], "should not be nil")
+
+    }
+
+
+    func test_ShouldBeAbleToCreateAFLimitAndOffsetPaginator() {
+        let instancePaginator = AFLimitAndOffsetPaginator(limitParameter: "limitTest", offsetParameter: "offsetTest")
+
+        XCTAssertNotNil(instancePaginator, "should be able to create an instance of AFLimitAndOffsetPaginator")
+    }
+
+    func test_ShouldBeAbleToGetParametersForFetchRequest_whenThereIsAOffsetPaginator() {
+        let instancePaginator = AFLimitAndOffsetPaginator(limitParameter: "limitTest", offsetParameter: "offsetTest")
+
+        XCTAssertNotNil(instancePaginator, "should be able to create an instance of AFLimitAndOffsetPaginator")
+
+        let fetchRequest = NSFetchRequest<NSFetchRequestResult>()
+        fetchRequest.fetchLimit = 1
+        fetchRequest.fetchOffset = 1
+
+        let result = instancePaginator?.parameters(for: fetchRequest)
+
+        XCTAssertNotNil(result, "should not be nil")
+        XCTAssertTrue(Array(result!.keys).count == 2, "should be equals to 2")
+        XCTAssertNotNil(result?["limitTest"], "should not be nil")
+        XCTAssertNotNil(result?["offsetTest"], "should not be nil")
+    }
+
+
+
+    func test_ShouldBeAbleToCreateAFPageAndPerPagePaginator() {
+        let instancePaginator = AFPageAndPerPagePaginator(pageParameter: "pageTest", perPageParameter: "perPageTest")
+
+        XCTAssertNotNil(instancePaginator, "should be able to create an instance of AFPageAndPerPagePaginator")
+    }
+
+    func test_ShouldBeAbleToGetParametersForFetchRequest_whenThereIsAPagePaginator() {
+        let instancePaginator = AFPageAndPerPagePaginator(pageParameter: "pageTest", perPageParameter: "perPageTest")
+
+        XCTAssertNotNil(instancePaginator, "should be able to create an instance of AFPageAndPerPagePaginator")
+
+        let fetchRequest = NSFetchRequest<NSFetchRequestResult>()
+        fetchRequest.fetchLimit = 20
+        fetchRequest.fetchOffset = 1
+
+        let result = instancePaginator?.parameters(for: fetchRequest)
+
+        XCTAssertNotNil(result, "should not be nil")
+        XCTAssertTrue(Array(result!.keys).count == 2, "should be equals to 2")
+        XCTAssertNotNil(result?["pageTest"], "should not be nil")
+        XCTAssertNotNil(result?["perPageTest"], "should not be nil")
+    }
+
+
+    func test_ShouldBeAbleToCreateAFBlockPaginator() {
+        let instancePaginator = AFBlockPaginator {
+            (fetchRequest) -> [AnyHashable : Any]? in
+
+            return [:]
+
+        }
+
+        XCTAssertNotNil(instancePaginator, "should be able to create an instance of AFBlockPaginator")
+    }
+
+    func test_ShouldBeAbleToGetParametersForFetchRequest_whenThereIsABlockPaginator() {
+        let instancePaginator = AFBlockPaginator {
+            (fetchRequest) -> [AnyHashable : Any]? in
+            return [:]
+        }
+
+        XCTAssertNotNil(instancePaginator, "should be able to create an instance of AFBlockPaginator")
+
+        let fetchRequest = NSFetchRequest<NSFetchRequestResult>()
+        fetchRequest.fetchLimit = 20
+        fetchRequest.fetchOffset = 1
+
+        let result = instancePaginator?.parameters(for: fetchRequest)
+
+        XCTAssertNotNil(result, "should not be nil")
     }
 
 }
