@@ -513,4 +513,226 @@ class AFRESTClientTests: XCTestCase {
     }
 
 
+    func test_ShouldBeAbleToCreateARequestPathForRelationship () {
+
+        let instanceRestClient = AFRESTClient(baseURL: baseURL as URL!)
+
+        XCTAssertNotNil(instanceRestClient, "should be able to create an instance of AFRESTClient")
+        XCTAssertEqual(instanceRestClient?.baseURL, baseURL , "should be able to create an instance of AFRESTClient")
+
+        let entityDescriptionArtist = NSEntityDescription.entity(forEntityName: "Artist", in: moc)
+        let entityDescriptionSong = NSEntityDescription.entity(forEntityName: "Song", in: moc)
+        let entityRelationshipDescription = entityDescriptionArtist?.relationships(forDestination: entityDescriptionSong!)[0]
+
+        let artist = NSEntityDescription.insertNewObject(forEntityName: "Artist", into: moc)
+
+        createFakeClientHTTPandSaveContext(moc: moc)
+
+        let result = instanceRestClient?.request(withMethod: "GET", pathForRelationship: entityRelationshipDescription, forObjectWith: artist.objectID, with: moc)
+
+        XCTAssertNotNil(result, "should not be nil")
+        XCTAssertTrue((result?.url?.absoluteString.contains("https://localhost/artists/"))! , "should contains to https://localhost/artists")
+        let countString = result?.url?.absoluteString.replacingOccurrences(of: "https://localhost/artists/", with: "").count
+        XCTAssertTrue(countString! > 0 , "should be greater then zero")
+
+        let resultComponent = result?.url?.absoluteString.replacingOccurrences(of: "https://localhost/artists/", with: "").components(separatedBy: "/")
+
+        XCTAssertTrue(resultComponent?.count == 2, "should be equals to 2")
+        XCTAssertTrue(resultComponent![1] == "songs", "should be equals to songs")
+        XCTAssertTrue(resultComponent![0].count > 0, "should be greater then zero")
+
+    }
+
+    func test_ShouldFetchRemoteValuesForRelationship () {
+
+        let instanceRestClient = AFRESTClient(baseURL: baseURL as URL!)
+
+        XCTAssertNotNil(instanceRestClient, "should be able to create an instance of AFRESTClient")
+        XCTAssertEqual(instanceRestClient?.baseURL, baseURL , "should be able to create an instance of AFRESTClient")
+
+        let entityDescriptionArtist = NSEntityDescription.entity(forEntityName: "Artist", in: moc)
+        let entityDescriptionSong = NSEntityDescription.entity(forEntityName: "Song", in: moc)
+        let entityRelationshipDescription = entityDescriptionArtist?.relationships(forDestination: entityDescriptionSong!)[0]
+
+        let result = instanceRestClient?.shouldFetchRemoteValues(forRelationship: entityRelationshipDescription, forObjectWith: nil, in: nil)
+
+        XCTAssertTrue(result!, "should be true")
+    }
+
+
+    func test_ShouldBeAbleToGetRepresentationOfAttributes () {
+
+        let instanceRestClient = AFRESTClient(baseURL: baseURL as URL!)
+
+        XCTAssertNotNil(instanceRestClient, "should be able to create an instance of AFRESTClient")
+        XCTAssertEqual(instanceRestClient?.baseURL, baseURL , "should be able to create an instance of AFRESTClient")
+
+        let artist = NSEntityDescription.insertNewObject(forEntityName: "Artist", into: moc) as? Artist
+        artist?.name = "test"
+        artist?.artistDescription = "test"
+        artist?.birthDate = Date()
+
+        let lazyMapCollection = artist?.entity.attributesByName.keys
+        let componentArray = Array(lazyMapCollection!)
+        let dictionary = artist?.dictionaryWithValues(forKeys: componentArray)
+        let result = instanceRestClient?.representation(ofAttributes: dictionary, of: artist)
+
+        XCTAssertNotNil(result, "should not be nil")
+        XCTAssertTrue(result?.keys.count == 3, "should be equals to 3")
+        XCTAssertNotNil(result?["name"] , "should not be nil")
+        XCTAssertNotNil(result?["artistDescription"] , "should not be nil")
+        XCTAssertNotNil(result?["birthDate"] , "should not be nil")
+
+    }
+
+
+    func test_ShoulBeCreateARequestForInsertedObject() {
+        let instanceRestClient = AFRESTClient(baseURL: baseURL as URL!)
+
+        XCTAssertNotNil(instanceRestClient, "should be able to create an instance of AFRESTClient")
+        XCTAssertEqual(instanceRestClient?.baseURL, baseURL , "should be able to create an instance of AFRESTClient")
+
+        let artist = NSEntityDescription.insertNewObject(forEntityName: "Artist", into: moc) as? Artist
+        artist?.name = "test"
+        artist?.artistDescription = "test"
+        artist?.birthDate = Date.distantPast
+
+        createFakeClientHTTPandSaveContext(moc: moc)
+
+        var result = instanceRestClient?.request(forInsertedObject: artist)
+
+        //encoding AFFormURLParameterEncoding
+        XCTAssertNotNil(result , "should not be nil")
+        XCTAssertTrue(result?.httpMethod == "POST", "should be equals to PUT")
+        XCTAssertTrue(result?.url?.absoluteString == "https://localhost/artists" , "should be equals to https://localhost/artists")
+        XCTAssertNotNil(result?.httpBody, "should not be nil")
+
+        var httpBodyString = String(bytes: result!.httpBody!, encoding: .utf8)
+        XCTAssertTrue(httpBodyString == "artistDescription=test&birthDate=0000-12-30%2000%3A00%3A00%20%2B0000&name=test", "should be equals to artistDescription=test&birthDate=0000-12-30%2000%3A00%3A00%20%2B0000&name=test")
+
+        var httpHeader = result?.allHTTPHeaderFields
+        XCTAssertNotNil(httpHeader, "should not be nil")
+        XCTAssertTrue(httpHeader?["Content-Type"] == "application/x-www-form-urlencoded; charset=utf-8", "shoul be equals to application/x-www-form-urlencoded; charset=utf-8")
+        XCTAssertNotNil(httpHeader?["User-Agent"], "should not be nil")
+        XCTAssertNotNil(httpHeader?["Accept-Language"], "should not be nil")
+
+        //encoding AFJSONParameterEncoding
+
+        instanceRestClient?.parameterEncoding = AFJSONParameterEncoding
+        result = instanceRestClient?.request(forInsertedObject: artist)
+
+        XCTAssertNotNil(result , "should not be nil")
+        XCTAssertTrue(result?.url?.absoluteString == "https://localhost/artists" , "should be equals to https://localhost/artists")
+        XCTAssertNotNil(result?.httpBody, "should not be nil")
+
+        httpBodyString = String(bytes: result!.httpBody!, encoding: .utf8)
+        XCTAssertTrue(httpBodyString == "{\"artistDescription\":\"test\",\"name\":\"test\",\"birthDate\":\"0000-12-30 00:00:00 +0000\"}", "should be equals to {\"artistDescription\":\"test\",\"name\":\"test\",\"birthDate\":\"0000-12-30 00:00:00 +0000\"}")
+
+        httpHeader = result?.allHTTPHeaderFields
+        XCTAssertNotNil(httpHeader, "should not be nil")
+        XCTAssertTrue(httpHeader?["Content-Type"] == "application/json; charset=utf-8", "shoul be equals to application/json; charset=utf-8")
+        XCTAssertNotNil(httpHeader?["User-Agent"], "should not be nil")
+        XCTAssertNotNil(httpHeader?["Accept-Language"], "should not be nil")
+
+
+        //encoding AFPropertyListParameterEncoding
+
+        instanceRestClient?.parameterEncoding = AFPropertyListParameterEncoding
+        result = instanceRestClient?.request(forInsertedObject: artist)
+
+        XCTAssertNotNil(result , "should not be nil")
+        XCTAssertTrue(result?.url?.absoluteString == "https://localhost/artists" , "should be equals to https://localhost/artists")
+        XCTAssertNotNil(result?.httpBody, "should not be nil")
+
+        httpBodyString = String(bytes: result!.httpBody!, encoding: .utf8)
+        XCTAssertTrue(httpBodyString == "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">\n<plist version=\"1.0\">\n<dict>\n\t<key>artistDescription</key>\n\t<string>test</string>\n\t<key>birthDate</key>\n\t<string>0000-12-30 00:00:00 +0000</string>\n\t<key>name</key>\n\t<string>test</string>\n</dict>\n</plist>\n",
+                      "should be equals to <?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">\n<plist version=\"1.0\">\n<dict>\n\t<key>artistDescription</key>\n\t<string>test</string>\n\t<key>birthDate</key>\n\t<string>0000-12-30 00:00:00 +0000</string>\n\t<key>name</key>\n\t<string>test</string>\n</dict>\n</plist>\n")
+
+        httpHeader = result?.allHTTPHeaderFields
+        XCTAssertNotNil(httpHeader, "should not be nil")
+        XCTAssertTrue(httpHeader?["Content-Type"] == "application/x-plist; charset=utf-8", "shoul be equals to application/x-plist; charset=utf-8")
+        XCTAssertNotNil(httpHeader?["User-Agent"], "should not be nil")
+        XCTAssertNotNil(httpHeader?["Accept-Language"], "should not be nil")
+
+    }
+
+
+
+
+    func test_ShoulBeCreateARequestForUpdateObject() {
+        let instanceRestClient = AFRESTClient(baseURL: baseURL as URL!)
+
+        XCTAssertNotNil(instanceRestClient, "should be able to create an instance of AFRESTClient")
+        XCTAssertEqual(instanceRestClient?.baseURL, baseURL , "should be able to create an instance of AFRESTClient")
+
+        let artist = NSEntityDescription.insertNewObject(forEntityName: "Artist", into: moc) as? Artist
+        artist?.name = "test"
+        artist?.artistDescription = "test"
+        artist?.birthDate = Date.distantPast
+
+        createFakeClientHTTPandSaveContext(moc: moc)
+
+        var result = instanceRestClient?.request(forUpdatedObject: artist)
+
+        XCTAssertNil(result , "should be nil")
+
+        artist?.birthDate = Date.distantFuture
+
+        result = instanceRestClient?.request(forUpdatedObject: artist)
+
+        //encoding AFFormURLParameterEncoding
+        XCTAssertNotNil(result , "should not be nil")
+        XCTAssertTrue(result?.httpMethod == "PUT", "should be equals to PUT")
+        XCTAssertTrue((result?.url?.absoluteString.contains("https://localhost/artists/"))!, "should contains https://localhost/artists/")
+        XCTAssertNotNil(result?.httpBody, "should not be nil")
+
+        var httpBodyString = String(bytes: result!.httpBody!, encoding: .utf8)
+        XCTAssertTrue(httpBodyString == "birthDate=4001-01-01%2000%3A00%3A00%20%2B0000", "should be equals to birthDate=4001-01-01%2000%3A00%3A00%20%2B0000")
+
+        var httpHeader = result?.allHTTPHeaderFields
+        XCTAssertNotNil(httpHeader, "should not be nil")
+        XCTAssertTrue(httpHeader?["Content-Type"] == "application/x-www-form-urlencoded; charset=utf-8", "shoul be equals to application/x-www-form-urlencoded; charset=utf-8")
+        XCTAssertNotNil(httpHeader?["User-Agent"], "should not be nil")
+        XCTAssertNotNil(httpHeader?["Accept-Language"], "should not be nil")
+
+        //encoding AFJSONParameterEncoding
+
+        instanceRestClient?.parameterEncoding = AFJSONParameterEncoding
+        result = instanceRestClient?.request(forUpdatedObject: artist)
+
+        XCTAssertNotNil(result , "should not be nil")
+        XCTAssertTrue((result?.url?.absoluteString.contains("https://localhost/artists/"))!, "should contains https://localhost/artists/")
+        XCTAssertNotNil(result?.httpBody, "should not be nil")
+
+        httpBodyString = String(bytes: result!.httpBody!, encoding: .utf8)
+        XCTAssertTrue(httpBodyString == "{\"birthDate\":\"4001-01-01 00:00:00 +0000\"}", "should be equals to {\"birthDate\":\"4001-01-01 00:00:00 +0000\"}")
+
+        httpHeader = result?.allHTTPHeaderFields
+        XCTAssertNotNil(httpHeader, "should not be nil")
+        XCTAssertTrue(httpHeader?["Content-Type"] == "application/json; charset=utf-8", "shoul be equals to application/json; charset=utf-8")
+        XCTAssertNotNil(httpHeader?["User-Agent"], "should not be nil")
+        XCTAssertNotNil(httpHeader?["Accept-Language"], "should not be nil")
+
+
+        //encoding AFPropertyListParameterEncoding
+
+        instanceRestClient?.parameterEncoding = AFPropertyListParameterEncoding
+        result = instanceRestClient?.request(forUpdatedObject: artist)
+
+        XCTAssertNotNil(result , "should not be nil")
+        XCTAssertTrue((result?.url?.absoluteString.contains("https://localhost/artists/"))!, "should contains https://localhost/artists/")
+        XCTAssertNotNil(result?.httpBody, "should not be nil")
+
+        httpBodyString = String(bytes: result!.httpBody!, encoding: .utf8)
+        XCTAssertTrue(httpBodyString == "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">\n<plist version=\"1.0\">\n<dict>\n\t<key>birthDate</key>\n\t<string>4001-01-01 00:00:00 +0000</string>\n</dict>\n</plist>\n",
+                      "should be equals to <?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">\n<plist version=\"1.0\">\n<dict>\n\t<key>birthDate</key>\n\t<string>4001-01-01 00:00:00 +0000</string>\n</dict>\n</plist>\n")
+
+        httpHeader = result?.allHTTPHeaderFields
+        XCTAssertNotNil(httpHeader, "should not be nil")
+        XCTAssertTrue(httpHeader?["Content-Type"] == "application/x-plist; charset=utf-8", "shoul be equals to application/x-plist; charset=utf-8")
+        XCTAssertNotNil(httpHeader?["User-Agent"], "should not be nil")
+        XCTAssertNotNil(httpHeader?["Accept-Language"], "should not be nil")
+
+    }
+
 }
