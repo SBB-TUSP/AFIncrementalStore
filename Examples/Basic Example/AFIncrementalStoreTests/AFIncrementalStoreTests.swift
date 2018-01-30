@@ -386,9 +386,10 @@ class AFIncrementalStoreTests: XCTestCase {
             override func attributes(forRepresentation representation: [AnyHashable : Any]!, ofEntity entity: NSEntityDescription!, from response: HTTPURLResponse!) -> [AnyHashable : Any]! {
                 let dictionary: [String: Any] = [
                     "artistDescription": "TEST-DESCRIPTION",
-                    "name": "TEST-ARTIST"
+                    "name": "TEST-ARTIST",
+                    "songs": [Any]()
                 ]
-                return dictionary
+                return entity.name == "Artist" ? dictionary : nil
             }
 
             override func request(for fetchRequest: NSFetchRequest<NSFetchRequestResult>!, with context: NSManagedObjectContext!) -> NSMutableURLRequest! {
@@ -408,7 +409,8 @@ class AFIncrementalStoreTests: XCTestCase {
             override func representationOrArrayOfRepresentations(ofEntity entity: NSEntityDescription!, fromResponseObject responseObject: Any!) -> Any! {
                 let dictionary: [String: Any] = [
                     "artistDescription": "TEST-DESCRIPTION",
-                    "name": "TEST-ARTIST"
+                    "name": "TEST-ARTIST",
+                    "songs": [Any]()
                 ]
                 return dictionary
             }
@@ -483,7 +485,8 @@ class AFIncrementalStoreTests: XCTestCase {
             override func representationOrArrayOfRepresentations(ofEntity entity: NSEntityDescription!, fromResponseObject responseObject: Any!) -> Any! {
                 let dictionary: [String: Any] = [
                     "artistDescription": "TEST-DESCRIPTION",
-                    "name": "TEST-ARTIST"
+                    "name": "TEST-ARTIST",
+                    "songs": [Any]()
                 ]
                 return dictionary
             }
@@ -495,7 +498,8 @@ class AFIncrementalStoreTests: XCTestCase {
             override func attributes(forRepresentation representation: [AnyHashable : Any]!, ofEntity entity: NSEntityDescription!, from response: HTTPURLResponse!) -> [AnyHashable : Any]! {
                 let dictionary: [String: Any] = [
                     "artistDescription": "TEST-DESCRIPTION",
-                    "name": "TEST-ARTIST"
+                    "name": "TEST-ARTIST",
+                    "songs": [Any]()
                 ]
                 return dictionary
             }
@@ -598,9 +602,10 @@ class AFIncrementalStoreTests: XCTestCase {
             override func representationOrArrayOfRepresentations(ofEntity entity: NSEntityDescription!, fromResponseObject responseObject: Any!) -> Any! {
                 let dictionary: [String: Any] = [
                     "artistDescription": "TEST-DESCRIPTION",
-                    "name": "TEST-ARTIST"
+                    "name": "TEST-ARTIST",
+                    "songs": [Any]()
                 ]
-                return dictionary
+                return entity.name == "Artist" ? dictionary : nil
             }
 
             override func resourceIdentifier(forRepresentation representation: [AnyHashable : Any]!, ofEntity entity: NSEntityDescription!, from response: HTTPURLResponse!) -> String! {
@@ -612,7 +617,7 @@ class AFIncrementalStoreTests: XCTestCase {
                     "artistDescription": "TEST-DESCRIPTION",
                     "name": "TEST-ARTIST"
                 ]
-                return dictionary
+                return entity.name == "Artist" ? dictionary : nil
             }
 
             override func request(withMethod method: String!, pathForObjectWith objectID: NSManagedObjectID!, with context: NSManagedObjectContext!) -> NSMutableURLRequest! {
@@ -656,6 +661,147 @@ class AFIncrementalStoreTests: XCTestCase {
             try! self.store.execute(NSSaveChangesRequest(inserted: [artist], updated: nil, deleted: nil, locked: nil), with: context)
         }
         wait(for: [finishExpectation, willFetchNewValues, didFetchNewValues], timeout: 10)
+    }
+
+    func test_newValueForRelationship_shouldSendNotifications() {
+        let willFetchExpectation = expectation(description: "should send will fetch new values for relationship notification")
+        willFetchExpectation.assertForOverFulfill = false
+        NotificationCenter.default.addObserver(forName: Notification.Name("AFIncrementalStoreContextWillFetchNewValuesForRelationship"), object: nil, queue: .main) {
+            notification in
+            let userInfo: [AnyHashable: Any]! = notification.userInfo
+            XCTAssertNotNil(userInfo)
+            let id: NSManagedObjectID! = userInfo["AFIncrementalStoreFaultingObjectID"] as? NSManagedObjectID
+            XCTAssertNotNil(id)
+            XCTAssertTrue(id.uriRepresentation().lastPathComponent.contains("TEST-ID"))
+            let relationship: NSRelationshipDescription! = userInfo["AFIncrementalStoreFaultingRelationship"] as? NSRelationshipDescription
+            XCTAssertNotNil(relationship)
+            XCTAssertTrue((relationship.name == "songs" && relationship.inverseRelationship?.name == "artist") || relationship.name == "artist" && (relationship.inverseRelationship?.name == "songs"))
+            XCTAssertTrue((relationship.destinationEntity?.name == "Song" && relationship.inverseRelationship?.destinationEntity?.name == "Artist") || (relationship.destinationEntity?.name == "Artist" && relationship.inverseRelationship?.destinationEntity?.name == "Song"))
+            let operations: [AFHTTPRequestOperation]! = userInfo["AFIncrementalStoreRequestOperations"] as? [AFHTTPRequestOperation]
+            XCTAssertNotNil(operations)
+            XCTAssertFalse(operations.isEmpty)
+            XCTAssertEqual(operations.count, 1)
+            let operation: AFHTTPRequestOperation! = operations.first
+            XCTAssertNotNil(operation)
+            XCTAssertFalse(operation.isFinished)
+            XCTAssertFalse(operation.isExecuting)
+            willFetchExpectation.fulfill()
+        }
+        let didFetchExpectation = expectation(description: "should send will fetch new values for relationship notification")
+        didFetchExpectation.assertForOverFulfill = false
+        NotificationCenter.default.addObserver(forName: Notification.Name("AFIncrementalStoreContextDidFetchNewValuesForRelationship"), object: nil, queue: .main) {
+            notification in
+            let userInfo: [AnyHashable : Any]! = notification.userInfo
+            XCTAssertNotNil(userInfo)
+            let id: NSManagedObjectID! = userInfo["AFIncrementalStoreFaultingObjectID"] as? NSManagedObjectID
+            XCTAssertNotNil(id)
+            XCTAssertTrue(id.uriRepresentation().lastPathComponent.contains("TEST-ID"))
+            let relationship: NSRelationshipDescription! = userInfo["AFIncrementalStoreFaultingRelationship"] as? NSRelationshipDescription
+            XCTAssertNotNil(relationship)
+            XCTAssertTrue((relationship.name == "songs" && relationship.inverseRelationship?.name == "artist") || relationship.name == "artist" && (relationship.inverseRelationship?.name == "songs"))
+            XCTAssertTrue((relationship.destinationEntity?.name == "Song" && relationship.inverseRelationship?.destinationEntity?.name == "Artist") || (relationship.destinationEntity?.name == "Artist" && relationship.inverseRelationship?.destinationEntity?.name == "Song"))
+            let operations: [AFHTTPRequestOperation]! = userInfo["AFIncrementalStoreRequestOperations"] as? [AFHTTPRequestOperation]
+            XCTAssertNotNil(operations)
+            XCTAssertFalse(operations.isEmpty)
+            XCTAssertEqual(operations.count, 1)
+            let operation: AFHTTPRequestOperation! = operations.first
+            XCTAssertNotNil(operation)
+            XCTAssertTrue(operation.isFinished)
+            didFetchExpectation.fulfill()
+        }
+        class FakeClientSubclass: FakeClient {
+
+            func shouldFetchRemoteValues(forRelationship relationship: NSRelationshipDescription!, forObjectWith objectID: NSManagedObjectID!, in context: NSManagedObjectContext!) -> Bool {
+                return true
+            }
+
+            func shouldFetchRemoteAttributeValuesForObject(with objectID: NSManagedObjectID!, in context: NSManagedObjectContext!) -> Bool {
+                return true
+            }
+
+            func request(forInsertedObject insertedObject: NSManagedObject!) -> NSMutableURLRequest! {
+                return NSMutableURLRequest(url: URL(string: "http://localhost")!)
+            }
+
+            override func request(withMethod method: String!, pathForRelationship relationship: NSRelationshipDescription!, forObjectWith objectID: NSManagedObjectID!, with context: NSManagedObjectContext!) -> NSMutableURLRequest! {
+                return NSMutableURLRequest(url: URL(string: "http://localhost")!)
+            }
+
+            override func httpRequestOperation(with urlRequest: URLRequest!, success: ((AFHTTPRequestOperation?, Any?) -> Void)!, failure: ((AFHTTPRequestOperation?, Error?) -> Void)!) -> AFHTTPRequestOperation! {
+                let operation = AFHTTPRequestOperation(request: urlRequest)
+                operation?.failureCallbackQueue = .main
+                operation?.setCompletionBlockWithSuccess({ _, _ in }, failure: {
+                    operation, _ in
+                    success?(operation, [String: Any]())
+                })
+                return operation
+            }
+
+            override func representationOrArrayOfRepresentations(ofEntity entity: NSEntityDescription!, fromResponseObject responseObject: Any!) -> Any! {
+                let dictionary: [String: Any] = entity.name == "Artist" ? [
+                    "artistDescription": "TEST-DESCRIPTION",
+                    "name": "TEST-ARTIST"
+                    ] : [
+                        "title": "TEST-SONG"
+                ]
+                return dictionary
+            }
+
+            override func resourceIdentifier(forRepresentation representation: [AnyHashable : Any]!, ofEntity entity: NSEntityDescription!, from response: HTTPURLResponse!) -> String! {
+                return "TEST-ID"
+            }
+
+            override func attributes(forRepresentation representation: [AnyHashable : Any]!, ofEntity entity: NSEntityDescription!, from response: HTTPURLResponse!) -> [AnyHashable : Any]! {
+                let dictionary: [String: Any] = entity.name == "Artist" ? [
+                    "artistDescription": "TEST-DESCRIPTION",
+                    "name": "TEST-ARTIST"
+                ] : [
+                    "title": "TEST-SONG"
+                ]
+                return dictionary
+            }
+
+            override func request(withMethod method: String!, pathForObjectWith objectID: NSManagedObjectID!, with context: NSManagedObjectContext!) -> NSMutableURLRequest! {
+                return NSMutableURLRequest(url: URL(string: "http://localhost")!)
+            }
+
+            override func enqueueBatch(ofHTTPRequestOperations operations: [Any]!, progressBlock: ((UInt, UInt) -> Void)!, completionBlock: (([Any]?) -> Void)!) {
+                super.enqueueBatch(ofHTTPRequestOperations: operations, progressBlock: progressBlock) {
+                    operations in
+                    completionBlock(operations)
+                    self.completion?()
+                }
+            }
+
+            override func representationsForRelationships(fromRepresentation representation: [AnyHashable : Any]!, ofEntity entity: NSEntityDescription!, from response: HTTPURLResponse!) -> [AnyHashable : Any]! {
+                return [AnyHashable: Any]()
+            }
+
+            var completion: (() -> Void)?
+
+        }
+        let client = FakeClientSubclass(baseURL: URL(string: "http://localhost"))
+        let finishExpectation = expectation(description: "should finish calls and callbacks")
+        let context = NSManagedObjectContext(concurrencyType: .mainQueueConcurrencyType)
+        context.persistentStoreCoordinator = coordinator
+        var artist: Artist!
+        client?.completion = {
+            client?.completion = nil
+            context.perform {
+                let relationshipDescription = NSEntityDescription.entity(forEntityName: "Artist", in: context)!.relationships(forDestination: NSEntityDescription.entity(forEntityName: "Song", in: context)!).first!
+                let destination = try? self.store.newValue(forRelationship: relationshipDescription, forObjectWith: artist.objectID, with: context)
+                let ids: [NSManagedObjectID]! = destination as? [NSManagedObjectID]
+                XCTAssertNotNil(ids)
+                XCTAssertTrue(ids.isEmpty)
+                finishExpectation.fulfill()
+            }
+        }
+        store.httpClient = client
+        context.perform {
+            artist = Artist(entity: NSEntityDescription.entity(forEntityName: "Artist", in: context)!, insertInto: context)
+            try! self.store.execute(NSSaveChangesRequest.init(inserted: [artist], updated: nil, deleted: nil, locked: nil), with: context)
+        }
+        wait(for: [finishExpectation, willFetchExpectation, didFetchExpectation], timeout: 10)
     }
     
 }
