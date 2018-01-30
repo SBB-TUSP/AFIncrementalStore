@@ -433,7 +433,7 @@ class AFIncrementalStoreTests: XCTestCase {
     }
 
     func test_executeSaveChangesRequest_shouldNotifyWhenRemoteFetchIsPerformed() {
-       let willSaveNotification = expectation(description: "should call will save remote values")
+        let willSaveNotification = expectation(description: "should call will save remote values")
         willSaveNotification.assertForOverFulfill = false
         NotificationCenter.default.addObserver(forName: NSNotification.Name("AFIncrementalStoreContextWillSaveRemoteValues"), object: nil, queue: .main) {
             notification in
@@ -755,8 +755,8 @@ class AFIncrementalStoreTests: XCTestCase {
                 let dictionary: [String: Any] = entity.name == "Artist" ? [
                     "artistDescription": "TEST-DESCRIPTION",
                     "name": "TEST-ARTIST"
-                ] : [
-                    "title": "TEST-SONG"
+                    ] : [
+                        "title": "TEST-SONG"
                 ]
                 return dictionary
             }
