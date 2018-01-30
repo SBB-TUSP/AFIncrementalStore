@@ -888,7 +888,72 @@ class AFIncrementalStoreTests: XCTestCase {
     }
 
     func test_executeSaveChangesRequest_shouldWorkForDeletions() {
+        class FakeClientSubclass8: FakeClient {
 
+            func request(forInsertedObject insertedObject: NSManagedObject!) -> NSMutableURLRequest! {
+                return NSMutableURLRequest(url: URL(string: "http://localhost/insert")!)
+            }
+
+            func request(forDeletedObject updatedObject: NSManagedObject!) -> NSMutableURLRequest! {
+                return NSMutableURLRequest(url: URL(string: "http://localhost/delete")!)
+            }
+
+            override func httpRequestOperation(with urlRequest: URLRequest!, success: ((AFHTTPRequestOperation?, Any?) -> Void)!, failure: ((AFHTTPRequestOperation?, Error?) -> Void)!) -> AFHTTPRequestOperation! {
+                let operation = AFHTTPRequestOperation(request: urlRequest)
+                operation?.failureCallbackQueue = .main
+                operation?.setCompletionBlockWithSuccess(nil) {
+                    operation, _ in
+                    let dictionary: [String: Any] = [
+                        "request": operation!.request.url!.lastPathComponent
+                    ]
+                    success?(operation, dictionary)
+                }
+                return operation
+            }
+
+            override func representationOrArrayOfRepresentations(ofEntity entity: NSEntityDescription!, fromResponseObject responseObject: Any!) -> Any! {
+                let dictionary: [String: Any] = [
+                    "name": "TEST-ARTIST",
+                    "artistDescription": "TEST-DESCRIPTION"
+                ]
+                return dictionary
+            }
+
+            override func resourceIdentifier(forRepresentation representation: [AnyHashable : Any]!, ofEntity entity: NSEntityDescription!, from response: HTTPURLResponse!) -> String! {
+                return "TEST-ID"
+            }
+
+            override func attributes(forRepresentation representation: [AnyHashable : Any]!, ofEntity entity: NSEntityDescription!, from response: HTTPURLResponse!) -> [AnyHashable : Any]! {
+                return representation
+            }
+
+        }
+        let client = FakeClientSubclass8()
+        store.httpClient = client
+        let context = NSManagedObjectContext(concurrencyType: .mainQueueConcurrencyType)
+        context.persistentStoreCoordinator = coordinator
+        var artist: Artist!
+        let finishExpectation = expectation(description: "should finish all calls and callbacks")
+        finishExpectation.assertForOverFulfill = false
+        NotificationCenter.default.addObserver(forName: Notification.Name("AFIncrementalStoreContextDidSaveRemoteValues"), object: nil, queue: .main) { [weak self]
+            notification in
+            guard (notification.userInfo?["AFIncrementalStorePersistentStoreRequest"] as? NSSaveChangesRequest)?.deletedObjects?.count == 1 else {
+                context.perform {
+                    context.delete(artist)
+                    _ = try? self?.store?.execute(NSSaveChangesRequest(inserted: nil, updated: nil, deleted: [artist], locked: nil), with: context)
+                }
+                return
+            }
+            finishExpectation.fulfill()
+        }
+        context.perform {
+            artist = Artist(entity: NSEntityDescription.entity(forEntityName: "Artist", in: context)!, insertInto: context)
+            artist.name = "TEST-ARTIST"
+            artist.artistDescription = "TEST-DESCRIPTION"
+            _ = try! self.store.execute(NSSaveChangesRequest(inserted: [artist], updated: nil, deleted: nil, locked: nil), with: context)
+        }
+        wait(for: [finishExpectation], timeout: 10)
+    }
     }
 
 }
