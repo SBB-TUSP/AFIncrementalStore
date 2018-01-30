@@ -9,6 +9,14 @@ import XCTest
 
 private class FakeClient: AFHTTPClient, AFIncrementalStoreHTTPClient {
 
+    override init() {
+        super.init(baseURL: URL(string: "http://localhost")!)
+    }
+
+    required init?(coder aDecoder: NSCoder) {
+        super.init(coder: aDecoder)
+    }
+
     func representationsForRelationships(fromRepresentation representation: [AnyHashable : Any]!, ofEntity entity: NSEntityDescription!, from response: HTTPURLResponse!) -> [AnyHashable : Any]! {
         return nil
     }
@@ -101,7 +109,7 @@ class AFIncrementalStoreTests: XCTestCase {
     }
 
     func test_executeFetchRequestShouldReturnEmptyArray_whenDBAndResponseEmpty() {
-        class FakeClientSubclass: FakeClient {
+        class FakeClientSubclass1: FakeClient {
 
             override func request(for fetchRequest: NSFetchRequest<NSFetchRequestResult>!, with context: NSManagedObjectContext!) -> NSMutableURLRequest! {
                 return NSMutableURLRequest(url: URL(string: "http://localhost")!)
@@ -127,8 +135,8 @@ class AFIncrementalStoreTests: XCTestCase {
 
         }
         let testFinishExpectation = expectation(description: "shouldFinishExecutingTest")
-        let fakeClient = FakeClientSubclass(baseURL: URL(string: "http://localhost"))
-        fakeClient?.testFinishedClosure = {
+        let fakeClient = FakeClientSubclass1()
+        fakeClient.testFinishedClosure = {
             testFinishExpectation.fulfill()
         }
         store.httpClient = fakeClient
@@ -146,11 +154,11 @@ class AFIncrementalStoreTests: XCTestCase {
         }
         XCTAssertNotNil(results)
         XCTAssertTrue(results.isEmpty)
-        wait(for: [testFinishExpectation], timeout: 1)
+        wait(for: [testFinishExpectation], timeout: 10)
     }
 
     func test_executeFetchRequestShouldReturnEmptyArray_whenDBNotEmptyAndResponseEmpty() {
-        class FakeClientSubclass: FakeClient {
+        class FakeClientSubclass2: FakeClient {
 
             override func request(for fetchRequest: NSFetchRequest<NSFetchRequestResult>!, with context: NSManagedObjectContext!) -> NSMutableURLRequest! {
                 return NSMutableURLRequest(url: URL(string: "http://localhost")!)
@@ -176,8 +184,8 @@ class AFIncrementalStoreTests: XCTestCase {
 
         }
         let testFinishExpectation = expectation(description: "shouldFinishExecutingTest")
-        let fakeClient = FakeClientSubclass(baseURL: URL(string: "http://localhost"))
-        fakeClient?.testFinishedClosure = {
+        let fakeClient = FakeClientSubclass2()
+        fakeClient.testFinishedClosure = {
             testFinishExpectation.fulfill()
         }
         store.httpClient = fakeClient
@@ -199,11 +207,11 @@ class AFIncrementalStoreTests: XCTestCase {
         }
         XCTAssertNotNil(results)
         XCTAssertTrue(results.isEmpty)
-        wait(for: [testFinishExpectation], timeout: 1)
+        wait(for: [testFinishExpectation], timeout: 10)
     }
 
     func test_executeFetchRequestShouldReturnNonEmptyArray_whenDBEmptyAndResponseNotEmpty() {
-        class FakeClientSubclass: FakeClient {
+        class FakeClientSubclass3: FakeClient {
 
             override func resourceIdentifier(forRepresentation representation: [AnyHashable : Any]!, ofEntity entity: NSEntityDescription!, from response: HTTPURLResponse!) -> String! {
                 return "TEST-ID"
@@ -245,8 +253,8 @@ class AFIncrementalStoreTests: XCTestCase {
 
         }
         let testFinishExpectation = expectation(description: "shouldFinishExecutingTest")
-        let fakeClient = FakeClientSubclass(baseURL: URL(string: "http://localhost"))
-        fakeClient?.testFinishedClosure = {
+        let fakeClient = FakeClientSubclass3()
+        fakeClient.testFinishedClosure = {
             testFinishExpectation.fulfill()
         }
         store.httpClient = fakeClient
@@ -264,11 +272,11 @@ class AFIncrementalStoreTests: XCTestCase {
         XCTAssertNotNil(rawArtist)
         XCTAssertEqual(rawArtist.entity.name, "Artist")
         XCTAssertEqual(rawArtist.value(forKey: "name") as? String, "TEST-ARTIST")
-        wait(for: [testFinishExpectation], timeout: 1)
+        wait(for: [testFinishExpectation], timeout: 10)
     }
 
     func test_executeFetchRequestShouldReturnIDs_whenRequestTypeIsIDResultType() {
-        class FakeClientSubclass: FakeClient {
+        class FakeClientSubclass4: FakeClient {
 
             override func resourceIdentifier(forRepresentation representation: [AnyHashable : Any]!, ofEntity entity: NSEntityDescription!, from response: HTTPURLResponse!) -> String! {
                 return "TEST-ID"
@@ -310,8 +318,8 @@ class AFIncrementalStoreTests: XCTestCase {
 
         }
         let testFinishExpectation = expectation(description: "shouldFinishExecutingTest")
-        let fakeClient = FakeClientSubclass(baseURL: URL(string: "http://localhost"))
-        fakeClient?.testFinishedClosure = {
+        let fakeClient = FakeClientSubclass4()
+        fakeClient.testFinishedClosure = {
             testFinishExpectation.fulfill()
         }
         store.httpClient = fakeClient
@@ -332,7 +340,7 @@ class AFIncrementalStoreTests: XCTestCase {
         let id: NSManagedObjectID! = arrayResults.first
         XCTAssertNotNil(id)
         XCTAssert(id.uriRepresentation().lastPathComponent.contains("TEST-ID"))
-        wait(for: [testFinishExpectation], timeout: 1)
+        wait(for: [testFinishExpectation], timeout: 10)
     }
 
     func test_executeFetchRequest_shouldNotifyWhenRemoteFetchIsPerformed() {
@@ -377,7 +385,7 @@ class AFIncrementalStoreTests: XCTestCase {
             didFetchNotification.fulfill()
         }
 
-        class FakeClientSubclass: FakeClient {
+        class FakeClientSubclass5: FakeClient {
 
             override func resourceIdentifier(forRepresentation representation: [AnyHashable : Any]!, ofEntity entity: NSEntityDescription!, from response: HTTPURLResponse!) -> String! {
                 return "TEST-ID"
@@ -420,7 +428,7 @@ class AFIncrementalStoreTests: XCTestCase {
             }
 
         }
-        let fakeClient = FakeClientSubclass(baseURL: URL(string: "http://localhost"))
+        let fakeClient = FakeClientSubclass5()
         store.httpClient = fakeClient
         let context = NSManagedObjectContext(concurrencyType: .mainQueueConcurrencyType)
         context.persistentStoreCoordinator = coordinator
@@ -467,7 +475,7 @@ class AFIncrementalStoreTests: XCTestCase {
             XCTAssertNotNil(request)
             didSaveNotification.fulfill()
         }
-        class FakeClientSubclass: FakeClient {
+        class FakeClientSubclass5: FakeClient {
 
             func request(forInsertedObject insertedObject: NSManagedObject!) -> NSMutableURLRequest! {
                 return NSMutableURLRequest(url: URL(string: "http://localhost")!)
@@ -515,12 +523,12 @@ class AFIncrementalStoreTests: XCTestCase {
             var completion: (() -> Void)?
 
         }
-        let client = FakeClientSubclass(baseURL: URL(string: "http://localhost")!)
+        let client = FakeClientSubclass5()
         store.httpClient = client
         let finishExpectation = expectation(description: "should finish async calls")
         let context = NSManagedObjectContext(concurrencyType: .mainQueueConcurrencyType)
         context.persistentStoreCoordinator = coordinator
-        client?.completion = {
+        client.completion = {
             context.perform {
                 let request = NSFetchRequest<Artist>()
                 request.entity = NSEntityDescription.entity(forEntityName: "Artist", in: context)
@@ -579,7 +587,7 @@ class AFIncrementalStoreTests: XCTestCase {
             XCTAssertTrue(id.uriRepresentation().lastPathComponent.contains("TEST-ID"))
             didFetchNewValues.fulfill()
         }
-        class FakeClientSubclass: FakeClient {
+        class FakeClientSubclass6: FakeClient {
 
             func shouldFetchRemoteAttributeValuesForObject(with objectID: NSManagedObjectID!, in context: NSManagedObjectContext!) -> Bool {
                 return true
@@ -637,11 +645,11 @@ class AFIncrementalStoreTests: XCTestCase {
         }
         let finishExpectation = expectation(description: "should finish calls and checks")
         finishExpectation.assertForOverFulfill = false
-        let fakeClient = FakeClientSubclass(baseURL: URL(string: "http://localhost"))
+        let fakeClient = FakeClientSubclass6()
         let context = NSManagedObjectContext(concurrencyType: .mainQueueConcurrencyType)
         context.persistentStoreCoordinator = coordinator
         var artist: Artist!
-        fakeClient?.completion = {
+        fakeClient.completion = {
             context.perform {
                 let node = try! self.store.newValuesForObject(with: artist.objectID, with: context)
                 XCTAssertEqual(node.objectID, artist.objectID)
@@ -709,7 +717,7 @@ class AFIncrementalStoreTests: XCTestCase {
             XCTAssertTrue(operation.isFinished)
             didFetchExpectation.fulfill()
         }
-        class FakeClientSubclass: FakeClient {
+        class FakeClientSubclass7: FakeClient {
 
             func shouldFetchRemoteValues(forRelationship relationship: NSRelationshipDescription!, forObjectWith objectID: NSManagedObjectID!, in context: NSManagedObjectContext!) -> Bool {
                 return true
@@ -780,13 +788,13 @@ class AFIncrementalStoreTests: XCTestCase {
             var completion: (() -> Void)?
 
         }
-        let client = FakeClientSubclass(baseURL: URL(string: "http://localhost"))
+        let client = FakeClientSubclass7()
         let finishExpectation = expectation(description: "should finish calls and callbacks")
         let context = NSManagedObjectContext(concurrencyType: .mainQueueConcurrencyType)
         context.persistentStoreCoordinator = coordinator
         var artist: Artist!
-        client?.completion = {
-            client?.completion = nil
+        client.completion = {
+            client.completion = nil
             context.perform {
                 let relationshipDescription = NSEntityDescription.entity(forEntityName: "Artist", in: context)!.relationships(forDestination: NSEntityDescription.entity(forEntityName: "Song", in: context)!).first!
                 let destination = try? self.store.newValue(forRelationship: relationshipDescription, forObjectWith: artist.objectID, with: context)
@@ -803,5 +811,84 @@ class AFIncrementalStoreTests: XCTestCase {
         }
         wait(for: [finishExpectation, willFetchExpectation, didFetchExpectation], timeout: 10)
     }
-    
+
+    func test_executeSaveChangesRequest_shouldWorkForUpdates() {
+        class FakeClientSubclass8: FakeClient {
+
+            func request(forInsertedObject insertedObject: NSManagedObject!) -> NSMutableURLRequest! {
+                return NSMutableURLRequest(url: URL(string: "http://localhost/insert")!)
+            }
+
+            func request(forUpdatedObject updatedObject: NSManagedObject!) -> NSMutableURLRequest! {
+                return NSMutableURLRequest(url: URL(string: "http://localhost/update")!)
+            }
+
+            override func httpRequestOperation(with urlRequest: URLRequest!, success: ((AFHTTPRequestOperation?, Any?) -> Void)!, failure: ((AFHTTPRequestOperation?, Error?) -> Void)!) -> AFHTTPRequestOperation! {
+                let operation = AFHTTPRequestOperation(request: urlRequest)
+                operation?.failureCallbackQueue = .main
+                operation?.setCompletionBlockWithSuccess(nil) {
+                    operation, _ in
+                    let dictionary: [String: Any] = [
+                        "request": operation!.request.url!.lastPathComponent
+                    ]
+                    success?(operation, dictionary)
+                }
+                return operation
+            }
+
+            override func representationOrArrayOfRepresentations(ofEntity entity: NSEntityDescription!, fromResponseObject responseObject: Any!) -> Any! {
+                if (responseObject as! [String: Any])["request"] as! String == "insert" {
+                    let dictionary: [String: Any] = [
+                        "name": "TEST-ARTIST",
+                        "artistDescription": "TEST-DESCRIPTION"
+                    ]
+                    return dictionary
+                }
+                let dictionary: [String: Any] = [
+                    "name": "TEST-ARTIST-EDITED",
+                    "artistDescription": "TEST-DESCRIPTION"
+                ]
+                return dictionary
+            }
+
+            override func resourceIdentifier(forRepresentation representation: [AnyHashable : Any]!, ofEntity entity: NSEntityDescription!, from response: HTTPURLResponse!) -> String! {
+                return "TEST-ID"
+            }
+
+            override func attributes(forRepresentation representation: [AnyHashable : Any]!, ofEntity entity: NSEntityDescription!, from response: HTTPURLResponse!) -> [AnyHashable : Any]! {
+                return representation
+            }
+
+        }
+        let client = FakeClientSubclass8()
+        store.httpClient = client
+        let context = NSManagedObjectContext(concurrencyType: .mainQueueConcurrencyType)
+        context.persistentStoreCoordinator = coordinator
+        var artist: Artist!
+        let finishExpectation = expectation(description: "should finish all calls and callbacks")
+        finishExpectation.assertForOverFulfill = false
+        NotificationCenter.default.addObserver(forName: Notification.Name("AFIncrementalStoreContextDidSaveRemoteValues"), object: nil, queue: .main) { [weak self]
+            notification in
+            guard (notification.userInfo?["AFIncrementalStorePersistentStoreRequest"] as? NSSaveChangesRequest)?.updatedObjects?.count == 1 else {
+                context.perform {
+                    artist.name = "TEST-ARTIST-EDITED"
+                    _ = try? self?.store?.execute(NSSaveChangesRequest(inserted: nil, updated: [artist], deleted: nil, locked: nil), with: context)
+                }
+                return
+            }
+            finishExpectation.fulfill()
+        }
+        context.perform {
+            artist = Artist(entity: NSEntityDescription.entity(forEntityName: "Artist", in: context)!, insertInto: context)
+            artist.name = "TEST-ARTIST"
+            artist.artistDescription = "TEST-DESCRIPTION"
+            _ = try! self.store.execute(NSSaveChangesRequest(inserted: [artist], updated: nil, deleted: nil, locked: nil), with: context)
+        }
+        wait(for: [finishExpectation], timeout: 10)
+    }
+
+    func test_executeSaveChangesRequest_shouldWorkForDeletions() {
+
+    }
+
 }
