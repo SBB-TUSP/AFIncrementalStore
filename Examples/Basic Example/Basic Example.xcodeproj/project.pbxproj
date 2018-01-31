@@ -64,6 +64,7 @@
 		6620236B2019DC06000F684D /* Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Bridging-Header.h"; sourceTree = "<group>"; };
 		6620236F201A1526000F684D /* ObjCAssertWrapper.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ObjCAssertWrapper.h; sourceTree = "<group>"; };
 		66202370201A1526000F684D /* ObjCAssertWrapper.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ObjCAssertWrapper.m; sourceTree = "<group>"; };
+		888828A12021DF6C006794CD /* Bridging-Header.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "Bridging-Header.h"; sourceTree = SOURCE_ROOT; };
 		88E8B58E201B66B7000516ED /* AFRESTClientTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AFRESTClientTests.swift; sourceTree = "<group>"; };
 		88E8B595201F24C3000516ED /* FakeClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FakeClient.swift; sourceTree = "<group>"; };
 		F81D903A16F3DED80043C85A /* NSValueTransformer+TransformerKit.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSValueTransformer+TransformerKit.h"; sourceTree = "<group>"; };
@@ -296,6 +297,7 @@
 		F8AFAFB915AB4F28003FE5BB /* Basic Example */ = {
 			isa = PBXGroup;
 			children = (
+				888828A12021DF6C006794CD /* Bridging-Header.h */,
 				F8874F1C15B08BD30048680F /* AppDelegate.h */,
 				F8874F1B15B08BD30048680F /* AppDelegate.m */,
 				F8874F1215B08B770048680F /* SongAPIClient.h */,
@@ -608,6 +610,8 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
 				SDKROOT = iphoneos;
+				SWIFT_OBJC_BRIDGING_HEADER = "./Bridging-Header.h";
+				SWIFT_VERSION = 3.0;
 			};
 			name = Debug;
 		};
@@ -631,6 +635,8 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
 				OTHER_CFLAGS = "-DNS_BLOCK_ASSERTIONS=1";
 				SDKROOT = iphoneos;
+				SWIFT_OBJC_BRIDGING_HEADER = "./Bridging-Header.h";
+				SWIFT_VERSION = 3.0;
 				VALIDATE_PRODUCT = YES;
 			};
 			name = Release;
