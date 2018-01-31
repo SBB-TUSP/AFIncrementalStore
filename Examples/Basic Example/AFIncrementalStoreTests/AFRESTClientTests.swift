@@ -233,8 +233,8 @@ class AFRESTClientTests: XCTestCase {
 
         XCTAssertNotNil(result, "should not be nil")
         guard let resultDictionary = result as? [String: String] else { XCTFail(); return }
-        XCTAssertTrue(resultDictionary["name"] == "test", "should be test")
-        XCTAssertTrue(resultDictionary["artistDescription"] == "test", "should be test")
+        XCTAssertTrue(resultDictionary["name"] == "test", "should be equals to test")
+        XCTAssertTrue(resultDictionary["artistDescription"] == "test", "should be equals to test")
     }
 
     func test_ShouldBeAbleToRepresentationOrArrayOfRepresentationsOfEntity_whenResponseObjectIsADictionaryWithASubEntity() {
@@ -257,8 +257,8 @@ class AFRESTClientTests: XCTestCase {
 
         XCTAssertNotNil(result, "should not be nil")
         guard let resultDictionary = result as? [String: String] else { XCTFail(); return }
-        XCTAssertTrue(resultDictionary["name"] == "test", "should be test")
-        XCTAssertTrue(resultDictionary["artistDescription"] == "test", "should be test")
+        XCTAssertTrue(resultDictionary["name"] == "test", "should be equals to test")
+        XCTAssertTrue(resultDictionary["artistDescription"] == "test", "should be equals test")
     }
 
     func test_ShouldBeAbleToRepresentationOrArrayOfRepresentationsOfEntity_whenResponseObjectIsADictionaryWithASubArrayEntity() {
@@ -403,7 +403,7 @@ class AFRESTClientTests: XCTestCase {
 
         XCTAssertNotNil(result, "should not be nil")
 
-        XCTAssertTrue(result == "idTest", "should be equal to idTest")
+        XCTAssertTrue(result == "idTest", "should be equals to idTest")
 
     }
 
@@ -440,7 +440,7 @@ class AFRESTClientTests: XCTestCase {
 
         let result = instanceRestClient?.attributes(forRepresentation: responseObject, ofEntity: entityDescriptionArtist, from: nil)
 
-        XCTAssertNotNil(result, "should be nil")
+        XCTAssertNotNil(result, "should not be nil")
         XCTAssertTrue(result?.keys.count == 2, "should be equals to 2")
         XCTAssertTrue((result?.keys.contains("name"))!, "should contains name")
         XCTAssertTrue((result?.keys.contains("artistDescription"))!, "should contains artistDescription")
