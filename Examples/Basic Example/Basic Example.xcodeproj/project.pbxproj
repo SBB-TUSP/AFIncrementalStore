@@ -7,11 +7,11 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		415672AC377231C808A649C0 /* Pods_AFIncrementalStoreTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0F753E7D4036A114F6BEA739 /* Pods_AFIncrementalStoreTests.framework */; };
+		1B581FE64904F6EB2A9E0447 /* Pods_AFIncrementalStore_Songs.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 379547A63FA69A73D1E3BDA9 /* Pods_AFIncrementalStore_Songs.framework */; };
+		599D0CD0A4A7C2DD202B2602 /* Pods_AFIncrementalStore_AFIncrementalStoreTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 71B1BCEB586A17E0CE640C91 /* Pods_AFIncrementalStore_AFIncrementalStoreTests.framework */; };
 		662023642019D0E3000F684D /* AFIncrementalStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 662023632019D0E3000F684D /* AFIncrementalStoreTests.swift */; };
 		6620236C2019E1C6000F684D /* IncrementalStoreExample.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = F8874F2115B08CA80048680F /* IncrementalStoreExample.xcdatamodeld */; };
 		66202371201A1526000F684D /* ObjCAssertWrapper.m in Sources */ = {isa = PBXBuildFile; fileRef = 66202370201A1526000F684D /* ObjCAssertWrapper.m */; };
-		6BB7E4C64A7495E5EE04CA92 /* Pods_Songs.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C933D6B55CAAAC381BBC6E8C /* Pods_Songs.framework */; };
 		8883B1C52022139F00E96A93 /* Podfile in Resources */ = {isa = PBXBuildFile; fileRef = 8883B1C42022139F00E96A93 /* Podfile */; };
 		88E8B58F201B66B7000516ED /* AFRESTClientTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88E8B58E201B66B7000516ED /* AFRESTClientTests.swift */; };
 		88E8B596201F24C3000516ED /* FakeClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88E8B595201F24C3000516ED /* FakeClient.swift */; };
@@ -46,20 +46,24 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		0F753E7D4036A114F6BEA739 /* Pods_AFIncrementalStoreTests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_AFIncrementalStoreTests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		109FACDEF4B69394EDDC0D46 /* Pods-AFIncrementalStore-Songs.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-AFIncrementalStore-Songs.release.xcconfig"; path = "Pods/Target Support Files/Pods-AFIncrementalStore-Songs/Pods-AFIncrementalStore-Songs.release.xcconfig"; sourceTree = "<group>"; };
 		24A4ABD13013106E5F89A9F0 /* Pods-Songs.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Songs.debug.xcconfig"; path = "Pods/Target Support Files/Pods-Songs/Pods-Songs.debug.xcconfig"; sourceTree = "<group>"; };
+		30E288ED2634E4BFAC2E1169 /* Pods-AFIncrementalStore-Songs.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-AFIncrementalStore-Songs.debug.xcconfig"; path = "Pods/Target Support Files/Pods-AFIncrementalStore-Songs/Pods-AFIncrementalStore-Songs.debug.xcconfig"; sourceTree = "<group>"; };
+		379547A63FA69A73D1E3BDA9 /* Pods_AFIncrementalStore_Songs.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_AFIncrementalStore_Songs.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		662023612019D0E3000F684D /* AFIncrementalStoreTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = AFIncrementalStoreTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		662023632019D0E3000F684D /* AFIncrementalStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AFIncrementalStoreTests.swift; sourceTree = "<group>"; };
 		662023652019D0E3000F684D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		6620236B2019DC06000F684D /* Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Bridging-Header.h"; sourceTree = "<group>"; };
 		6620236F201A1526000F684D /* ObjCAssertWrapper.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ObjCAssertWrapper.h; sourceTree = "<group>"; };
 		66202370201A1526000F684D /* ObjCAssertWrapper.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ObjCAssertWrapper.m; sourceTree = "<group>"; };
+		6B69489F9E495C0ADA3E9AFB /* Pods-AFIncrementalStore-AFIncrementalStoreTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-AFIncrementalStore-AFIncrementalStoreTests.release.xcconfig"; path = "Pods/Target Support Files/Pods-AFIncrementalStore-AFIncrementalStoreTests/Pods-AFIncrementalStore-AFIncrementalStoreTests.release.xcconfig"; sourceTree = "<group>"; };
+		6BF3508AE457EBE9A420F937 /* Pods-AFIncrementalStore-AFIncrementalStoreTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-AFIncrementalStore-AFIncrementalStoreTests.debug.xcconfig"; path = "Pods/Target Support Files/Pods-AFIncrementalStore-AFIncrementalStoreTests/Pods-AFIncrementalStore-AFIncrementalStoreTests.debug.xcconfig"; sourceTree = "<group>"; };
+		71B1BCEB586A17E0CE640C91 /* Pods_AFIncrementalStore_AFIncrementalStoreTests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_AFIncrementalStore_AFIncrementalStoreTests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		8883B1C42022139F00E96A93 /* Podfile */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = Podfile; sourceTree = "<group>"; };
 		88E8B58E201B66B7000516ED /* AFRESTClientTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AFRESTClientTests.swift; sourceTree = "<group>"; };
 		88E8B595201F24C3000516ED /* FakeClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FakeClient.swift; sourceTree = "<group>"; };
 		8A22506726758BA23ADE1F19 /* Pods-AFIncrementalStoreTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-AFIncrementalStoreTests.release.xcconfig"; path = "Pods/Target Support Files/Pods-AFIncrementalStoreTests/Pods-AFIncrementalStoreTests.release.xcconfig"; sourceTree = "<group>"; };
 		9850D2B0235292ECFA3B8185 /* Pods-Songs.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Songs.release.xcconfig"; path = "Pods/Target Support Files/Pods-Songs/Pods-Songs.release.xcconfig"; sourceTree = "<group>"; };
-		C933D6B55CAAAC381BBC6E8C /* Pods_Songs.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Songs.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		DFDCF72CCF326042D1374BA3 /* Pods-AFIncrementalStoreTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-AFIncrementalStoreTests.debug.xcconfig"; path = "Pods/Target Support Files/Pods-AFIncrementalStoreTests/Pods-AFIncrementalStoreTests.debug.xcconfig"; sourceTree = "<group>"; };
 		F81D905916F3E6AC0043C85A /* Default-568h@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Default-568h@2x.png"; sourceTree = "<group>"; };
 		F81D905B16F3E6BC0043C85A /* SystemConfiguration.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SystemConfiguration.framework; path = System/Library/Frameworks/SystemConfiguration.framework; sourceTree = SDKROOT; };
@@ -98,7 +102,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				415672AC377231C808A649C0 /* Pods_AFIncrementalStoreTests.framework in Frameworks */,
+				599D0CD0A4A7C2DD202B2602 /* Pods_AFIncrementalStore_AFIncrementalStoreTests.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -112,7 +116,7 @@
 				F8AFAFB415AB4F28003FE5BB /* Foundation.framework in Frameworks */,
 				F8AFAFB615AB4F28003FE5BB /* CoreGraphics.framework in Frameworks */,
 				F8AFAFB815AB4F28003FE5BB /* CoreData.framework in Frameworks */,
-				6BB7E4C64A7495E5EE04CA92 /* Pods_Songs.framework in Frameworks */,
+				1B581FE64904F6EB2A9E0447 /* Pods_AFIncrementalStore_Songs.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -140,6 +144,10 @@
 				9850D2B0235292ECFA3B8185 /* Pods-Songs.release.xcconfig */,
 				DFDCF72CCF326042D1374BA3 /* Pods-AFIncrementalStoreTests.debug.xcconfig */,
 				8A22506726758BA23ADE1F19 /* Pods-AFIncrementalStoreTests.release.xcconfig */,
+				6BF3508AE457EBE9A420F937 /* Pods-AFIncrementalStore-AFIncrementalStoreTests.debug.xcconfig */,
+				6B69489F9E495C0ADA3E9AFB /* Pods-AFIncrementalStore-AFIncrementalStoreTests.release.xcconfig */,
+				30E288ED2634E4BFAC2E1169 /* Pods-AFIncrementalStore-Songs.debug.xcconfig */,
+				109FACDEF4B69394EDDC0D46 /* Pods-AFIncrementalStore-Songs.release.xcconfig */,
 			);
 			name = Pods;
 			sourceTree = "<group>";
@@ -211,8 +219,8 @@
 				F8AFAFB315AB4F28003FE5BB /* Foundation.framework */,
 				F8AFAFB515AB4F28003FE5BB /* CoreGraphics.framework */,
 				F8AFAFB715AB4F28003FE5BB /* CoreData.framework */,
-				C933D6B55CAAAC381BBC6E8C /* Pods_Songs.framework */,
-				0F753E7D4036A114F6BEA739 /* Pods_AFIncrementalStoreTests.framework */,
+				71B1BCEB586A17E0CE640C91 /* Pods_AFIncrementalStore_AFIncrementalStoreTests.framework */,
+				379547A63FA69A73D1E3BDA9 /* Pods_AFIncrementalStore_Songs.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -362,7 +370,7 @@
 			);
 			name = "[CP] Check Pods Manifest.lock";
 			outputPaths = (
-				"$(DERIVED_FILE_DIR)/Pods-AFIncrementalStoreTests-checkManifestLockResult.txt",
+				"$(DERIVED_FILE_DIR)/Pods-AFIncrementalStore-AFIncrementalStoreTests-checkManifestLockResult.txt",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -375,7 +383,7 @@
 			files = (
 			);
 			inputPaths = (
-				"${SRCROOT}/Pods/Target Support Files/Pods-Songs/Pods-Songs-frameworks.sh",
+				"${SRCROOT}/Pods/Target Support Files/Pods-AFIncrementalStore-Songs/Pods-AFIncrementalStore-Songs-frameworks.sh",
 				"${BUILT_PRODUCTS_DIR}/AFNetworking/AFNetworking.framework",
 				"${BUILT_PRODUCTS_DIR}/InflectorKit/InflectorKit.framework",
 				"${BUILT_PRODUCTS_DIR}/TransformerKit/TransformerKit.framework",
@@ -388,7 +396,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-Songs/Pods-Songs-frameworks.sh\"\n";
+			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-AFIncrementalStore-Songs/Pods-AFIncrementalStore-Songs-frameworks.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
 		804D5A063CA90E3C5D372CA7 /* [CP] Copy Pods Resources */ = {
@@ -403,7 +411,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-AFIncrementalStoreTests/Pods-AFIncrementalStoreTests-resources.sh\"\n";
+			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-AFIncrementalStore-AFIncrementalStoreTests/Pods-AFIncrementalStore-AFIncrementalStoreTests-resources.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
 		9BB0BF7AA4144BFD05668AA4 /* [CP] Embed Pods Frameworks */ = {
@@ -412,7 +420,7 @@
 			files = (
 			);
 			inputPaths = (
-				"${SRCROOT}/Pods/Target Support Files/Pods-AFIncrementalStoreTests/Pods-AFIncrementalStoreTests-frameworks.sh",
+				"${SRCROOT}/Pods/Target Support Files/Pods-AFIncrementalStore-AFIncrementalStoreTests/Pods-AFIncrementalStore-AFIncrementalStoreTests-frameworks.sh",
 				"${BUILT_PRODUCTS_DIR}/AFNetworking/AFNetworking.framework",
 				"${BUILT_PRODUCTS_DIR}/InflectorKit/InflectorKit.framework",
 				"${BUILT_PRODUCTS_DIR}/TransformerKit/TransformerKit.framework",
@@ -425,7 +433,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-AFIncrementalStoreTests/Pods-AFIncrementalStoreTests-frameworks.sh\"\n";
+			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-AFIncrementalStore-AFIncrementalStoreTests/Pods-AFIncrementalStore-AFIncrementalStoreTests-frameworks.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
 		A6BECAD16990AB949E843813 /* [CP] Check Pods Manifest.lock */ = {
@@ -439,7 +447,7 @@
 			);
 			name = "[CP] Check Pods Manifest.lock";
 			outputPaths = (
-				"$(DERIVED_FILE_DIR)/Pods-Songs-checkManifestLockResult.txt",
+				"$(DERIVED_FILE_DIR)/Pods-AFIncrementalStore-Songs-checkManifestLockResult.txt",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -458,7 +466,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-Songs/Pods-Songs-resources.sh\"\n";
+			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-AFIncrementalStore-Songs/Pods-AFIncrementalStore-Songs-resources.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
 /* End PBXShellScriptBuildPhase section */
@@ -507,7 +515,7 @@
 /* Begin XCBuildConfiguration section */
 		662023682019D0E3000F684D /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = DFDCF72CCF326042D1374BA3 /* Pods-AFIncrementalStoreTests.debug.xcconfig */;
+			baseConfigurationReference = 6BF3508AE457EBE9A420F937 /* Pods-AFIncrementalStore-AFIncrementalStoreTests.debug.xcconfig */;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CLANG_ANALYZER_NONNULL = YES;
@@ -560,7 +568,7 @@
 		};
 		662023692019D0E3000F684D /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 8A22506726758BA23ADE1F19 /* Pods-AFIncrementalStoreTests.release.xcconfig */;
+			baseConfigurationReference = 6B69489F9E495C0ADA3E9AFB /* Pods-AFIncrementalStore-AFIncrementalStoreTests.release.xcconfig */;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CLANG_ANALYZER_NONNULL = YES;
@@ -667,7 +675,7 @@
 		};
 		F8AFAFCB15AB4F28003FE5BB /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 24A4ABD13013106E5F89A9F0 /* Pods-Songs.debug.xcconfig */;
+			baseConfigurationReference = 30E288ED2634E4BFAC2E1169 /* Pods-AFIncrementalStore-Songs.debug.xcconfig */;
 			buildSettings = {
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = Prefix.pch;
@@ -680,7 +688,7 @@
 		};
 		F8AFAFCC15AB4F28003FE5BB /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 9850D2B0235292ECFA3B8185 /* Pods-Songs.release.xcconfig */;
+			baseConfigurationReference = 109FACDEF4B69394EDDC0D46 /* Pods-AFIncrementalStore-Songs.release.xcconfig */;
 			buildSettings = {
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = Prefix.pch;
