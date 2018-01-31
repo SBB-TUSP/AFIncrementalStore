@@ -7,6 +7,16 @@
 
 import XCTest
 
+private class NotificationManager {
+
+    var willFetchRemoteValues: (Notification) -> Void = {_ in}
+
+    init() {
+
+    }
+
+}
+
 private class FakeClient: AFHTTPClient, AFIncrementalStoreHTTPClient {
 
     override init() {
@@ -60,6 +70,7 @@ class AFIncrementalStoreTests: XCTestCase {
     private var errorCreatingBackingStore: Error!
     
     override func setUp() {
+        UIApplication.shared.keyWindow?.rootViewController = nil
         super.setUp()
         guard let modelUrl = Bundle(for: AFIncrementalStoreTests.self).url(forResource: "IncrementalStoreExample", withExtension: "momd") else {
             return
@@ -80,7 +91,7 @@ class AFIncrementalStoreTests: XCTestCase {
     }
     
     override func tearDown() {
-        NotificationCenter.default.removeObserver(self)
+        store.httpClient = nil
         store = nil
         model = nil
         coordinator = nil
@@ -109,48 +120,44 @@ class AFIncrementalStoreTests: XCTestCase {
     }
 
     func test_executeFetchRequestShouldReturnEmptyArray_whenDBAndResponseEmpty() {
+        let testFinishExpectation = expectation(description: "shouldFinishExecutingTest")
+        var observer: NSObjectProtocol!
+        observer = NotificationCenter.default.addObserver(forName: .init("AFIncrementalStoreContextDidFetchRemoteValues"), object: nil, queue: .main) {
+            notification in
+            NotificationCenter.default.removeObserver(observer)
+            XCTAssertEqual((notification.userInfo?["AFIncrementalStoreFetchedObjectIDs"] as? [NSManagedObjectID])?.isEmpty, true)
+            testFinishExpectation.fulfill()
+        }
         class FakeClientSubclass1: FakeClient {
 
             override func request(for fetchRequest: NSFetchRequest<NSFetchRequestResult>!, with context: NSManagedObjectContext!) -> NSMutableURLRequest! {
                 return NSMutableURLRequest(url: URL(string: "http://localhost")!)
             }
 
-            var successClosure: ((AFHTTPRequestOperation?, Any?) -> Void)!
-
-            var testFinishedClosure: (() -> Void)!
-
             override func httpRequestOperation(with urlRequest: URLRequest!, success: ((AFHTTPRequestOperation?, Any?) -> Void)!, failure: ((AFHTTPRequestOperation?, Error?) -> Void)!) -> AFHTTPRequestOperation! {
-                successClosure = success
-                return AFHTTPRequestOperation(request: urlRequest)
+                let operation = AFHTTPRequestOperation(request: urlRequest)
+                operation?.failureCallbackQueue = .main
+                operation?.setCompletionBlockWithSuccess(nil) {
+                    operation, _ in
+                    success?(operation, [String: Any]())
+                }
+                return operation
             }
 
             override func representationOrArrayOfRepresentations(ofEntity entity: NSEntityDescription!, fromResponseObject responseObject: Any!) -> Any! {
-                testFinishedClosure()
-                return [Artist]()
-            }
-
-            override func enqueue(_ operation: AFHTTPRequestOperation!) {
-                successClosure(operation, [String: Any]())
+                return [String: Any]()
             }
 
         }
-        let testFinishExpectation = expectation(description: "shouldFinishExecutingTest")
         let fakeClient = FakeClientSubclass1()
-        fakeClient.testFinishedClosure = {
-            testFinishExpectation.fulfill()
-        }
         store.httpClient = fakeClient
         let context = NSManagedObjectContext(concurrencyType: .mainQueueConcurrencyType)
         context.persistentStoreCoordinator = coordinator
+        var results: [Artist]!
         let request = NSFetchRequest<Artist>()
         request.entity = NSEntityDescription.entity(forEntityName: "Artist", in: context)
-        var results: [Artist]!
         context.performAndWait {
-            do {
-                results = try self.store.execute(request, with: context) as? [Artist]
-            } catch let e {
-                print(e)
-            }
+            results = try! context.fetch(request)
         }
         XCTAssertNotNil(results)
         XCTAssertTrue(results.isEmpty)
@@ -158,52 +165,48 @@ class AFIncrementalStoreTests: XCTestCase {
     }
 
     func test_executeFetchRequestShouldReturnEmptyArray_whenDBNotEmptyAndResponseEmpty() {
+        let testFinishExpectation = expectation(description: "shouldFinishExecutingTest")
+        var observer: NSObjectProtocol!
+        observer = NotificationCenter.default.addObserver(forName: .init("AFIncrementalStoreContextDidFetchRemoteValues"), object: nil, queue: .main) {
+            notification in
+            NotificationCenter.default.removeObserver(observer)
+            XCTAssertEqual((notification.userInfo?["AFIncrementalStoreFetchedObjectIDs"] as? [NSManagedObjectID])?.isEmpty, true)
+            testFinishExpectation.fulfill()
+        }
         class FakeClientSubclass2: FakeClient {
 
             override func request(for fetchRequest: NSFetchRequest<NSFetchRequestResult>!, with context: NSManagedObjectContext!) -> NSMutableURLRequest! {
                 return NSMutableURLRequest(url: URL(string: "http://localhost")!)
             }
 
-            var successClosure: ((AFHTTPRequestOperation?, Any?) -> Void)!
-
-            var testFinishedClosure: (() -> Void)!
-
             override func httpRequestOperation(with urlRequest: URLRequest!, success: ((AFHTTPRequestOperation?, Any?) -> Void)!, failure: ((AFHTTPRequestOperation?, Error?) -> Void)!) -> AFHTTPRequestOperation! {
-                successClosure = success
-                return AFHTTPRequestOperation(request: urlRequest)
+                let operation = AFHTTPRequestOperation(request: urlRequest)
+                operation?.failureCallbackQueue = .main
+                operation?.setCompletionBlockWithSuccess(nil) {
+                    operation, _ in
+                    success(operation, [String: Any]())
+                }
+                return operation
             }
 
             override func representationOrArrayOfRepresentations(ofEntity entity: NSEntityDescription!, fromResponseObject responseObject: Any!) -> Any! {
-                testFinishedClosure()
-                return [Artist]()
-            }
-
-            override func enqueue(_ operation: AFHTTPRequestOperation!) {
-                successClosure(operation, [String: Any]())
+                return [String: Any]()
             }
 
         }
-        let testFinishExpectation = expectation(description: "shouldFinishExecutingTest")
         let fakeClient = FakeClientSubclass2()
-        fakeClient.testFinishedClosure = {
-            testFinishExpectation.fulfill()
-        }
         store.httpClient = fakeClient
         let context = NSManagedObjectContext(concurrencyType: .mainQueueConcurrencyType)
         context.persistentStoreCoordinator = coordinator
         context.performAndWait {
-            _ = Artist(entity: NSEntityDescription.entity(forEntityName: "Artist", in: context)!, insertInto: context)
+            let _ = Artist(entity: NSEntityDescription.entity(forEntityName: "Artist", in: context)!, insertInto: context)
             _ = try! context.save()
         }
         let request = NSFetchRequest<Artist>()
         request.entity = NSEntityDescription.entity(forEntityName: "Artist", in: context)
         var results: [Artist]!
         context.performAndWait {
-            do {
-                results = try self.store.execute(request, with: context) as? [Artist]
-            } catch let e {
-                print(e)
-            }
+            results = try! context.fetch(request)
         }
         XCTAssertNotNil(results)
         XCTAssertTrue(results.isEmpty)
@@ -211,6 +214,14 @@ class AFIncrementalStoreTests: XCTestCase {
     }
 
     func test_executeFetchRequestShouldReturnNonEmptyArray_whenDBEmptyAndResponseNotEmpty() {
+        let testFinishExpectation = expectation(description: "shouldFinishExecutingTest")
+        var observer: NSObjectProtocol!
+        observer = NotificationCenter.default.addObserver(forName: .init("AFIncrementalStoreContextDidFetchRemoteValues"), object: nil, queue: .main) {
+            notification in
+            NotificationCenter.default.removeObserver(observer)
+            XCTAssertEqual((notification.userInfo?["AFIncrementalStoreFetchedObjectIDs"] as? [NSManagedObjectID])?.count, 1)
+            testFinishExpectation.fulfill()
+        }
         class FakeClientSubclass3: FakeClient {
 
             override func resourceIdentifier(forRepresentation representation: [AnyHashable : Any]!, ofEntity entity: NSEntityDescription!, from response: HTTPURLResponse!) -> String! {
@@ -229,17 +240,17 @@ class AFIncrementalStoreTests: XCTestCase {
                 return NSMutableURLRequest(url: URL(string: "http://localhost")!)
             }
 
-            var successClosure: ((AFHTTPRequestOperation?, Any?) -> Void)!
-
-            var testFinishedClosure: (() -> Void)!
-
             override func httpRequestOperation(with urlRequest: URLRequest!, success: ((AFHTTPRequestOperation?, Any?) -> Void)!, failure: ((AFHTTPRequestOperation?, Error?) -> Void)!) -> AFHTTPRequestOperation! {
-                successClosure = success
-                return AFHTTPRequestOperation(request: urlRequest)
+                let operation = AFHTTPRequestOperation(request: urlRequest)
+                operation?.failureCallbackQueue = .main
+                operation?.setCompletionBlockWithSuccess(nil) {
+                    operation, _ in
+                    success(operation, [String: Any]())
+                }
+                return operation
             }
 
             override func representationOrArrayOfRepresentations(ofEntity entity: NSEntityDescription!, fromResponseObject responseObject: Any!) -> Any! {
-                testFinishedClosure()
                 let dictionary: [String: Any] = [
                     "artistDescription": "TEST-DESCRIPTION",
                     "name": "TEST-ARTIST"
@@ -247,35 +258,35 @@ class AFIncrementalStoreTests: XCTestCase {
                 return dictionary
             }
 
-            override func enqueue(_ operation: AFHTTPRequestOperation!) {
-                successClosure(operation, [String: Any]())
-            }
-
         }
-        let testFinishExpectation = expectation(description: "shouldFinishExecutingTest")
         let fakeClient = FakeClientSubclass3()
-        fakeClient.testFinishedClosure = {
-            testFinishExpectation.fulfill()
-        }
         store.httpClient = fakeClient
         let context = NSManagedObjectContext(concurrencyType: .mainQueueConcurrencyType)
         context.persistentStoreCoordinator = coordinator
+        var results: [Artist]!
         let request = NSFetchRequest<Artist>()
         request.entity = NSEntityDescription.entity(forEntityName: "Artist", in: context)
-        var results: [NSManagedObject]!
         context.performAndWait {
-            results = try! self.store.execute(request, with: context) as! [NSManagedObject]
+            results = try! context.fetch(request)
         }
         XCTAssertNotNil(results)
-        XCTAssertFalse(results.isEmpty)
-        let rawArtist: NSManagedObject! = results.first
-        XCTAssertNotNil(rawArtist)
-        XCTAssertEqual(rawArtist.entity.name, "Artist")
-        XCTAssertEqual(rawArtist.value(forKey: "name") as? String, "TEST-ARTIST")
+        XCTAssertTrue(results.isEmpty)
         wait(for: [testFinishExpectation], timeout: 10)
     }
 
-    func test_executeFetchRequestShouldReturnIDs_whenRequestTypeIsIDResultType() {
+    func test_executeFetchRequestShouldReturnObjects_whenRequestTypeIsManagedObjectResultType() {
+
+    }
+
+    func test_executeFetchRequestShouldReturnIDs_whenRequestTypeIsManagedObjectIDResultType() {
+        let testFinishExpectation = expectation(description: "shouldFinishExecutingTest")
+        var observer: NSObjectProtocol!
+        observer = NotificationCenter.default.addObserver(forName: .init("AFIncrementalStoreContextDidFetchRemoteValues"), object: nil, queue: .main) {
+            notification in
+            NotificationCenter.default.removeObserver(observer)
+            XCTAssertEqual((notification.userInfo?["AFIncrementalStoreFetchedObjectIDs"] as? [NSManagedObjectID])?.count, 1)
+            testFinishExpectation.fulfill()
+        }
         class FakeClientSubclass4: FakeClient {
 
             override func resourceIdentifier(forRepresentation representation: [AnyHashable : Any]!, ofEntity entity: NSEntityDescription!, from response: HTTPURLResponse!) -> String! {
@@ -294,17 +305,17 @@ class AFIncrementalStoreTests: XCTestCase {
                 return NSMutableURLRequest(url: URL(string: "http://localhost")!)
             }
 
-            var successClosure: ((AFHTTPRequestOperation?, Any?) -> Void)!
-
-            var testFinishedClosure: (() -> Void)!
-
             override func httpRequestOperation(with urlRequest: URLRequest!, success: ((AFHTTPRequestOperation?, Any?) -> Void)!, failure: ((AFHTTPRequestOperation?, Error?) -> Void)!) -> AFHTTPRequestOperation! {
-                successClosure = success
-                return AFHTTPRequestOperation(request: urlRequest)
+                let operation = AFHTTPRequestOperation(request: urlRequest)
+                operation?.failureCallbackQueue = .main
+                operation?.setCompletionBlockWithSuccess(nil) {
+                    operation, _ in
+                    success(operation, [String: Any]())
+                }
+                return operation
             }
 
             override func representationOrArrayOfRepresentations(ofEntity entity: NSEntityDescription!, fromResponseObject responseObject: Any!) -> Any! {
-                testFinishedClosure()
                 let dictionary: [String: Any] = [
                     "artistDescription": "TEST-DESCRIPTION",
                     "name": "TEST-ARTIST"
@@ -312,42 +323,30 @@ class AFIncrementalStoreTests: XCTestCase {
                 return dictionary
             }
 
-            override func enqueue(_ operation: AFHTTPRequestOperation!) {
-                successClosure(operation, [String: Any]())
-            }
-
         }
-        let testFinishExpectation = expectation(description: "shouldFinishExecutingTest")
         let fakeClient = FakeClientSubclass4()
-        fakeClient.testFinishedClosure = {
-            testFinishExpectation.fulfill()
-        }
         store.httpClient = fakeClient
         let context = NSManagedObjectContext(concurrencyType: .mainQueueConcurrencyType)
         context.persistentStoreCoordinator = coordinator
-        let request = NSFetchRequest<Artist>()
+        var results: [NSManagedObjectID]!
+        let request = NSFetchRequest<NSManagedObjectID>()
+        request.resultType = .managedObjectIDResultType
         request.entity = NSEntityDescription.entity(forEntityName: "Artist", in: context)
-        request.resultType = NSFetchRequestResultType.managedObjectIDResultType
-        var rawResults: Any!
         context.performAndWait {
-            _ = Artist(entity: NSEntityDescription.entity(forEntityName: "Artist", in: context)!, insertInto: context)
-            _ = try! context.save()
-            rawResults = try! self.store.execute(request, with: context)
+            results = try! context.fetch(request)
         }
-        XCTAssertNotNil(rawResults)
-        let arrayResults: [NSManagedObjectID]! = rawResults as? [NSManagedObjectID]
-        XCTAssertNotNil(arrayResults)
-        let id: NSManagedObjectID! = arrayResults.first
-        XCTAssertNotNil(id)
-        XCTAssert(id.uriRepresentation().lastPathComponent.contains("TEST-ID"))
+        XCTAssertNotNil(results)
+        XCTAssertTrue(results.isEmpty)
         wait(for: [testFinishExpectation], timeout: 10)
     }
 
-    func test_executeFetchRequest_shouldNotifyWhenRemoteFetchIsPerformed() {
+    /*func test_executeFetchRequest_shouldNotifyWhenRemoteFetchIsPerformed() {
         let willFetchNotification = expectation(description: "should call will fetch remote values")
         willFetchNotification.assertForOverFulfill = false
-        NotificationCenter.default.addObserver(forName: NSNotification.Name("AFIncrementalStoreContextWillFetchRemoteValues"), object: nil, queue: .main) {
+        var observer1: NSObjectProtocol!
+        observer1 = NotificationCenter.default.addObserver(forName: NSNotification.Name("AFIncrementalStoreContextWillFetchRemoteValues"), object: nil, queue: .main) {
             notification in
+            NotificationCenter.default.removeObserver(observer1)
             let userInfo: [AnyHashable : Any]! = notification.userInfo
             XCTAssertNotNil(userInfo)
             let operations: [AFHTTPRequestOperation]! = userInfo["AFIncrementalStoreRequestOperations"] as? [AFHTTPRequestOperation]
@@ -364,13 +363,17 @@ class AFIncrementalStoreTests: XCTestCase {
         }
         let didFetchNotification = expectation(description: "should call did fetch remote values")
         didFetchNotification.assertForOverFulfill = false
-        NotificationCenter.default.addObserver(forName: NSNotification.Name("AFIncrementalStoreContextDidFetchRemoteValues"), object: nil, queue: .main) {
+        var observer2: NSObjectProtocol!
+        observer2 = NotificationCenter.default.addObserver(forName: NSNotification.Name("AFIncrementalStoreContextDidFetchRemoteValues"), object: nil, queue: .main) {
             notification in
+            NotificationCenter.default.removeObserver(observer2)
             let userInfo: [AnyHashable : Any]! = notification.userInfo
             XCTAssertNotNil(userInfo)
             let ids: [NSManagedObjectID]! = userInfo["AFIncrementalStoreFetchedObjectIDs"] as? [NSManagedObjectID]
             XCTAssertNotNil(ids)
-            XCTAssertFalse(ids.isEmpty)
+            guard !ids.isEmpty else {
+                return
+            }
             XCTAssertEqual(ids.count, 1)
             XCTAssertTrue(ids.first!.uriRepresentation().lastPathComponent.contains("TEST-ID"))
             let operations: [AFHTTPRequestOperation]! = userInfo["AFIncrementalStoreRequestOperations"] as? [AFHTTPRequestOperation]
@@ -435,44 +438,50 @@ class AFIncrementalStoreTests: XCTestCase {
         let request = NSFetchRequest<Artist>()
         request.entity = NSEntityDescription.entity(forEntityName: "Artist", in: context)
         context.performAndWait {
-            _ = try! self.store.execute(request, with: context)
+            _ = try! context.fetch(request)
         }
         wait(for: [willFetchNotification, didFetchNotification], timeout: 10)
     }
 
-    func test_executeSaveChangesRequest_shouldNotifyWhenRemoteFetchIsPerformed() {
+    func test_executeSaveChangesRequest_shouldNotifyWhenRemoteSaveIsPerformed() {
         let willSaveNotification = expectation(description: "should call will save remote values")
-        willSaveNotification.assertForOverFulfill = false
-        NotificationCenter.default.addObserver(forName: NSNotification.Name("AFIncrementalStoreContextWillSaveRemoteValues"), object: nil, queue: .main) {
+        var observer1: NSObjectProtocol!
+        observer1 = NotificationCenter.default.addObserver(forName: NSNotification.Name("AFIncrementalStoreContextWillSaveRemoteValues"), object: nil, queue: .main) {
             notification in
+            NotificationCenter.default.removeObserver(observer1)
             let userInfo: [AnyHashable: Any]! = notification.userInfo
             XCTAssertNotNil(userInfo)
             let operations: [AFHTTPRequestOperation]! = userInfo["AFIncrementalStoreRequestOperations"] as? [AFHTTPRequestOperation]
             XCTAssertNotNil(operations)
-            if let operation = operations.first  {
-                XCTAssertEqual(operations.count, 1)
-                XCTAssertFalse(operation.isFinished)
-                XCTAssertFalse(operation.isExecuting)
-            }
+            let operation: AFHTTPRequestOperation! = operations.first
+            XCTAssertNotNil(operation)
+            XCTAssertEqual(operations.count, 1)
+            XCTAssertFalse(operation.isFinished)
+            XCTAssertFalse(operation.isExecuting)
             let request: NSSaveChangesRequest? = userInfo["AFIncrementalStorePersistentStoreRequest"] as? NSSaveChangesRequest
             XCTAssertNotNil(request)
             willSaveNotification.fulfill()
         }
         let didSaveNotification = expectation(description: "should call did save remote values")
-        didSaveNotification.assertForOverFulfill = false
-        NotificationCenter.default.addObserver(forName: NSNotification.Name("AFIncrementalStoreContextDidSaveRemoteValues"), object: nil, queue: .main) {
+        var observer2: NSObjectProtocol!
+        observer2 = NotificationCenter.default.addObserver(forName: NSNotification.Name("AFIncrementalStoreContextDidSaveRemoteValues"), object: nil, queue: .main) {
             notification in
+            NotificationCenter.default.removeObserver(observer2)
             let userInfo: [AnyHashable : Any]! = notification.userInfo
             XCTAssertNotNil(userInfo)
             let operations: [AFHTTPRequestOperation]! = userInfo["AFIncrementalStoreRequestOperations"] as? [AFHTTPRequestOperation]
             XCTAssertNotNil(operations)
-            XCTAssertFalse(operations.isEmpty)
-            XCTAssertEqual(operations.count, 1)
             let operation: AFHTTPRequestOperation! = operations.first
             XCTAssertNotNil(operation)
+            XCTAssertEqual(operations.count, 1)
             XCTAssertTrue(operation.isFinished)
-            let request: NSSaveChangesRequest? = userInfo["AFIncrementalStorePersistentStoreRequest"] as? NSSaveChangesRequest
+            let request: NSSaveChangesRequest! = userInfo["AFIncrementalStorePersistentStoreRequest"] as? NSSaveChangesRequest
             XCTAssertNotNil(request)
+            let inserts: Set<NSManagedObject>! = request.insertedObjects
+            XCTAssertNotNil(inserts)
+            let insert: NSManagedObject! = inserts.first
+            XCTAssertNotNil(insert)
+            XCTAssertTrue(insert.objectID.uriRepresentation().lastPathComponent.contains("TEST-ID"))
             didSaveNotification.fulfill()
         }
         class FakeClientSubclass5: FakeClient {
@@ -512,49 +521,27 @@ class AFIncrementalStoreTests: XCTestCase {
                 return dictionary
             }
 
-            override func enqueueBatch(ofHTTPRequestOperations operations: [Any]!, progressBlock: ((UInt, UInt) -> Void)!, completionBlock: (([Any]?) -> Void)!) {
-                super.enqueueBatch(ofHTTPRequestOperations: operations, progressBlock: progressBlock) {
-                    operations in
-                    completionBlock(operations)
-                    self.completion?()
-                }
-            }
-
-            var completion: (() -> Void)?
-
         }
         let client = FakeClientSubclass5()
         store.httpClient = client
-        let finishExpectation = expectation(description: "should finish async calls")
         let context = NSManagedObjectContext(concurrencyType: .mainQueueConcurrencyType)
         context.persistentStoreCoordinator = coordinator
-        client.completion = {
-            context.perform {
-                let request = NSFetchRequest<Artist>()
-                request.entity = NSEntityDescription.entity(forEntityName: "Artist", in: context)
-                let result = try! context.fetch(request)
-                XCTAssertEqual(result.count, 1)
-                let artist = result.first!
-                XCTAssertEqual(artist.name, "TEST-ARTIST")
-                XCTAssertEqual(artist.artistDescription, "TEST-DESCRIPTION")
-                finishExpectation.fulfill()
-            }
-        }
         context.perform {
             let artist = Artist(entity: NSEntityDescription.entity(forEntityName: "Artist", in: context)!, insertInto: context)
             artist.artistDescription = "TEST-DESCRIPTION"
             artist.name = "TEST-ARTIST"
-            let request = NSSaveChangesRequest(inserted: [artist], updated: [], deleted: [], locked: [])
-            _ = try! self.store.execute(request, with: context)
+            _ = try! context.save()
         }
-        wait(for: [finishExpectation, willSaveNotification, didSaveNotification], timeout: 10)
+        wait(for: [willSaveNotification, didSaveNotification], timeout: 10)
     }
 
     func test_newValuesForObjectWithId_shouldSendNotifications() {
         let willFetchNewValues = expectation(description: "should send will fetch new values notification")
         willFetchNewValues.assertForOverFulfill = false
-        NotificationCenter.default.addObserver(forName: Notification.Name("AFIncrementalStoreContextWillFetchNewValuesForObject"), object: nil, queue: .main) {
+        var observer1: NSObjectProtocol!
+        observer1 = NotificationCenter.default.addObserver(forName: Notification.Name("AFIncrementalStoreContextWillFetchNewValuesForObject"), object: nil, queue: .main) {
             notification in
+            NotificationCenter.default.removeObserver(observer1)
             let userInfo: [AnyHashable: Any]! = notification.userInfo
             XCTAssertNotNil(userInfo)
             let operations: [AFHTTPRequestOperation]! = userInfo["AFIncrementalStoreRequestOperations"] as? [AFHTTPRequestOperation]
@@ -571,8 +558,10 @@ class AFIncrementalStoreTests: XCTestCase {
         }
         let didFetchNewValues = expectation(description: "should send did fetch new values notification")
         didFetchNewValues.assertForOverFulfill = false
-        NotificationCenter.default.addObserver(forName: NSNotification.Name("AFIncrementalStoreContextDidFetchNewValuesForObject"), object: nil, queue: .main) {
+        var observer2: NSObjectProtocol!
+        observer2 = NotificationCenter.default.addObserver(forName: NSNotification.Name("AFIncrementalStoreContextDidFetchNewValuesForObject"), object: nil, queue: .main) {
             notification in
+            NotificationCenter.default.removeObserver(observer2)
             let userInfo: [AnyHashable : Any]! = notification.userInfo
             XCTAssertNotNil(userInfo)
             let operations: [AFHTTPRequestOperation]! = userInfo["AFIncrementalStoreRequestOperations"] as? [AFHTTPRequestOperation]
@@ -666,7 +655,7 @@ class AFIncrementalStoreTests: XCTestCase {
         store.httpClient = fakeClient
         context.perform {
             artist = Artist(entity: NSEntityDescription.entity(forEntityName: "Artist", in: context)!, insertInto: context)
-            try! self.store.execute(NSSaveChangesRequest(inserted: [artist], updated: nil, deleted: nil, locked: nil), with: context)
+            try! context.save()
         }
         wait(for: [finishExpectation, willFetchNewValues, didFetchNewValues], timeout: 10)
     }
@@ -674,8 +663,10 @@ class AFIncrementalStoreTests: XCTestCase {
     func test_newValueForRelationship_shouldSendNotifications() {
         let willFetchExpectation = expectation(description: "should send will fetch new values for relationship notification")
         willFetchExpectation.assertForOverFulfill = false
-        NotificationCenter.default.addObserver(forName: Notification.Name("AFIncrementalStoreContextWillFetchNewValuesForRelationship"), object: nil, queue: .main) {
+        var observer1: NSObjectProtocol!
+        observer1 = NotificationCenter.default.addObserver(forName: Notification.Name("AFIncrementalStoreContextWillFetchNewValuesForRelationship"), object: nil, queue: .main) {
             notification in
+            NotificationCenter.default.removeObserver(observer1)
             let userInfo: [AnyHashable: Any]! = notification.userInfo
             XCTAssertNotNil(userInfo)
             let id: NSManagedObjectID! = userInfo["AFIncrementalStoreFaultingObjectID"] as? NSManagedObjectID
@@ -697,8 +688,10 @@ class AFIncrementalStoreTests: XCTestCase {
         }
         let didFetchExpectation = expectation(description: "should send will fetch new values for relationship notification")
         didFetchExpectation.assertForOverFulfill = false
-        NotificationCenter.default.addObserver(forName: Notification.Name("AFIncrementalStoreContextDidFetchNewValuesForRelationship"), object: nil, queue: .main) {
+        var observer2: NSObjectProtocol!
+        observer2 = NotificationCenter.default.addObserver(forName: Notification.Name("AFIncrementalStoreContextDidFetchNewValuesForRelationship"), object: nil, queue: .main) {
             notification in
+            NotificationCenter.default.removeObserver(observer2)
             let userInfo: [AnyHashable : Any]! = notification.userInfo
             XCTAssertNotNil(userInfo)
             let id: NSManagedObjectID! = userInfo["AFIncrementalStoreFaultingObjectID"] as? NSManagedObjectID
@@ -807,7 +800,7 @@ class AFIncrementalStoreTests: XCTestCase {
         store.httpClient = client
         context.perform {
             artist = Artist(entity: NSEntityDescription.entity(forEntityName: "Artist", in: context)!, insertInto: context)
-            try! self.store.execute(NSSaveChangesRequest.init(inserted: [artist], updated: nil, deleted: nil, locked: nil), with: context)
+            _ = try! context.save()
         }
         wait(for: [finishExpectation, willFetchExpectation, didFetchExpectation], timeout: 10)
     }
@@ -867,22 +860,27 @@ class AFIncrementalStoreTests: XCTestCase {
         var artist: Artist!
         let finishExpectation = expectation(description: "should finish all calls and callbacks")
         finishExpectation.assertForOverFulfill = false
-        NotificationCenter.default.addObserver(forName: Notification.Name("AFIncrementalStoreContextDidSaveRemoteValues"), object: nil, queue: .main) { [weak self]
+        var observer: NSObjectProtocol!
+        observer = NotificationCenter.default.addObserver(forName: Notification.Name("AFIncrementalStoreContextDidSaveRemoteValues"), object: nil, queue: .main) {
             notification in
-            guard (notification.userInfo?["AFIncrementalStorePersistentStoreRequest"] as? NSSaveChangesRequest)?.updatedObjects?.count == 1 else {
-                context.perform {
-                    artist.name = "TEST-ARTIST-EDITED"
-                    _ = try? self?.store?.execute(NSSaveChangesRequest(inserted: nil, updated: [artist], deleted: nil, locked: nil), with: context)
+            let saveRequest = notification.userInfo?["AFIncrementalStorePersistentStoreRequest"] as? NSSaveChangesRequest
+            guard saveRequest?.updatedObjects?.count == 1 else {
+                if saveRequest?.insertedObjects?.count == 1 {
+                    context.performAndWait {
+                        artist.name = "TEST-ARTIST-EDITED"
+                        _ = try! context.save()
+                    }
                 }
                 return
             }
+            NotificationCenter.default.removeObserver(observer)
             finishExpectation.fulfill()
         }
-        context.perform {
+        context.performAndWait {
             artist = Artist(entity: NSEntityDescription.entity(forEntityName: "Artist", in: context)!, insertInto: context)
             artist.name = "TEST-ARTIST"
             artist.artistDescription = "TEST-DESCRIPTION"
-            _ = try! self.store.execute(NSSaveChangesRequest(inserted: [artist], updated: nil, deleted: nil, locked: nil), with: context)
+            _ = try! context.save()
         }
         wait(for: [finishExpectation], timeout: 10)
     }
@@ -935,15 +933,17 @@ class AFIncrementalStoreTests: XCTestCase {
         var artist: Artist!
         let finishExpectation = expectation(description: "should finish all calls and callbacks")
         finishExpectation.assertForOverFulfill = false
-        NotificationCenter.default.addObserver(forName: Notification.Name("AFIncrementalStoreContextDidSaveRemoteValues"), object: nil, queue: .main) { [weak self]
+        var observer: NSObjectProtocol!
+        observer = NotificationCenter.default.addObserver(forName: Notification.Name("AFIncrementalStoreContextDidSaveRemoteValues"), object: nil, queue: .main) {
             notification in
             guard (notification.userInfo?["AFIncrementalStorePersistentStoreRequest"] as? NSSaveChangesRequest)?.deletedObjects?.count == 1 else {
                 context.perform {
                     context.delete(artist)
-                    _ = try? self?.store?.execute(NSSaveChangesRequest(inserted: nil, updated: nil, deleted: [artist], locked: nil), with: context)
+                    _ = try! context.save()
                 }
                 return
             }
+            NotificationCenter.default.removeObserver(observer)
             finishExpectation.fulfill()
         }
         context.perform {
@@ -954,6 +954,56 @@ class AFIncrementalStoreTests: XCTestCase {
         }
         wait(for: [finishExpectation], timeout: 10)
     }
-    }
+
+    func test_executeSaveChangesRequest_worksWithoutAPIRequest() {
+        let willSaveNotification = expectation(description: "should send will save notification")
+        var observer1: NSObjectProtocol!
+        observer1 = NotificationCenter.default.addObserver(forName: Notification.Name("AFIncrementalStoreContextWillSaveRemoteValues"), object: nil, queue: .main) {
+            notification in
+            NotificationCenter.default.removeObserver(observer1)
+            let userInfo: [AnyHashable: Any]! = notification.userInfo
+            XCTAssertNotNil(userInfo)
+            let operations: [AFHTTPRequestOperation]! = userInfo["AFIncrementalStoreRequestOperations"] as? [AFHTTPRequestOperation]
+            XCTAssertNotNil(operations)
+            XCTAssertTrue(operations.isEmpty)
+            willSaveNotification.fulfill()
+        }
+        let didSaveNotification = expectation(description: "should send did save notification")
+        let context = NSManagedObjectContext(concurrencyType: .mainQueueConcurrencyType)
+        context.persistentStoreCoordinator = coordinator
+        var observer2: NSObjectProtocol!
+        observer2 = NotificationCenter.default.addObserver(forName: Notification.Name("AFIncrementalStoreContextDidSaveRemoteValues"), object: nil, queue: .main) {
+            notification in
+            NotificationCenter.default.removeObserver(observer2)
+            let userInfo: [AnyHashable: Any]! = notification.userInfo
+            XCTAssertNotNil(userInfo)
+            let operations: [AFHTTPRequestOperation]! = userInfo["AFIncrementalStoreRequestOperations"] as? [AFHTTPRequestOperation]
+            XCTAssertNotNil(operations)
+            XCTAssertTrue(operations.isEmpty)
+            context.performAndWait {
+                let request = NSFetchRequest<Artist>(entityName: "Artist")
+                request.entity = NSEntityDescription.entity(forEntityName: "Artist", in: context)
+                let count = try! context.count(for: request)
+                XCTAssertEqual(count, 1)
+            }
+            didSaveNotification.fulfill()
+        }
+        class FakeClientSubclass9: FakeClient {
+
+            func request(forInsertedObject insertedObject: NSManagedObject!) -> NSMutableURLRequest! {
+                return nil
+            }
+
+        }
+        let client = FakeClientSubclass9()
+        store.httpClient = client
+        context.perform {
+            let artist = Artist(entity: NSEntityDescription.entity(forEntityName: "Artist", in: context)!, insertInto: context)
+            artist.name = "TEST-ARTIST"
+            artist.artistDescription = "ARTIST-DESCRIPTION"
+            _ = try! context.save()
+        }
+        wait(for: [willSaveNotification, didSaveNotification], timeout: 10)
+    }*/
 
 }
