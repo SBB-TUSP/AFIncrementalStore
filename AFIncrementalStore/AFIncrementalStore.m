@@ -127,8 +127,9 @@ static inline void AFSaveManagedObjectContextOrThrowInternalConsistencyException
              aboutRequestOperation:(NSURLSessionTask *)operation
                    forFetchRequest:(NSFetchRequest *)fetchRequest
                   fetchedObjectIDs:(NSArray *)fetchedObjectIDs
+                          didFetch:(BOOL)didFetch
 {
-    NSString *notificationName = (operation.state == NSURLSessionTaskStateCompleted) ? AFIncrementalStoreContextDidFetchRemoteValues : AFIncrementalStoreContextWillFetchRemoteValues;
+    NSString *notificationName = didFetch ? AFIncrementalStoreContextDidFetchRemoteValues : AFIncrementalStoreContextWillFetchRemoteValues;
     
     NSMutableDictionary *userInfo = [NSMutableDictionary dictionary];
     [userInfo setObject:[NSArray arrayWithObject:operation] forKey:AFIncrementalStoreRequestOperationsKey];
@@ -143,8 +144,9 @@ static inline void AFSaveManagedObjectContextOrThrowInternalConsistencyException
 - (void)notifyManagedObjectContext:(NSManagedObjectContext *)context
             aboutRequestOperations:(NSArray *)operations
              forSaveChangesRequest:(NSSaveChangesRequest *)saveChangesRequest
+                           didSave:(BOOL)didSave
 {
-    NSString *notificationName = [[operations lastObject] isFinished] ? AFIncrementalStoreContextDidSaveRemoteValues : AFIncrementalStoreContextWillSaveRemoteValues;
+    NSString *notificationName = didSave ? AFIncrementalStoreContextDidSaveRemoteValues : AFIncrementalStoreContextWillSaveRemoteValues;
     
     NSMutableDictionary *userInfo = [NSMutableDictionary dictionary];
     [userInfo setObject:operations forKey:AFIncrementalStoreRequestOperationsKey];
@@ -156,8 +158,9 @@ static inline void AFSaveManagedObjectContextOrThrowInternalConsistencyException
 - (void)notifyManagedObjectContext:(NSManagedObjectContext *)context
              aboutRequestOperation:(NSURLSessionTask *)operation
        forNewValuesForObjectWithID:(NSManagedObjectID *)objectID
+                          didFetch:(BOOL)didFetch
 {
-    NSString *notificationName = (operation.state == NSURLSessionTaskStateCompleted) ? AFIncrementalStoreContextDidFetchNewValuesForObject :AFIncrementalStoreContextWillFetchNewValuesForObject;
+    NSString *notificationName = didFetch ? AFIncrementalStoreContextDidFetchNewValuesForObject :AFIncrementalStoreContextWillFetchNewValuesForObject;
 
     NSMutableDictionary *userInfo = [NSMutableDictionary dictionary];
     [userInfo setObject:[NSArray arrayWithObject:operation] forKey:AFIncrementalStoreRequestOperationsKey];
@@ -170,8 +173,9 @@ static inline void AFSaveManagedObjectContextOrThrowInternalConsistencyException
              aboutRequestOperation:(NSURLSessionTask *)operation
        forNewValuesForRelationship:(NSRelationshipDescription *)relationship
                    forObjectWithID:(NSManagedObjectID *)objectID
+                          didFetch:(BOOL)didFetch
 {
-    NSString *notificationName = (operation.state == NSURLSessionTaskStateCompleted) ? AFIncrementalStoreContextDidFetchNewValuesForRelationship : AFIncrementalStoreContextWillFetchNewValuesForRelationship;
+    NSString *notificationName = didFetch ? AFIncrementalStoreContextDidFetchNewValuesForRelationship : AFIncrementalStoreContextWillFetchNewValuesForRelationship;
 
     NSMutableDictionary *userInfo = [NSMutableDictionary dictionary];
     [userInfo setObject:[NSArray arrayWithObject:operation] forKey:AFIncrementalStoreRequestOperationsKey];
@@ -419,7 +423,7 @@ withAttributeAndRelationshipValuesFromManagedObject:(NSManagedObject *)managedOb
 
             if(error){
                 NSLog(@"%s Error: %@", __PRETTY_FUNCTION__, error);
-                [self notifyManagedObjectContext:context aboutRequestOperation:operation forFetchRequest:fetchRequest fetchedObjectIDs:nil];
+                [self notifyManagedObjectContext:context aboutRequestOperation:operation forFetchRequest:fetchRequest fetchedObjectIDs:nil didFetch:YES];
                 return;
             }
 
@@ -447,14 +451,14 @@ withAttributeAndRelationshipValuesFromManagedObject:(NSManagedObject *)managedOb
                             }
                         }];
 
-                        [self notifyManagedObjectContext:context aboutRequestOperation:operation forFetchRequest:fetchRequest fetchedObjectIDs:[managedObjects valueForKeyPath:@"objectID"]];
+                        [self notifyManagedObjectContext:context aboutRequestOperation:operation forFetchRequest:fetchRequest fetchedObjectIDs:[managedObjects valueForKeyPath:@"objectID"] didFetch:YES];
                     }];
                 }];
             }];
 
         }];
 
-        [self notifyManagedObjectContext:context aboutRequestOperation:operation forFetchRequest:fetchRequest fetchedObjectIDs:nil];
+        [self notifyManagedObjectContext:context aboutRequestOperation:operation forFetchRequest:fetchRequest fetchedObjectIDs:nil didFetch:NO];
         [operation resume];
     }
     
@@ -684,11 +688,11 @@ withAttributeAndRelationshipValuesFromManagedObject:(NSManagedObject *)managedOb
     // NSManagedObjectContext removes object references from an NSSaveChangesRequest as each object is saved, so create a copy of the original in order to send useful information in AFIncrementalStoreContextDidSaveRemoteValues notification.
     NSSaveChangesRequest *saveChangesRequestCopy = [[NSSaveChangesRequest alloc] initWithInsertedObjects:[saveChangesRequest.insertedObjects copy] updatedObjects:[saveChangesRequest.updatedObjects copy] deletedObjects:[saveChangesRequest.deletedObjects copy] lockedObjects:[saveChangesRequest.lockedObjects copy]];
     
-    [self notifyManagedObjectContext:context aboutRequestOperations:mutableOperations forSaveChangesRequest:saveChangesRequestCopy];
+    [self notifyManagedObjectContext:context aboutRequestOperations:mutableOperations forSaveChangesRequest:saveChangesRequestCopy didSave:NO];
 
     dispatch_group_notify(group, dispatch_get_main_queue(), ^{
         [self notifyManagedObjectContext:context aboutRequestOperations:[NSArray arrayWithArray:mutableOperations]
-                   forSaveChangesRequest:saveChangesRequestCopy];
+                   forSaveChangesRequest:saveChangesRequestCopy didSave:YES];
     });
     [mutableOperations makeObjectsPerformSelector:@selector(resume)];
 
@@ -813,7 +817,7 @@ withAttributeAndRelationshipValuesFromManagedObject:(NSManagedObject *)managedOb
                 __block NSURLSessionTask *operation = [self.HTTPClient dataTaskWithRequest:request completionHandler:^(NSURLResponse * _Nonnull response, id  _Nullable responseObject, NSError * _Nullable error) {
                     if(error){
                         NSLog(@"Error: %@, %@", operation, error);
-                        [self notifyManagedObjectContext:context aboutRequestOperation:operation forNewValuesForObjectWithID:objectID];
+                        [self notifyManagedObjectContext:context aboutRequestOperation:operation forNewValuesForObjectWithID:objectID didFetch:YES];
                         return;
                     }
 
@@ -842,13 +846,13 @@ withAttributeAndRelationshipValuesFromManagedObject:(NSManagedObject *)managedOb
                                 AFSaveManagedObjectContextOrThrowInternalConsistencyException(backingContext);
                             }];
                         }];
-
-                        [self notifyManagedObjectContext:context aboutRequestOperation:operation forNewValuesForObjectWithID:objectID];
+                        
+                        [self notifyManagedObjectContext:context aboutRequestOperation:operation forNewValuesForObjectWithID:objectID didFetch:YES];
                     }];
 
                 }];
 
-                [self notifyManagedObjectContext:context aboutRequestOperation:operation forNewValuesForObjectWithID:objectID];
+                [self notifyManagedObjectContext:context aboutRequestOperation:operation forNewValuesForObjectWithID:objectID didFetch:NO];
                 [operation resume];
             }
         }
@@ -873,7 +877,7 @@ withAttributeAndRelationshipValuesFromManagedObject:(NSManagedObject *)managedOb
             __block NSURLSessionTask *operation = [self.HTTPClient dataTaskWithRequest:request completionHandler:^(NSURLResponse * _Nonnull response, id  _Nullable responseObject, NSError * _Nullable error) {
                 if(error) {
                     NSLog(@"Error: %@, %@", operation, error);
-                    [self notifyManagedObjectContext:context aboutRequestOperation:operation forNewValuesForRelationship:relationship forObjectWithID:objectID];
+                    [self notifyManagedObjectContext:context aboutRequestOperation:operation forNewValuesForRelationship:relationship forObjectWithID:objectID didFetch:YES];
                     return;
                 }
 
@@ -908,12 +912,12 @@ withAttributeAndRelationshipValuesFromManagedObject:(NSManagedObject *)managedOb
                             }];
                         }];
 
-                        [self notifyManagedObjectContext:context aboutRequestOperation:operation forNewValuesForRelationship:relationship forObjectWithID:objectID];
+                        [self notifyManagedObjectContext:context aboutRequestOperation:operation forNewValuesForRelationship:relationship forObjectWithID:objectID didFetch:YES];
                     }];
                 }];
             }];
 			
-			[self notifyManagedObjectContext:context aboutRequestOperation:operation forNewValuesForRelationship:relationship forObjectWithID:objectID];
+			[self notifyManagedObjectContext:context aboutRequestOperation:operation forNewValuesForRelationship:relationship forObjectWithID:objectID didFetch:NO];
             [operation resume];
         }
     }

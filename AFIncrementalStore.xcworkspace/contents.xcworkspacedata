@@ -18,6 +18,9 @@
       </FileRef>
    </Group>
    <FileRef
+      location = "group:Examples/Basic Example/Pods/Pods.xcodeproj">
+   </FileRef>
+   <FileRef
       location = "group:Examples/Basic Example/Basic Example.xcodeproj">
    </FileRef>
    <FileRef

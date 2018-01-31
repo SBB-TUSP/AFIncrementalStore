@@ -42,9 +42,8 @@ static NSString * const kAFIncrementalStoreExampleAPIBaseURLString = @"http://af
     if (!self) {
         return nil;
     }
-    
-    [self registerHTTPOperationClass:[AFJSONRequestOperation class]];
-    [self setDefaultHeader:@"Accept" value:@"application/json"];
+
+    self.requestSerializer =  [AFJSONRequestSerializer serializer];
     
     return self;
 }

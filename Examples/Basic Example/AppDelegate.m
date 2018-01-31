@@ -23,6 +23,7 @@
 #import "AppDelegate.h"
 #import "SongsIncrementalStore.h"
 #import "ArtistsListViewController.h"
+@import AFNetworking;
 
 @implementation AppDelegate
 @synthesize window = _window;
