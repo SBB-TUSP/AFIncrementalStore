@@ -9,7 +9,7 @@ import UIKit
 
 class AFRESTClientSwift: AFHTTPClient {
 
-    var paginator: AFPaginator
+//    var paginator: AFPaginator
 
 
 }
