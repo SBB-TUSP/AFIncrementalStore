@@ -26,6 +26,7 @@
 
 @dynamic name;
 @dynamic artistDescription;
+@dynamic birthDate;
 
 @dynamic songs;
 
