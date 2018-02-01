@@ -48,6 +48,7 @@
  
  Subclasses should not override `-executeRequest:withContext:error`. Instead, override `-executeFetchRequest:withContext:error:` or `-executeSaveChangesRequest:withContext:error:`, which are called by `-executeRequest:withContext:error` depending on the type of persistent store request.
  */
+
 @interface AFIncrementalStore : NSIncrementalStore
 
 ///---------------------------------------------
@@ -154,7 +155,7 @@
  
  @return An `NSString` resource identifier for the resource.
  */
-- (NSString *)resourceIdentifierForRepresentation:(NSDictionary *)representation
+- (nullable NSString * )resourceIdentifierForRepresentation:(NSDictionary *)representation
                                          ofEntity:(NSEntityDescription *)entity
                                      fromResponse:(NSHTTPURLResponse *)response;
 
@@ -169,7 +170,7 @@
  
  @return An `NSDictionary` containing the attributes for a managed object. 
  */
-- (NSDictionary *)attributesForRepresentation:(NSDictionary *)representation
+- (nullable NSDictionary *)attributesForRepresentation:(nullable NSDictionary *)representation
                                      ofEntity:(NSEntityDescription *)entity
                                  fromResponse:(NSHTTPURLResponse *)response;
 
@@ -400,3 +401,4 @@ extern NSString * const AFIncrementalStoreFaultingRelationshipKey;
  A key in the `userInfo` dictionary in a `AFIncrementalStoreContextWillFetchRemoteValues` or `AFIncrementalStoreContextDidFetchRemoteValues` notification.
  The corresponding value is an `NSPersistentStoreRequest` object representing the associated fetch or save request. */
 extern NSString * const AFIncrementalStorePersistentStoreRequestKey;
+

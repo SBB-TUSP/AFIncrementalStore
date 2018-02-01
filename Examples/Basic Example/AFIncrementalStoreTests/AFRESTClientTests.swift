@@ -841,21 +841,19 @@ class AFRESTClientTests: XCTestCase {
 
 
     func test_ShouldBeAbleToCreateAFBlockPaginator() {
-        let instancePaginator = AFBlockPaginator {
-            (fetchRequest) -> [AnyHashable : Any]? in
-
+        let instancePaginator = AFBlockPaginator({
+            _ in
             return [:]
-
-        }
+        })
 
         XCTAssertNotNil(instancePaginator, "should be able to create an instance of AFBlockPaginator")
     }
 
     func test_ShouldBeAbleToGetParametersForFetchRequest_whenThereIsABlockPaginator() {
-        let instancePaginator = AFBlockPaginator {
-            (fetchRequest) -> [AnyHashable : Any]? in
+        let instancePaginator = AFBlockPaginator({
+            _ in
             return [:]
-        }
+        })
 
         XCTAssertNotNil(instancePaginator, "should be able to create an instance of AFBlockPaginator")
 

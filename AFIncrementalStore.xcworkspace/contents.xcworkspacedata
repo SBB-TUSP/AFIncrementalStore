@@ -11,13 +11,7 @@
          location = "group:AFIncrementalStore.m">
       </FileRef>
       <FileRef
-         location = "group:AFRESTClient.h">
-      </FileRef>
-      <FileRef
-         location = "group:AFRESTClient.m">
-      </FileRef>
-      <FileRef
-         location = "group:AFRESTClientSwift.swift">
+         location = "group:AFRESTClient.swift">
       </FileRef>
    </Group>
    <FileRef
