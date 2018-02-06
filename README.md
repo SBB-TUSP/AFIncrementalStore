@@ -3,7 +3,7 @@
 
 AFIncrementalStore is an [`NSIncrementalStore`](http://nshipster.com/nsincrementalstore/) subclass that uses [AFNetworking](https://github.com/afnetworking/afnetworking) to automatically request resources as properties and relationships are needed. 
 
-Weighing in at just a few hundred LOC, in a single `{.h,.m}` file pair, AFIncrementalStore is something you can get your head around. Integrating it into your project couldn't be easier--just swap out your `NSPersistentStore` for it. No monkey-patching, no extra properties on your models.
+Weighing in at just a few hundred LOC, in a single `{.swift}` file pair, AFIncrementalStore is something you can get your head around. Integrating it into your project couldn't be easier--just swap out your `NSPersistentStore` for it. No monkey-patching, no extra properties on your models.
 
 > That said, unless you're pretty confident in your Core Data jitsu, you'll probably be much better off rolling your own simple [NSCoding / NSKeyedArchiver](http://nshipster.com/nscoding/)-based solution (at least to start off).
 
@@ -90,7 +90,7 @@ Also, don't forget to pull down AFNetworking with `git submodule update --init` 
 
 ## Requirements
 
-AFIncrementalStore requires Xcode 4.4 with either the [iOS 5.0](http://developer.apple.com/library/ios/#releasenotes/General/WhatsNewIniPhoneOS/Articles/iOS5.html) or [Mac OS 10.6](http://developer.apple.com/library/mac/#releasenotes/MacOSX/WhatsNewInOSX/Articles/MacOSX10_6.html#//apple_ref/doc/uid/TP40008898-SW7) ([64-bit with modern Cocoa runtime](https://developer.apple.com/library/mac/#documentation/Cocoa/Conceptual/ObjCRuntimeGuide/Articles/ocrtVersionsPlatforms.html)) SDK, as well as [AFNetworking](https://github.com/afnetworking/afnetworking) 0.9 or higher.
+AFIncrementalStore requires Xcode 4.4 with either the [iOS 7.0](https://developer.apple.com/library/content/releasenotes/General/WhatsNewIniOS/Articles/iOS7.html) or [Mac OS 10.7](https://developer.apple.com/library/content/releasenotes/AppleApplications/RN-Automator/index.html#//apple_ref/doc/uid/TP40001840) ([64-bit with modern Cocoa runtime](https://developer.apple.com/library/mac/#documentation/Cocoa/Conceptual/ObjCRuntimeGuide/Articles/ocrtVersionsPlatforms.html)) SDK, as well as [AFNetworking](https://github.com/afnetworking/afnetworking) 3.2 or higher.
 
 ## Installation
 
@@ -101,14 +101,10 @@ Here's an example podfile that installs AFIncrementalStore and its dependency, A
 ### Podfile
 
 ```ruby
-platform :ios, '5.0'
+platform :ios, '7.0'
 
-pod 'AFIncrementalStore'
+pod 'AFIncrementalStore', :git => 'https://github.com/SBB-TUSP/AFIncrementalStore.git'
 ```
-
-Note the specification of iOS 5.0 as the platform; leaving out the 5.0 will cause CocoaPods to fail with the following message:
-
-> [!] AFIncrementalStore is not compatible with iOS 4.3.
 
 ## References
 
@@ -126,6 +122,10 @@ Follow AFNetworking on Twitter ([@AFNetworking](https://twitter.com/AFNetworking
 
 [Mattt Thompson](http://github.com/mattt)  
 [@mattt](https://twitter.com/mattt)
+
+Swift translation and AFNetworking/Alamofire 3 update:
+[Alessandro Ranaldi](https://github.com/Ciaolo)
+[Ignazio Altomare](https://github.com/Boom2112)
 
 ## License
 
