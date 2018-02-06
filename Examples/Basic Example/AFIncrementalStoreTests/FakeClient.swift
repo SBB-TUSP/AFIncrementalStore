@@ -9,6 +9,18 @@ import UIKit
 
 class FakeClient: AFHTTPClient, AFIncrementalStoreHTTPClient {
 
+    override init() {
+        super.init(baseURL: URL(string: "http://lochalhost")!)
+    }
+
+    required init?(coder aDecoder: NSCoder) {
+        super.init(coder: aDecoder)
+    }
+
+    override init!(baseURL url: URL!) {
+        super.init(baseURL: url)
+    }
+
     func representationsForRelationships(fromRepresentation representation: [AnyHashable : Any]!, ofEntity entity: NSEntityDescription!, from response: HTTPURLResponse!) -> [AnyHashable : Any]! {
         return nil
     }

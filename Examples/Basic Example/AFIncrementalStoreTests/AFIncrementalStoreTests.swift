@@ -174,11 +174,11 @@ class AFIncrementalStoreTests: XCTestCase {
         }
         class FakeClientSubclass3: FakeClient {
 
-            override func resourceIdentifier(forRepresentation representation: [AnyHashable : Any]!, ofEntity entity: NSEntityDescription!, from response: HTTPURLResponse!) -> String! {
+            override func resourceIdentifier(forRepresentation representation: [AnyHashable : Any]!, ofEntity entity: NSEntityDescription!, from response: HTTPURLResponse!) -> String? {
                 return "TEST-ID"
             }
 
-            override func attributes(forRepresentation representation: [AnyHashable : Any]!, ofEntity entity: NSEntityDescription!, from response: HTTPURLResponse!) -> [AnyHashable : Any]! {
+            override func attributes(forRepresentation representation: [AnyHashable : Any]!, ofEntity entity: NSEntityDescription!, from response: HTTPURLResponse!) -> [AnyHashable : Any]? {
                 let dictionary: [String: Any] = [
                     "artistDescription": "TEST-DESCRIPTION",
                     "name": "TEST-ARTIST"
@@ -239,11 +239,11 @@ class AFIncrementalStoreTests: XCTestCase {
         }
         class FakeClientSubclass4: FakeClient {
 
-            override func resourceIdentifier(forRepresentation representation: [AnyHashable : Any]!, ofEntity entity: NSEntityDescription!, from response: HTTPURLResponse!) -> String! {
+            override func resourceIdentifier(forRepresentation representation: [AnyHashable : Any]!, ofEntity entity: NSEntityDescription!, from response: HTTPURLResponse!) -> String? {
                 return "TEST-ID"
             }
 
-            override func attributes(forRepresentation representation: [AnyHashable : Any]!, ofEntity entity: NSEntityDescription!, from response: HTTPURLResponse!) -> [AnyHashable : Any]! {
+            override func attributes(forRepresentation representation: [AnyHashable : Any]!, ofEntity entity: NSEntityDescription!, from response: HTTPURLResponse!) -> [AnyHashable : Any]? {
                 let dictionary: [String: Any] = [
                     "artistDescription": "TEST-DESCRIPTION",
                     "name": "TEST-ARTIST"
@@ -290,7 +290,7 @@ class AFIncrementalStoreTests: XCTestCase {
         wait(for: [testFinishExpectation], timeout: 10)
     }
 
-    /*func test_executeFetchRequest_shouldNotifyWhenRemoteFetchIsPerformed() {
+    func test_executeFetchRequest_shouldNotifyWhenRemoteFetchIsPerformed() {
         let willFetchNotification = expectation(description: "should call will fetch remote values")
         willFetchNotification.assertForOverFulfill = false
         var observer1: NSObjectProtocol!
@@ -340,11 +340,11 @@ class AFIncrementalStoreTests: XCTestCase {
 
         class FakeClientSubclass5: FakeClient {
 
-            override func resourceIdentifier(forRepresentation representation: [AnyHashable : Any]!, ofEntity entity: NSEntityDescription!, from response: HTTPURLResponse!) -> String! {
+            override func resourceIdentifier(forRepresentation representation: [AnyHashable : Any]!, ofEntity entity: NSEntityDescription!, from response: HTTPURLResponse!) -> String? {
                 return "TEST-ID"
             }
 
-            override func attributes(forRepresentation representation: [AnyHashable : Any]!, ofEntity entity: NSEntityDescription!, from response: HTTPURLResponse!) -> [AnyHashable : Any]! {
+            override func attributes(forRepresentation representation: [AnyHashable : Any]!, ofEntity entity: NSEntityDescription!, from response: HTTPURLResponse!) -> [AnyHashable : Any]? {
                 let dictionary: [String: Any] = [
                     "artistDescription": "TEST-DESCRIPTION",
                     "name": "TEST-ARTIST",
@@ -458,11 +458,11 @@ class AFIncrementalStoreTests: XCTestCase {
                 return dictionary
             }
 
-            override func resourceIdentifier(forRepresentation representation: [AnyHashable : Any]!, ofEntity entity: NSEntityDescription!, from response: HTTPURLResponse!) -> String! {
+            override func resourceIdentifier(forRepresentation representation: [AnyHashable : Any]!, ofEntity entity: NSEntityDescription!, from response: HTTPURLResponse!) -> String? {
                 return "TEST-ID"
             }
 
-            override func attributes(forRepresentation representation: [AnyHashable : Any]!, ofEntity entity: NSEntityDescription!, from response: HTTPURLResponse!) -> [AnyHashable : Any]! {
+            override func attributes(forRepresentation representation: [AnyHashable : Any]!, ofEntity entity: NSEntityDescription!, from response: HTTPURLResponse!) -> [AnyHashable : Any]? {
                 let dictionary: [String: Any] = [
                     "artistDescription": "TEST-DESCRIPTION",
                     "name": "TEST-ARTIST",
@@ -555,11 +555,11 @@ class AFIncrementalStoreTests: XCTestCase {
                 return entity.name == "Artist" ? dictionary : nil
             }
 
-            override func resourceIdentifier(forRepresentation representation: [AnyHashable : Any]!, ofEntity entity: NSEntityDescription!, from response: HTTPURLResponse!) -> String! {
+            override func resourceIdentifier(forRepresentation representation: [AnyHashable : Any]!, ofEntity entity: NSEntityDescription!, from response: HTTPURLResponse!) -> String? {
                 return "TEST-ID"
             }
 
-            override func attributes(forRepresentation representation: [AnyHashable : Any]!, ofEntity entity: NSEntityDescription!, from response: HTTPURLResponse!) -> [AnyHashable : Any]! {
+            override func attributes(forRepresentation representation: [AnyHashable : Any]!, ofEntity entity: NSEntityDescription!, from response: HTTPURLResponse!) -> [AnyHashable : Any]? {
                 let dictionary: [String: Any] = [
                     "artistDescription": "TEST-DESCRIPTION",
                     "name": "TEST-ARTIST"
@@ -698,11 +698,11 @@ class AFIncrementalStoreTests: XCTestCase {
                 return dictionary
             }
 
-            override func resourceIdentifier(forRepresentation representation: [AnyHashable : Any]!, ofEntity entity: NSEntityDescription!, from response: HTTPURLResponse!) -> String! {
+            override func resourceIdentifier(forRepresentation representation: [AnyHashable : Any]!, ofEntity entity: NSEntityDescription!, from response: HTTPURLResponse!) -> String? {
                 return "TEST-ID"
             }
 
-            override func attributes(forRepresentation representation: [AnyHashable : Any]!, ofEntity entity: NSEntityDescription!, from response: HTTPURLResponse!) -> [AnyHashable : Any]! {
+            override func attributes(forRepresentation representation: [AnyHashable : Any]!, ofEntity entity: NSEntityDescription!, from response: HTTPURLResponse!) -> [AnyHashable : Any]? {
                 let dictionary: [String: Any] = entity.name == "Artist" ? [
                     "artistDescription": "TEST-DESCRIPTION",
                     "name": "TEST-ARTIST"
@@ -724,7 +724,7 @@ class AFIncrementalStoreTests: XCTestCase {
                 }
             }
 
-            override func representationsForRelationships(fromRepresentation representation: [AnyHashable : Any]!, ofEntity entity: NSEntityDescription!, from response: HTTPURLResponse!) -> [AnyHashable : Any]! {
+            override func representationsForRelationships(fromRepresentation representation: [AnyHashable : Any]!, ofEntity entity: NSEntityDescription!, from response: HTTPURLResponse!) -> [AnyHashable : Any]? {
                 return [AnyHashable: Any]()
             }
 
@@ -794,11 +794,11 @@ class AFIncrementalStoreTests: XCTestCase {
                 return dictionary
             }
 
-            override func resourceIdentifier(forRepresentation representation: [AnyHashable : Any]!, ofEntity entity: NSEntityDescription!, from response: HTTPURLResponse!) -> String! {
+            override func resourceIdentifier(forRepresentation representation: [AnyHashable : Any]!, ofEntity entity: NSEntityDescription!, from response: HTTPURLResponse!) -> String? {
                 return "TEST-ID"
             }
 
-            override func attributes(forRepresentation representation: [AnyHashable : Any]!, ofEntity entity: NSEntityDescription!, from response: HTTPURLResponse!) -> [AnyHashable : Any]! {
+            override func attributes(forRepresentation representation: [AnyHashable : Any]!, ofEntity entity: NSEntityDescription!, from response: HTTPURLResponse!) -> [AnyHashable : Any]? {
                 return representation
             }
 
@@ -867,11 +867,11 @@ class AFIncrementalStoreTests: XCTestCase {
                 return dictionary
             }
 
-            override func resourceIdentifier(forRepresentation representation: [AnyHashable : Any]!, ofEntity entity: NSEntityDescription!, from response: HTTPURLResponse!) -> String! {
+            override func resourceIdentifier(forRepresentation representation: [AnyHashable : Any]!, ofEntity entity: NSEntityDescription!, from response: HTTPURLResponse!) -> String? {
                 return "TEST-ID"
             }
 
-            override func attributes(forRepresentation representation: [AnyHashable : Any]!, ofEntity entity: NSEntityDescription!, from response: HTTPURLResponse!) -> [AnyHashable : Any]! {
+            override func attributes(forRepresentation representation: [AnyHashable : Any]!, ofEntity entity: NSEntityDescription!, from response: HTTPURLResponse!) -> [AnyHashable : Any]? {
                 return representation
             }
 
@@ -954,6 +954,81 @@ class AFIncrementalStoreTests: XCTestCase {
             _ = try! context.save()
         }
         wait(for: [willSaveNotification, didSaveNotification], timeout: 10)
-    }*/
+    }
+
+    func test_insertOrUpdateObjectsFromRepresentations_includesRelationships() {
+        class FakeClientSubclass10: FakeClient {
+
+            override func request(for fetchRequest: NSFetchRequest<NSFetchRequestResult>!, with context: NSManagedObjectContext!) -> NSMutableURLRequest! {
+                return NSMutableURLRequest(url: URL(string: "http://localhost")!)
+            }
+
+            func request(forInsertedObject insertedObject: NSManagedObject!) -> NSMutableURLRequest! {
+                return NSMutableURLRequest(url: URL(string: "http://localhost")!)
+            }
+
+            override func httpRequestOperation(with urlRequest: URLRequest!, success: ((AFHTTPRequestOperation?, Any?) -> Void)!, failure: ((AFHTTPRequestOperation?, Error?) -> Void)!) -> AFHTTPRequestOperation! {
+                let operation = AFHTTPRequestOperation(request: urlRequest)
+                operation?.failureCallbackQueue = .main
+                operation?.setCompletionBlockWithSuccess(nil, failure: {
+                    operation, error in
+                    success?(operation, [String: Any]())
+                })
+                return operation
+            }
+
+            override func resourceIdentifier(forRepresentation representation: [AnyHashable : Any]!, ofEntity entity: NSEntityDescription!, from response: HTTPURLResponse!) -> String? {
+                return entity.name == "Artist" ? "TEST-ID" : "TEST-ID-SONG"
+            }
+
+            override func attributes(forRepresentation representation: [AnyHashable : Any]?, ofEntity entity: NSEntityDescription!, from response: HTTPURLResponse!) -> [AnyHashable : Any]? {
+                return entity.name == "Artist" ? [
+                    "name": "name",
+                    "artistDescription": "artistDescription"
+                    ] : ["title": "TEST-SONG"]
+            }
+
+            override func representationOrArrayOfRepresentations(ofEntity entity: NSEntityDescription!, fromResponseObject responseObject: Any!) -> Any! {
+                if entity.name == "Artist" {
+                    let dictionary: [String: Any] = [
+                        "name": "TEST-ARTIST",
+                        "artistDescription": "TEST-DESCRIPTION"
+                    ]
+                    return dictionary
+                }
+                let dictionary: [String: Any] = ["title": "TEST-SONG"]
+                return dictionary
+            }
+
+            override func representationsForRelationships(fromRepresentation representation: [AnyHashable : Any]!, ofEntity entity: NSEntityDescription!, from response: HTTPURLResponse!) -> [AnyHashable : Any]! {
+                if entity.name == "Artist" {
+                    let songs: [[String: Any]] = [["title": "TEST-SONG"]]
+                    return ["songs": songs]
+                } else {
+                    return nil
+                }
+            }
+
+        }
+        let finishExpectation = expectation(description: "should finish remote fetch")
+        var observer: NSObjectProtocol!
+        observer = NotificationCenter.default.addObserver(forName: .init("AFIncrementalStoreContextDidFetchRemoteValues"), object: nil, queue: .main) {
+            notification in
+            NotificationCenter.default.removeObserver(observer)
+            // TODO: add checks
+            finishExpectation.fulfill()
+        }
+        store.httpClient = FakeClientSubclass10()
+        let context = NSManagedObjectContext(concurrencyType: .mainQueueConcurrencyType)
+        context.persistentStoreCoordinator = coordinator
+        context.perform {
+            let request: NSFetchRequest<Artist> = NSFetchRequest.init(entityName: "Artist")
+            request.entity = NSEntityDescription.entity(forEntityName: "Artist", in: context)
+            let results = try? context.fetch(request)
+            XCTAssertNotNil(results)
+            XCTAssertTrue(results!.isEmpty)
+        }
+        wait(for: [finishExpectation], timeout: 10_000)
+    }
 
 }
