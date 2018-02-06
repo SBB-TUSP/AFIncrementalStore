@@ -123,7 +123,8 @@ Follow AFNetworking on Twitter ([@AFNetworking](https://twitter.com/AFNetworking
 [Mattt Thompson](http://github.com/mattt)  
 [@mattt](https://twitter.com/mattt)
 
-Swift translation and AFNetworking/Alamofire 3 update:
+#### Swift translation and AFNetworking/Alamofire 3 update:
+
 [Alessandro Ranaldi](https://github.com/Ciaolo)
 [Ignazio Altomare](https://github.com/Boom2112)
 
