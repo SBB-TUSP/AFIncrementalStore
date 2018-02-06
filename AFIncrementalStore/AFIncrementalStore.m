@@ -133,7 +133,7 @@ static inline void AFSaveManagedObjectContextOrThrowInternalConsistencyException
     NSMutableDictionary *userInfo = [NSMutableDictionary dictionary];
     [userInfo setObject:[NSArray arrayWithObject:operation] forKey:AFIncrementalStoreRequestOperationsKey];
     [userInfo setObject:fetchRequest forKey:AFIncrementalStorePersistentStoreRequestKey];
-    if ([operation isFinished] && fetchedObjectIDs) {
+    if (didFetch && fetchedObjectIDs) {
         [userInfo setObject:fetchedObjectIDs forKey:AFIncrementalStoreFetchedObjectIDsKey];
     }
     
