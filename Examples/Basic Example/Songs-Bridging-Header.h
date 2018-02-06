@@ -11,7 +11,5 @@
 #import "TTTStringInflector.h"
 #import "TTTDateTransformers.h"
 
-#import "AFIncrementalStore.h"
-
 #endif /* Bridging_Header_h */
 

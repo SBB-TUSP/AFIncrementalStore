@@ -13,6 +13,9 @@
       <FileRef
          location = "group:AFRESTClient.swift">
       </FileRef>
+      <FileRef
+         location = "group:AFIncrementalStore.swift">
+      </FileRef>
    </Group>
    <FileRef
       location = "group:Examples/Basic Example/Basic Example.xcodeproj">
