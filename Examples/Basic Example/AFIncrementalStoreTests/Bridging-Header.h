@@ -9,7 +9,11 @@
 #define Bridging_Header_h
 
 #import "AFIncrementalStore.h"
+
 #import "Artist.h"
 #import "ObjCAssertWrapper.h"
+
+#import "TTTStringInflector.h"
+#import "TTTDateTransformers.h"
 
 #endif /* Bridging_Header_h */
