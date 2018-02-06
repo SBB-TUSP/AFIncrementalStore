@@ -21,7 +21,7 @@
 // THE SOFTWARE.
 
 #import "SongsIncrementalStore.h"
-#import "SongAPIClient.h"
+#import "Songs-Swift.h"
 
 @implementation SongsIncrementalStore
 
@@ -38,7 +38,7 @@
 }
 
 - (id <AFIncrementalStoreHTTPClient>)HTTPClient {
-    return [SongAPIClient sharedClient];
+    return [SongAPIClient sharedInstance];
 }
 
 @end
