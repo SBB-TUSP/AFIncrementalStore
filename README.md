@@ -125,7 +125,7 @@ Follow AFNetworking on Twitter ([@AFNetworking](https://twitter.com/AFNetworking
 
 #### Swift translation and AFNetworking/Alamofire 3 update:
 
-[Alessandro Ranaldi](https://github.com/Ciaolo)
+[Alessandro Ranaldi](https://github.com/Ciaolo)  
 [Ignazio Altomare](https://github.com/Boom2112)
 
 ## License
