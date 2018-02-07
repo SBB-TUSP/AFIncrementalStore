@@ -8,17 +8,23 @@
 import Foundation
 import CoreData
 
-fileprivate let AFIncrementalStoreUnimplementedMethodException: String = "com.alamofire.incremental-store.exceptions.unimplemented-method"
+fileprivate extension NSExceptionName {
 
-fileprivate let AFIncrementalStoreRequestOperationsKey: String = "AFIncrementalStoreRequestOperations"
+    fileprivate static var AFIncrementalStoreUnimplementedMethodException: NSExceptionName {
+        return .init("com.alamofire.incremental-store.exceptions.unimplemented-method")
+    }
 
-fileprivate let AFIncrementalStoreFetchedObjectIDsKey: String = "AFIncrementalStoreFetchedObjectIDs"
+}
 
-fileprivate let AFIncrementalStoreFaultingObjectIDKey: String = "AFIncrementalStoreFaultingObjectID"
+private let AFIncrementalStoreRequestOperationsKey: String = "AFIncrementalStoreRequestOperations"
 
-fileprivate let AFIncrementalStoreFaultingRelationshipKey: String = "AFIncrementalStoreFaultingRelationship"
+private let AFIncrementalStoreFetchedObjectIDsKey: String = "AFIncrementalStoreFetchedObjectIDs"
 
-fileprivate let AFIncrementalStorePersistentStoreRequestKey: String = "AFIncrementalStorePersistentStoreRequest"
+private let AFIncrementalStoreFaultingObjectIDKey: String = "AFIncrementalStoreFaultingObjectID"
+
+private let AFIncrementalStoreFaultingRelationshipKey: String = "AFIncrementalStoreFaultingRelationship"
+
+private let AFIncrementalStorePersistentStoreRequestKey: String = "AFIncrementalStorePersistentStoreRequest"
 
 fileprivate extension Notification.Name {
 
@@ -56,36 +62,35 @@ fileprivate extension Notification.Name {
 
 }
 
-fileprivate var kAFResourceIdentifierObjectKey: UnsafeRawPointer?
+private var kAFResourceIdentifierObjectKey = UInt8(0)
 
-fileprivate var kAFIncrementalStoreResourceIdentifierAttributeName: String {
+private var kAFIncrementalStoreResourceIdentifierAttributeName: String {
     return "__af_resourceIdentifier"
 }
 
-fileprivate var kAFIncrementalStoreLastModifiedAttributeName: String {
+private var kAFIncrementalStoreLastModifiedAttributeName: String {
     return "__af_lastModified"
 }
 
-fileprivate var kAFReferenceObjectPrefix: String {
+private var kAFReferenceObjectPrefix: String {
     return "__af_"
 }
 
-fileprivate func AFReferenceObject(from resourceIdentifier: String?) -> String? {
+private func AFReferenceObject(from resourceIdentifier: String?) -> String? {
     guard let resourceIdentifier = resourceIdentifier else {
         return nil
     }
     return kAFReferenceObjectPrefix.appending(resourceIdentifier)
 }
 
-fileprivate func AFResourceIdentifier(from referenceObject: NSObjectProtocol?) -> String? {
-    guard let referenceObject = referenceObject else {
+fileprivate func AFResourceIdentifier(from referenceObject: String?) -> String? {
+    guard let string = referenceObject else {
         return nil
     }
-    let string = referenceObject.description
     return string.hasPrefix(kAFReferenceObjectPrefix) ? "\(string[kAFReferenceObjectPrefix.endIndex...])" : string
 }
 
-fileprivate func AFSaveManagedObjectContextOrThrowInternalConsistencyException(_ context: NSManagedObjectContext) {
+private func AFSaveManagedObjectContextOrThrowInternalConsistencyException(_ context: NSManagedObjectContext) {
     do {
         try context.save()
     } catch let error as NSError {
@@ -93,25 +98,202 @@ fileprivate func AFSaveManagedObjectContextOrThrowInternalConsistencyException(_
     }
 }
 
-fileprivate extension NSManagedObject {
+private extension NSManagedObject {
 
-    fileprivate var af_resourceIdentifier: String? {
+    private var af_resourceIdentifier: String? {
         get {
-            let identifier = objc_getAssociatedObject(self, kAFResourceIdentifierObjectKey) as? String
+            let identifier = objc_getAssociatedObject(self, &kAFResourceIdentifierObjectKey) as? String
             if identifier == nil {
-                let referenceObject = (objectID.persistentStore as? AFIncrementalStore).referenceObject(for: objectID)
-                if referenceObject?.isKind(of: String.self) {
-                    return AFResourceIdentifier(from: referenceObject)
+                guard let referenceObject = (objectID.persistentStore as? AFIncrementalStore)?.referenceObject(for: objectID) else {
+                    return nil
                 }
-
+                return AFResourceIdentifier(from: referenceObject)
             }
             return identifier
         }
         set {
-            objc_setAssociatedObject(self, kAFResourceIdentifierObjectKey, newValue, .OBJC_ASSOCIATION_COPY_NONATOMIC)
+            objc_setAssociatedObject(self, &kAFResourceIdentifierObjectKey, newValue, .OBJC_ASSOCIATION_COPY_NONATOMIC)
         }
     }
 
 }
 
-class AFIncrementalStore {}
+// MARK: -
+
+private class AFIncrementalStore: NSPersistentStore {
+
+    private var backingObjectIdByObjectId = NSCache<NSManagedObjectID, NSManagedObjectID>()
+
+    private var registeredObjectIdsByEntityNameAndNestedResourceIdentifier: [String: [String: NSManagedObjectID]] = [:]
+
+    private var backingPersistentStoreCoordinator: NSPersistentStoreCoordinator?
+
+    private var _backingManagedObjectContext: NSManagedObjectContext?
+
+    private var httpClient: AFHTTPClient?
+
+    private static var type: String {
+        NSException(name: .AFIncrementalStoreUnimplementedMethodException, reason: NSLocalizedString("Unimplemented method: +type. Must be overridden in a subclass", comment: ""), userInfo: nil).raise()
+    }
+
+    private static var model: NSManagedObjectModel {
+        NSException(name: .AFIncrementalStoreUnimplementedMethodException, reason: NSLocalizedString("Unimplemented method: +model. Must be overridden in a subclass", comment: ""), userInfo: nil).raise()
+    }
+
+    // MARK: -
+
+    private func notify(context: NSManagedObjectContext, about operation: AFHTTPRequestOperation, for fetchRequest: NSFetchRequest<NSFetchRequestResult>, fetchedObjectIds: [NSManagedObjectID]?, didFetch: Bool) {
+        let name: Notification.Name = didFetch ? .AFIncrementalStoreContextDidFetchRemoteValues : .AFIncrementalStoreContextWillFetchRemoteValues
+        var userInfo: [AnyHashable: Any] = [
+            AFIncrementalStoreRequestOperationsKey: [operation],
+            AFIncrementalStorePersistentStoreRequestKey: fetchRequest
+        ]
+        if didFetch,
+            let fetchedObjectIds = fetchedObjectIds {
+            userInfo[AFIncrementalStoreFetchedObjectIDsKey] = fetchedObjectIds
+        }
+        NotificationCenter.default.post(name: name, object: context, userInfo: userInfo)
+    }
+
+    private func notify(context: NSManagedObjectContext, about operations: [AFHTTPRequestOperation], for request: NSSaveChangesRequest, didSave: Bool) {
+        let name: Notification.Name = didSave ? .AFIncrementalStoreContextDidSaveRemoteValues : .AFIncrementalStoreContextWillSaveRemoteValues
+        let userInfo: [AnyHashable: Any] = [
+            AFIncrementalStoreRequestOperationsKey: operations,
+            AFIncrementalStorePersistentStoreRequestKey: request
+        ]
+        NotificationCenter.default.post(name: name, object: context, userInfo: userInfo)
+    }
+
+    private func notify(context: NSManagedObjectContext, about operation: AFHTTPRequestOperation, forNewValuesForObjectWithId objectId: NSManagedObjectID, didFetch: Bool) {
+        let name: Notification.Name = didFetch ? .AFIncrementalStoreContextDidFetchNewValuesForObject : .AFIncrementalStoreContextWillFetchNewValuesForObject
+        let userInfo: [AnyHashable: Any] = [
+            AFIncrementalStoreRequestOperationsKey: [operation],
+            AFIncrementalStoreFaultingObjectIDKey: objectId
+        ]
+        NotificationCenter.default.post(name: name, object: context, userInfo: userInfo)
+    }
+
+    private func notify(context: NSManagedObjectContext, about operation: AFHTTPRequestOperation, forNewValuesFor relationship: NSRelationshipDescription, forObjectWithId objectId: NSManagedObjectID, didFetch: Bool) {
+        let name: Notification.Name = didFetch ? .AFIncrementalStoreContextDidFetchNewValuesForRelationship : .AFIncrementalStoreContextWillFetchNewValuesForRelationship
+        let userInfo: [AnyHashable: Any] = [
+            AFIncrementalStoreRequestOperationsKey: [operation],
+            AFIncrementalStoreFaultingObjectIDKey: objectId,
+            AFIncrementalStoreFaultingRelationshipKey: relationship
+        ]
+        NotificationCenter.default.post(name: name, object: context, userInfo: userInfo)
+    }
+
+    // MARK: -
+
+    private var backingManagedObjectContext: NSManagedObjectContext {
+        if _backingManagedObjectContext == nil {
+            let newContext = NSManagedObjectContext(concurrencyType: .privateQueueConcurrencyType)
+            newContext.persistentStoreCoordinator = backingPersistentStoreCoordinator
+            newContext.retainsRegisteredObjects = true
+            _backingManagedObjectContext = newContext
+        }
+        return _backingManagedObjectContext!
+    }
+
+    private func objectId(for entity: NSEntityDescription?, with resourceIdentifier: String?) -> NSManagedObjectID? {
+        guard let entityName = entity?.name,
+            let resourceIdentifier = resourceIdentifier else {
+                return nil
+        }
+        return registeredObjectIdsByEntityNameAndNestedResourceIdentifier[entityName]?[resourceIdentifier] ?? newObjectId(for: entity, referenceObject: resourceIdentifier)
+    }
+
+    private func objectIdForBackingObject(for entity: NSEntityDescription?, with resourceIdentifier: String?) -> NSManagedObjectID? {
+        guard let entityName = entity?.name,
+            let resourceIdentifier = resourceIdentifier,
+            let objectId = self.objectId(for: entity, with: resourceIdentifier) else {
+            return nil
+        }
+        var backingObjectId = backingObjectIdByObjectId.object(forKey: objectId)
+        if backingObjectId == nil {
+            let context = backingManagedObjectContext
+            context.performAndWait {
+                let request = NSFetchRequest<NSManagedObjectID>()
+                request.resultType = .managedObjectIDResultType
+                request.fetchLimit = 1
+                request.predicate = NSPredicate(format: "%K = %@", kAFIncrementalStoreResourceIdentifierAttributeName, resourceIdentifier)
+                request.entity = NSEntityDescription.entity(forEntityName: entityName, in: context)
+                do {
+                    backingObjectId = try context.fetch(request).last
+                } catch let error as NSError {
+                    print("Error:", error)
+                }
+            }
+        }
+        if let backingObjectId = backingObjectId {
+            backingObjectIdByObjectId.setObject(backingObjectId, forKey: objectId)
+        }
+        return backingObjectId
+    }
+
+    private func update(_ backingObject: NSManagedObject?, withAttributeAndRelationshipValuesFrom managedObject: NSManagedObject?) {
+        guard let backingObject = backingObject,
+            let managedObject = managedObject else {
+                return
+        }
+        var relationshipValues = [String: Any]()
+        for relationship in managedObject.entity.relationshipsByName.map({$1}) {
+            guard !managedObject.hasFault(forRelationshipNamed: relationship.name) else {
+                continue
+            }
+            if relationship.isToMany {
+                if relationship.isOrdered {
+                    guard let relationshipValue = managedObject.value(forKey: relationship.name) as? [NSManagedObject] else {
+                        continue
+                    }
+                    var backingRelationshipValue = [NSManagedObject]()
+                    for relationshipManagedObject in relationshipValue {
+                        guard !relationshipManagedObject.objectID.isTemporaryID,
+                            let backingRelationshipObjectId = objectIdForBackingObject(for: relationship.destinationEntity, with: AFResourceIdentifier(from: referenceObject(for: relationshipManagedObject.objectID))),
+                            let context = backingObject.managedObjectContext,
+                            let backingRelationshipObject = try? context.existingObject(with: backingRelationshipObjectId) else {
+                                continue
+                        }
+                        backingRelationshipValue.append(backingRelationshipObject)
+                    }
+                    relationshipValues[relationship.name] = backingRelationshipValue
+                } else {
+                    guard let relationshipValue = managedObject.value(forKey: relationship.name) as? Set<NSManagedObject> else {
+                        continue
+                    }
+                    var backingRelationshipValue = Set<NSManagedObject>()
+                    for relationshipManagedObject in relationshipValue {
+                        guard !relationshipManagedObject.objectID.isTemporaryID,
+                            let backingRelationshipObjectId = objectIdForBackingObject(for: relationship.destinationEntity, with: AFResourceIdentifier(from: referenceObject(for: relationshipManagedObject.objectID))),
+                            let context = backingObject.managedObjectContext,
+                            let backingRelationshipObject = try? context.existingObject(with: backingRelationshipObjectId) else {
+                                continue
+                        }
+                        backingRelationshipValue.insert(backingRelationshipObject)
+                    }
+                    relationshipValues[relationship.name] = backingRelationshipValue
+                }
+            } else {
+                guard let relationshipValue = managedObject.value(forKey: relationship.name) as? NSManagedObject,
+                    !relationshipValue.objectID.isTemporaryID,
+                    let backingRelationshipObjectId = objectIdForBackingObject(for: relationship.destinationEntity, with: AFResourceIdentifier(from: referenceObject(for: relationshipValue.objectID))),
+                    let context = backingObject.managedObjectContext,
+                    let backingRelationshipObject = try? context.existingObject(with: backingRelationshipObjectId) else {
+                        continue
+                }
+                relationshipValues[relationship.name] = backingRelationshipObject
+            }
+        }
+        backingObject.setValuesForKeys(relationshipValues)
+        backingObject.setValuesForKeys(managedObject.dictionaryWithValues(forKeys: managedObject.entity.attributesByName.map({ (key, _) -> String in
+            return key
+        })))
+    }
+
+    // MARK: -
+
+    fileprivate func referenceObject(for objectId: NSManagedObjectID?) -> String? {return nil}
+
+    private func newObjectId(for entity: NSEntityDescription?, referenceObject: String) -> NSManagedObjectID? {return NSManagedObjectID()}
+
+}
