@@ -36,7 +36,7 @@ class AFRESTClient: AFHTTPClient {
 
         guard
             let persistentStore = object.objectID.persistentStore as? NSIncrementalStore,
-            let resourceIdentifier = AFResourceIdentifierFromReferenceObject(persistentStore.referenceObject(for: object.objectID))
+            let resourceIdentifier = AFResourceIdentifier(from: persistentStore.referenceObject(for: object.objectID))
             else {
                 return rootPath
         }
@@ -54,9 +54,9 @@ class AFRESTClient: AFHTTPClient {
 
 //MARK: -
 
-extension AFRESTClient: AFIncrementalStoreHTTPClient {
+extension AFRESTClient: AFIncrementalStoreHttpClient {
 
-    func representationOrArrayOfRepresentations(ofEntity entity: NSEntityDescription?, fromResponseObject responseObject: Any) -> Any {
+    func representationOrArrayOfRepresentations(ofEntity entity: NSEntityDescription?, fromResponseObject responseObject: Any?) -> Any? {
 
         if let responseArray = responseObject as? Array<Any> {
             return responseArray
@@ -64,12 +64,17 @@ extension AFRESTClient: AFIncrementalStoreHTTPClient {
 
         else if let responseDictionary = responseObject as? Dictionary<AnyHashable, Any> {
             guard let name = entity?.name else { return responseObject }
-
-            if let value = responseDictionary[name.localizedLowercase] as? Dictionary<AnyHashable, Any> {
+            var nameFixed = ""
+            if #available(iOS 9.0, *) {
+                nameFixed = name.localizedLowercase
+            } else {
+                nameFixed = name.lowercased(with: Locale.current)
+            }
+            if let value = responseDictionary[nameFixed] as? Dictionary<AnyHashable, Any> {
                 return value
             }
 
-            if let value = responseDictionary[inflector.pluralize(name.localizedLowercase)] as? Array<Any> {
+            if let value = responseDictionary[inflector.pluralize(nameFixed)] as? Array<Any> {
                 return value
             }
 
@@ -80,8 +85,8 @@ extension AFRESTClient: AFIncrementalStoreHTTPClient {
         return responseObject
     }
 
-    func representationsForRelationships(fromRepresentation representation: [AnyHashable : Any], ofEntity entity: NSEntityDescription?, from response: HTTPURLResponse?) -> [AnyHashable : Any] {
-        var mutableRelationshipRepresentations: [AnyHashable : Any] = [:]
+    func representationsForRelationships(fromRepresentation representation: [AnyHashable : Any], ofEntity entity: NSEntityDescription?, from response: HTTPURLResponse?) -> [String : Any] {
+        var mutableRelationshipRepresentations: [String : Any] = [:]
 
         guard let relationshipsByName = entity?.relationshipsByName else { return mutableRelationshipRepresentations }
 
@@ -123,7 +128,7 @@ extension AFRESTClient: AFIncrementalStoreHTTPClient {
         return nil
     }
 
-    func attributes(forRepresentation representation: [AnyHashable : Any]?, ofEntity entity: NSEntityDescription?, from response: HTTPURLResponse?) -> [AnyHashable : Any]? {
+    func attributes(forRepresentation representation: [AnyHashable : Any]?, ofEntity entity: NSEntityDescription?, from response: HTTPURLResponse?) -> [String : Any]? {
 
         guard let tempRepresentation = representation else { return nil }
 
@@ -151,16 +156,20 @@ extension AFRESTClient: AFIncrementalStoreHTTPClient {
             }
         }
 
-        return mutableAttributes as? [AnyHashable : Any]
+        return mutableAttributes as? [String : Any]
     }
 
-    func request(for fetchRequest: NSFetchRequest<NSFetchRequestResult>, with context: NSManagedObjectContext) -> NSMutableURLRequest {
+    func request(for fetchRequest: NSFetchRequest<NSFetchRequestResult>?, with context: NSManagedObjectContext?) -> URLRequest? {
+        guard let fetchRequest = fetchRequest,
+            let _ = context else {
+                return nil
+        }
         let mutableParameters = NSMutableDictionary()
         if paginator != nil {
             mutableParameters.addEntries(from: (paginator?.parameters(for: fetchRequest))!)
         }
         let mutableRequest = request(withMethod: "GET", path: path(forEntity: fetchRequest.entity!), parameters: mutableParameters.count == 0 ? nil : mutableParameters as! [AnyHashable : Any])
-        return mutableRequest!
+        return mutableRequest as URLRequest!
     }
 
     func request(withMethod method: String, pathForObjectWith objectID: NSManagedObjectID, with context: NSManagedObjectContext) -> NSMutableURLRequest {
@@ -195,12 +204,12 @@ extension AFRESTClient: AFIncrementalStoreHTTPClient {
     }
 
 
-    func request(forInsertedObject insertedObject: NSManagedObject!) -> NSMutableURLRequest! {
+    func request(forInsertedObject insertedObject: NSManagedObject!) -> URLRequest! {
         let parameters = representation(ofAttributes: insertedObject.dictionaryWithValues(forKeys: Array(insertedObject.entity.attributesByName.keys)), of: insertedObject)
-        return request(withMethod: "POST", path: path(forEntity: insertedObject.entity), parameters: parameters)
+        return request(withMethod: "POST", path: path(forEntity: insertedObject.entity), parameters: parameters) as URLRequest
     }
 
-    func request(forUpdatedObject updatedObject: NSManagedObject!) -> NSMutableURLRequest! {
+    func request(forUpdatedObject updatedObject: NSManagedObject!) -> URLRequest! {
         
         var mutableChangedAttributeKeys = Set(updatedObject.changedValues().keys)
         mutableChangedAttributeKeys = mutableChangedAttributeKeys.intersection(Set(updatedObject.entity.attributesByName.keys))
@@ -210,11 +219,11 @@ extension AFRESTClient: AFIncrementalStoreHTTPClient {
         let updatedObjectDictionary = updatedObject.changedValues().filter { mutableChangedAttributeKeys.contains($0.key) }
 
         let parameters = representation(ofAttributes: updatedObjectDictionary, of: updatedObject)
-        return request(withMethod: "PUT", path: path(for: updatedObject), parameters: parameters)
+        return request(withMethod: "PUT", path: path(for: updatedObject), parameters: parameters) as URLRequest
     }
 
-    func request(forDeletedObject deletedObject: NSManagedObject!) -> NSMutableURLRequest! {
-        return request(withMethod: "DELETE", path: path(for: deletedObject), parameters: nil)
+    func request(forDeletedObject deletedObject: NSManagedObject!) -> URLRequest! {
+        return request(withMethod: "DELETE", path: path(for: deletedObject), parameters: nil) as URLRequest
     }
 }
 
