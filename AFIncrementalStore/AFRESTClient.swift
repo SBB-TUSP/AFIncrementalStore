@@ -172,14 +172,14 @@ extension AFRESTClient: AFIncrementalStoreHttpClient {
         return mutableRequest as URLRequest!
     }
 
-    func request(withMethod method: String, pathForObjectWith objectID: NSManagedObjectID, with context: NSManagedObjectContext) -> NSMutableURLRequest {
+    func request(withMethod method: String, pathForObjectWith objectID: NSManagedObjectID, with context: NSManagedObjectContext) -> URLRequest {
         let object = context.object(with: objectID)
-        return request(withMethod: method, path: path(for: object), parameters: nil)
+        return request(withMethod: method, path: path(for: object), parameters: nil) as URLRequest
     }
 
-    func request(withMethod method: String, pathForRelationship relationship: NSRelationshipDescription?, forObjectWith objectID: NSManagedObjectID, with context: NSManagedObjectContext) -> NSMutableURLRequest {
+    func request(withMethod method: String, pathForRelationship relationship: NSRelationshipDescription?, forObjectWith objectID: NSManagedObjectID, with context: NSManagedObjectContext) -> URLRequest {
         let object = context.object(with: objectID)
-        return request(withMethod: method, path: path(forRelationship: relationship, for: object), parameters: nil)
+        return request(withMethod: method, path: path(forRelationship: relationship, for: object), parameters: nil) as URLRequest
     }
 
     func shouldFetchRemoteValues(forRelationship relationship: NSRelationshipDescription!, forObjectWith objectID: NSManagedObjectID!, in context: NSManagedObjectContext!) -> Bool {
