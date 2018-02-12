@@ -1030,7 +1030,7 @@ class AFIncrementalStoreTests: XCTestCase {
             XCTAssertNotNil(results)
             XCTAssertTrue(results!.isEmpty)
         }
-        wait(for: [finishExpectation], timeout: 10_000)
+        wait(for: [finishExpectation], timeout: 10)
     }
 
 }
