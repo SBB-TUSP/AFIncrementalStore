@@ -6,19 +6,21 @@
 //
 
 import UIKit
+import AFNetworking
 
-class FakeClient: AFHTTPClient, AFIncrementalStoreHTTPClient {
+class FakeClient: AFHTTPSessionManager, AFIncrementalStoreHTTPClient {
+    
 
-    override init() {
-        super.init(baseURL: URL(string: "http://lochalhost")!)
+    init() {
+        super.init(baseURL: URL(string: "http://lochalhost"), sessionConfiguration: nil)
     }
 
     required init?(coder aDecoder: NSCoder) {
         super.init(coder: aDecoder)
     }
 
-    override init!(baseURL url: URL!) {
-        super.init(baseURL: url)
+    override init(baseURL url: URL?, sessionConfiguration configuration: URLSessionConfiguration?) {
+        super.init(baseURL: url, sessionConfiguration: configuration)
     }
 
     func representationsForRelationships(fromRepresentation representation: [AnyHashable : Any]!, ofEntity entity: NSEntityDescription!, from response: HTTPURLResponse!) -> [AnyHashable : Any]! {
@@ -33,15 +35,15 @@ class FakeClient: AFHTTPClient, AFIncrementalStoreHTTPClient {
         return nil
     }
 
-    func request(withMethod method: String!, pathForObjectWith objectID: NSManagedObjectID!, with context: NSManagedObjectContext!) -> NSMutableURLRequest! {
+    func request(withMethod method: String!, pathForObjectWith objectID: NSManagedObjectID!, with context: NSManagedObjectContext!) -> NSMutableURLRequest? {
         return nil
     }
 
-    func request(withMethod method: String!, pathForRelationship relationship: NSRelationshipDescription!, forObjectWith objectID: NSManagedObjectID!, with context: NSManagedObjectContext!) -> NSMutableURLRequest! {
+    func request(withMethod method: String!, pathForRelationship relationship: NSRelationshipDescription!, forObjectWith objectID: NSManagedObjectID!, with context: NSManagedObjectContext!) -> NSMutableURLRequest? {
         return nil
     }
 
-    func request(for fetchRequest: NSFetchRequest<NSFetchRequestResult>!, with context: NSManagedObjectContext!) -> NSMutableURLRequest! {
+    func request(for fetchRequest: NSFetchRequest<NSFetchRequestResult>!, with context: NSManagedObjectContext!) -> NSMutableURLRequest? {
         return nil
     }
 

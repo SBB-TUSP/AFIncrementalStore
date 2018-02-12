@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		027BF3795DDEBD6DC8045804 /* Pods_AFIncrementalStore_Songs.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 00F4EF51CA8D31EBECEEA7CA /* Pods_AFIncrementalStore_Songs.framework */; };
 		662023642019D0E3000F684D /* AFIncrementalStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 662023632019D0E3000F684D /* AFIncrementalStoreTests.swift */; };
 		6620236C2019E1C6000F684D /* IncrementalStoreExample.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = F8874F2115B08CA80048680F /* IncrementalStoreExample.xcdatamodeld */; };
 		66202371201A1526000F684D /* ObjCAssertWrapper.m in Sources */ = {isa = PBXBuildFile; fileRef = 66202370201A1526000F684D /* ObjCAssertWrapper.m */; };
@@ -17,9 +18,7 @@
 		883E9E502023779E005F985E /* SongsIncrementalStore.m in Sources */ = {isa = PBXBuildFile; fileRef = 883E9E4F2023779E005F985E /* SongsIncrementalStore.m */; };
 		88E8B58F201B66B7000516ED /* AFRESTClientTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88E8B58E201B66B7000516ED /* AFRESTClientTests.swift */; };
 		88E8B596201F24C3000516ED /* FakeClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88E8B595201F24C3000516ED /* FakeClient.swift */; };
-		F81D904116F3DED80043C85A /* NSValueTransformer+TransformerKit.m in Sources */ = {isa = PBXBuildFile; fileRef = F81D903B16F3DED80043C85A /* NSValueTransformer+TransformerKit.m */; };
-		F81D904916F3DEEB0043C85A /* NSString+InflectorKit.m in Sources */ = {isa = PBXBuildFile; fileRef = F81D904616F3DEEB0043C85A /* NSString+InflectorKit.m */; };
-		F81D904A16F3DEEB0043C85A /* TTTStringInflector.m in Sources */ = {isa = PBXBuildFile; fileRef = F81D904816F3DEEB0043C85A /* TTTStringInflector.m */; };
+		A3A8151281D3899EFAB1E627 /* Pods_AFIncrementalStore_AFIncrementalStoreTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2084F675CE666A8B41703B2E /* Pods_AFIncrementalStore_AFIncrementalStoreTests.framework */; };
 		F81D905A16F3E6AC0043C85A /* Default-568h@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = F81D905916F3E6AC0043C85A /* Default-568h@2x.png */; };
 		F81D905C16F3E6BC0043C85A /* SystemConfiguration.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F81D905B16F3E6BC0043C85A /* SystemConfiguration.framework */; };
 		F81D905E16F3E6C10043C85A /* MobileCoreServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F81D905D16F3E6C10043C85A /* MobileCoreServices.framework */; };
@@ -29,23 +28,11 @@
 		F8874F1815B08B770048680F /* Song.m in Sources */ = {isa = PBXBuildFile; fileRef = F8874F0B15B08B770048680F /* Song.m */; };
 		F8874F1F15B08C2A0048680F /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = F8874F1E15B08C2A0048680F /* main.m */; };
 		F8874F2315B08CA80048680F /* IncrementalStoreExample.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = F8874F2115B08CA80048680F /* IncrementalStoreExample.xcdatamodeld */; };
-		F8AD92D815D9A0B400402FE9 /* AFHTTPClient.m in Sources */ = {isa = PBXBuildFile; fileRef = F8AD92C415D9A0B400402FE9 /* AFHTTPClient.m */; };
-		F8AD92D915D9A0B400402FE9 /* AFHTTPRequestOperation.m in Sources */ = {isa = PBXBuildFile; fileRef = F8AD92C615D9A0B400402FE9 /* AFHTTPRequestOperation.m */; };
-		F8AD92DA15D9A0B400402FE9 /* AFImageRequestOperation.m in Sources */ = {isa = PBXBuildFile; fileRef = F8AD92C815D9A0B400402FE9 /* AFImageRequestOperation.m */; };
-		F8AD92DB15D9A0B400402FE9 /* AFJSONRequestOperation.m in Sources */ = {isa = PBXBuildFile; fileRef = F8AD92CA15D9A0B400402FE9 /* AFJSONRequestOperation.m */; };
-		F8AD92DD15D9A0B400402FE9 /* AFNetworkActivityIndicatorManager.m in Sources */ = {isa = PBXBuildFile; fileRef = F8AD92CE15D9A0B400402FE9 /* AFNetworkActivityIndicatorManager.m */; };
-		F8AD92DE15D9A0B400402FE9 /* AFPropertyListRequestOperation.m in Sources */ = {isa = PBXBuildFile; fileRef = F8AD92D115D9A0B400402FE9 /* AFPropertyListRequestOperation.m */; };
-		F8AD92DF15D9A0B400402FE9 /* AFURLConnectionOperation.m in Sources */ = {isa = PBXBuildFile; fileRef = F8AD92D315D9A0B400402FE9 /* AFURLConnectionOperation.m */; };
-		F8AD92E015D9A0B400402FE9 /* AFXMLRequestOperation.m in Sources */ = {isa = PBXBuildFile; fileRef = F8AD92D515D9A0B400402FE9 /* AFXMLRequestOperation.m */; };
-		F8AD92E115D9A0B400402FE9 /* UIImageView+AFNetworking.m in Sources */ = {isa = PBXBuildFile; fileRef = F8AD92D715D9A0B400402FE9 /* UIImageView+AFNetworking.m */; };
 		F8AD92E715D9A0BB00402FE9 /* AFIncrementalStore.m in Sources */ = {isa = PBXBuildFile; fileRef = F8AD92E415D9A0BB00402FE9 /* AFIncrementalStore.m */; };
 		F8AFAFB215AB4F28003FE5BB /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F8AFAFB115AB4F28003FE5BB /* UIKit.framework */; };
 		F8AFAFB415AB4F28003FE5BB /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F8AFAFB315AB4F28003FE5BB /* Foundation.framework */; };
 		F8AFAFB615AB4F28003FE5BB /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F8AFAFB515AB4F28003FE5BB /* CoreGraphics.framework */; };
 		F8AFAFB815AB4F28003FE5BB /* CoreData.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F8AFAFB715AB4F28003FE5BB /* CoreData.framework */; };
-		F8F8240D173893C000ED7E21 /* TTTDateTransformers.m in Sources */ = {isa = PBXBuildFile; fileRef = F8F8240A173893C000ED7E21 /* TTTDateTransformers.m */; };
-		F8F8240E173893C000ED7E21 /* TTTImageTransformers.m in Sources */ = {isa = PBXBuildFile; fileRef = F8F8240B173893C000ED7E21 /* TTTImageTransformers.m */; };
-		F8F8240F173893C000ED7E21 /* TTTStringTransformers.m in Sources */ = {isa = PBXBuildFile; fileRef = F8F8240C173893C000ED7E21 /* TTTStringTransformers.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -59,6 +46,10 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		00F4EF51CA8D31EBECEEA7CA /* Pods_AFIncrementalStore_Songs.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_AFIncrementalStore_Songs.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		2084F675CE666A8B41703B2E /* Pods_AFIncrementalStore_AFIncrementalStoreTests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_AFIncrementalStore_AFIncrementalStoreTests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		34724888D1B8ECEBD71B821B /* Pods-AFIncrementalStore-Songs.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-AFIncrementalStore-Songs.debug.xcconfig"; path = "Pods/Target Support Files/Pods-AFIncrementalStore-Songs/Pods-AFIncrementalStore-Songs.debug.xcconfig"; sourceTree = "<group>"; };
+		603B85B32222A5D7258B8C8F /* Pods-AFIncrementalStore-AFIncrementalStoreTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-AFIncrementalStore-AFIncrementalStoreTests.debug.xcconfig"; path = "Pods/Target Support Files/Pods-AFIncrementalStore-AFIncrementalStoreTests/Pods-AFIncrementalStore-AFIncrementalStoreTests.debug.xcconfig"; sourceTree = "<group>"; };
 		662023612019D0E3000F684D /* AFIncrementalStoreTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = AFIncrementalStoreTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		662023632019D0E3000F684D /* AFIncrementalStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AFIncrementalStoreTests.swift; sourceTree = "<group>"; };
 		662023652019D0E3000F684D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -74,13 +65,8 @@
 		883E9E512023789F005F985E /* Songs-Bridging-Header.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "Songs-Bridging-Header.h"; sourceTree = SOURCE_ROOT; };
 		88E8B58E201B66B7000516ED /* AFRESTClientTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AFRESTClientTests.swift; sourceTree = "<group>"; };
 		88E8B595201F24C3000516ED /* FakeClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FakeClient.swift; sourceTree = "<group>"; };
-		F81D903A16F3DED80043C85A /* NSValueTransformer+TransformerKit.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSValueTransformer+TransformerKit.h"; sourceTree = "<group>"; };
-		F81D903B16F3DED80043C85A /* NSValueTransformer+TransformerKit.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSValueTransformer+TransformerKit.m"; sourceTree = "<group>"; };
-		F81D904016F3DED80043C85A /* TransformerKit.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TransformerKit.h; sourceTree = "<group>"; };
-		F81D904516F3DEEB0043C85A /* NSString+InflectorKit.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSString+InflectorKit.h"; sourceTree = "<group>"; };
-		F81D904616F3DEEB0043C85A /* NSString+InflectorKit.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSString+InflectorKit.m"; sourceTree = "<group>"; };
-		F81D904716F3DEEB0043C85A /* TTTStringInflector.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TTTStringInflector.h; sourceTree = "<group>"; };
-		F81D904816F3DEEB0043C85A /* TTTStringInflector.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TTTStringInflector.m; sourceTree = "<group>"; };
+		D912DD839776B7606686F0B1 /* Pods-AFIncrementalStore-AFIncrementalStoreTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-AFIncrementalStore-AFIncrementalStoreTests.release.xcconfig"; path = "Pods/Target Support Files/Pods-AFIncrementalStore-AFIncrementalStoreTests/Pods-AFIncrementalStore-AFIncrementalStoreTests.release.xcconfig"; sourceTree = "<group>"; };
+		E81B349BC33292F6F613719A /* Pods-AFIncrementalStore-Songs.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-AFIncrementalStore-Songs.release.xcconfig"; path = "Pods/Target Support Files/Pods-AFIncrementalStore-Songs/Pods-AFIncrementalStore-Songs.release.xcconfig"; sourceTree = "<group>"; };
 		F81D905916F3E6AC0043C85A /* Default-568h@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Default-568h@2x.png"; sourceTree = "<group>"; };
 		F81D905B16F3E6BC0043C85A /* SystemConfiguration.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SystemConfiguration.framework; path = System/Library/Frameworks/SystemConfiguration.framework; sourceTree = SDKROOT; };
 		F81D905D16F3E6C10043C85A /* MobileCoreServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MobileCoreServices.framework; path = System/Library/Frameworks/MobileCoreServices.framework; sourceTree = SDKROOT; };
@@ -96,25 +82,6 @@
 		F8874F1115B08B770048680F /* Song.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Song.h; path = Classes/Song.h; sourceTree = SOURCE_ROOT; };
 		F8874F1E15B08C2A0048680F /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = SOURCE_ROOT; };
 		F8874F2215B08CA80048680F /* IncrementalStoreExample.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = IncrementalStoreExample.xcdatamodel; sourceTree = "<group>"; };
-		F8AD92C315D9A0B400402FE9 /* AFHTTPClient.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AFHTTPClient.h; sourceTree = "<group>"; };
-		F8AD92C415D9A0B400402FE9 /* AFHTTPClient.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AFHTTPClient.m; sourceTree = "<group>"; };
-		F8AD92C515D9A0B400402FE9 /* AFHTTPRequestOperation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AFHTTPRequestOperation.h; sourceTree = "<group>"; };
-		F8AD92C615D9A0B400402FE9 /* AFHTTPRequestOperation.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AFHTTPRequestOperation.m; sourceTree = "<group>"; };
-		F8AD92C715D9A0B400402FE9 /* AFImageRequestOperation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AFImageRequestOperation.h; sourceTree = "<group>"; };
-		F8AD92C815D9A0B400402FE9 /* AFImageRequestOperation.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AFImageRequestOperation.m; sourceTree = "<group>"; };
-		F8AD92C915D9A0B400402FE9 /* AFJSONRequestOperation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AFJSONRequestOperation.h; sourceTree = "<group>"; };
-		F8AD92CA15D9A0B400402FE9 /* AFJSONRequestOperation.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AFJSONRequestOperation.m; sourceTree = "<group>"; };
-		F8AD92CD15D9A0B400402FE9 /* AFNetworkActivityIndicatorManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AFNetworkActivityIndicatorManager.h; sourceTree = "<group>"; };
-		F8AD92CE15D9A0B400402FE9 /* AFNetworkActivityIndicatorManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AFNetworkActivityIndicatorManager.m; sourceTree = "<group>"; };
-		F8AD92CF15D9A0B400402FE9 /* AFNetworking.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AFNetworking.h; sourceTree = "<group>"; };
-		F8AD92D015D9A0B400402FE9 /* AFPropertyListRequestOperation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AFPropertyListRequestOperation.h; sourceTree = "<group>"; };
-		F8AD92D115D9A0B400402FE9 /* AFPropertyListRequestOperation.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AFPropertyListRequestOperation.m; sourceTree = "<group>"; };
-		F8AD92D215D9A0B400402FE9 /* AFURLConnectionOperation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AFURLConnectionOperation.h; sourceTree = "<group>"; };
-		F8AD92D315D9A0B400402FE9 /* AFURLConnectionOperation.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AFURLConnectionOperation.m; sourceTree = "<group>"; };
-		F8AD92D415D9A0B400402FE9 /* AFXMLRequestOperation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AFXMLRequestOperation.h; sourceTree = "<group>"; };
-		F8AD92D515D9A0B400402FE9 /* AFXMLRequestOperation.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AFXMLRequestOperation.m; sourceTree = "<group>"; };
-		F8AD92D615D9A0B400402FE9 /* UIImageView+AFNetworking.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "UIImageView+AFNetworking.h"; sourceTree = "<group>"; };
-		F8AD92D715D9A0B400402FE9 /* UIImageView+AFNetworking.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "UIImageView+AFNetworking.m"; sourceTree = "<group>"; };
 		F8AD92E315D9A0BB00402FE9 /* AFIncrementalStore.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AFIncrementalStore.h; sourceTree = "<group>"; };
 		F8AD92E415D9A0BB00402FE9 /* AFIncrementalStore.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AFIncrementalStore.m; sourceTree = "<group>"; };
 		F8AFAFAD15AB4F28003FE5BB /* Songs.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Songs.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -122,12 +89,6 @@
 		F8AFAFB315AB4F28003FE5BB /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		F8AFAFB515AB4F28003FE5BB /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
 		F8AFAFB715AB4F28003FE5BB /* CoreData.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreData.framework; path = System/Library/Frameworks/CoreData.framework; sourceTree = SDKROOT; };
-		F8F82407173893C000ED7E21 /* TTTDateTransformers.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TTTDateTransformers.h; sourceTree = "<group>"; };
-		F8F82408173893C000ED7E21 /* TTTImageTransformers.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TTTImageTransformers.h; sourceTree = "<group>"; };
-		F8F82409173893C000ED7E21 /* TTTStringTransformers.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TTTStringTransformers.h; sourceTree = "<group>"; };
-		F8F8240A173893C000ED7E21 /* TTTDateTransformers.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TTTDateTransformers.m; sourceTree = "<group>"; };
-		F8F8240B173893C000ED7E21 /* TTTImageTransformers.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TTTImageTransformers.m; sourceTree = "<group>"; };
-		F8F8240C173893C000ED7E21 /* TTTStringTransformers.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TTTStringTransformers.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -135,6 +96,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A3A8151281D3899EFAB1E627 /* Pods_AFIncrementalStore_AFIncrementalStoreTests.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -148,12 +110,24 @@
 				F8AFAFB415AB4F28003FE5BB /* Foundation.framework in Frameworks */,
 				F8AFAFB615AB4F28003FE5BB /* CoreGraphics.framework in Frameworks */,
 				F8AFAFB815AB4F28003FE5BB /* CoreData.framework in Frameworks */,
+				027BF3795DDEBD6DC8045804 /* Pods_AFIncrementalStore_Songs.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		2B492C2DEA4CC76EBFA8C466 /* Pods */ = {
+			isa = PBXGroup;
+			children = (
+				603B85B32222A5D7258B8C8F /* Pods-AFIncrementalStore-AFIncrementalStoreTests.debug.xcconfig */,
+				D912DD839776B7606686F0B1 /* Pods-AFIncrementalStore-AFIncrementalStoreTests.release.xcconfig */,
+				34724888D1B8ECEBD71B821B /* Pods-AFIncrementalStore-Songs.debug.xcconfig */,
+				E81B349BC33292F6F613719A /* Pods-AFIncrementalStore-Songs.release.xcconfig */,
+			);
+			name = Pods;
+			sourceTree = "<group>";
+		};
 		662023622019D0E3000F684D /* AFIncrementalStoreTests */ = {
 			isa = PBXGroup;
 			children = (
@@ -166,35 +140,6 @@
 				88E8B595201F24C3000516ED /* FakeClient.swift */,
 			);
 			path = AFIncrementalStoreTests;
-			sourceTree = "<group>";
-		};
-		F81D903916F3DED80043C85A /* TransformerKit */ = {
-			isa = PBXGroup;
-			children = (
-				F81D904016F3DED80043C85A /* TransformerKit.h */,
-				F81D903A16F3DED80043C85A /* NSValueTransformer+TransformerKit.h */,
-				F81D903B16F3DED80043C85A /* NSValueTransformer+TransformerKit.m */,
-				F8F82407173893C000ED7E21 /* TTTDateTransformers.h */,
-				F8F82408173893C000ED7E21 /* TTTImageTransformers.h */,
-				F8F82409173893C000ED7E21 /* TTTStringTransformers.h */,
-				F8F8240A173893C000ED7E21 /* TTTDateTransformers.m */,
-				F8F8240B173893C000ED7E21 /* TTTImageTransformers.m */,
-				F8F8240C173893C000ED7E21 /* TTTStringTransformers.m */,
-			);
-			name = TransformerKit;
-			path = ../../TransformerKit/TransformerKit;
-			sourceTree = "<group>";
-		};
-		F81D904416F3DEEB0043C85A /* InflectorKit */ = {
-			isa = PBXGroup;
-			children = (
-				F81D904516F3DEEB0043C85A /* NSString+InflectorKit.h */,
-				F81D904616F3DEEB0043C85A /* NSString+InflectorKit.m */,
-				F81D904716F3DEEB0043C85A /* TTTStringInflector.h */,
-				F81D904816F3DEEB0043C85A /* TTTStringInflector.m */,
-			);
-			name = InflectorKit;
-			path = ../../InflectorKit/InflectorKit;
 			sourceTree = "<group>";
 		};
 		F8874E5915AF927D0048680F /* Controllers */ = {
@@ -220,33 +165,6 @@
 			name = Models;
 			sourceTree = "<group>";
 		};
-		F8AD92C215D9A0B400402FE9 /* AFNetworking */ = {
-			isa = PBXGroup;
-			children = (
-				F8AD92C315D9A0B400402FE9 /* AFHTTPClient.h */,
-				F8AD92C415D9A0B400402FE9 /* AFHTTPClient.m */,
-				F8AD92C515D9A0B400402FE9 /* AFHTTPRequestOperation.h */,
-				F8AD92C615D9A0B400402FE9 /* AFHTTPRequestOperation.m */,
-				F8AD92C715D9A0B400402FE9 /* AFImageRequestOperation.h */,
-				F8AD92C815D9A0B400402FE9 /* AFImageRequestOperation.m */,
-				F8AD92C915D9A0B400402FE9 /* AFJSONRequestOperation.h */,
-				F8AD92CA15D9A0B400402FE9 /* AFJSONRequestOperation.m */,
-				F8AD92CD15D9A0B400402FE9 /* AFNetworkActivityIndicatorManager.h */,
-				F8AD92CE15D9A0B400402FE9 /* AFNetworkActivityIndicatorManager.m */,
-				F8AD92CF15D9A0B400402FE9 /* AFNetworking.h */,
-				F8AD92D015D9A0B400402FE9 /* AFPropertyListRequestOperation.h */,
-				F8AD92D115D9A0B400402FE9 /* AFPropertyListRequestOperation.m */,
-				F8AD92D215D9A0B400402FE9 /* AFURLConnectionOperation.h */,
-				F8AD92D315D9A0B400402FE9 /* AFURLConnectionOperation.m */,
-				F8AD92D415D9A0B400402FE9 /* AFXMLRequestOperation.h */,
-				F8AD92D515D9A0B400402FE9 /* AFXMLRequestOperation.m */,
-				F8AD92D615D9A0B400402FE9 /* UIImageView+AFNetworking.h */,
-				F8AD92D715D9A0B400402FE9 /* UIImageView+AFNetworking.m */,
-			);
-			name = AFNetworking;
-			path = ../../AFNetworking/AFNetworking;
-			sourceTree = "<group>";
-		};
 		F8AD92E215D9A0BB00402FE9 /* AFIncrementalStore */ = {
 			isa = PBXGroup;
 			children = (
@@ -267,6 +185,7 @@
 				F8AFAFB015AB4F28003FE5BB /* Frameworks */,
 				F8AFAFAE15AB4F28003FE5BB /* Products */,
 				F8AFB07215AB5010003FE5BB /* Vendor */,
+				2B492C2DEA4CC76EBFA8C466 /* Pods */,
 			);
 			sourceTree = "<group>";
 		};
@@ -288,6 +207,8 @@
 				F8AFAFB315AB4F28003FE5BB /* Foundation.framework */,
 				F8AFAFB515AB4F28003FE5BB /* CoreGraphics.framework */,
 				F8AFAFB715AB4F28003FE5BB /* CoreData.framework */,
+				2084F675CE666A8B41703B2E /* Pods_AFIncrementalStore_AFIncrementalStoreTests.framework */,
+				00F4EF51CA8D31EBECEEA7CA /* Pods_AFIncrementalStore_Songs.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -323,9 +244,6 @@
 			isa = PBXGroup;
 			children = (
 				F8AD92E215D9A0BB00402FE9 /* AFIncrementalStore */,
-				F8AD92C215D9A0B400402FE9 /* AFNetworking */,
-				F81D904416F3DEEB0043C85A /* InflectorKit */,
-				F81D903916F3DED80043C85A /* TransformerKit */,
 			);
 			name = Vendor;
 			sourceTree = "<group>";
@@ -337,9 +255,12 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 6620236A2019D0E3000F684D /* Build configuration list for PBXNativeTarget "AFIncrementalStoreTests" */;
 			buildPhases = (
+				6C9DE78EA47F420FA2611AE0 /* [CP] Check Pods Manifest.lock */,
 				6620235D2019D0E3000F684D /* Sources */,
 				6620235E2019D0E3000F684D /* Frameworks */,
 				6620235F2019D0E3000F684D /* Resources */,
+				997C0AB9A3A969A5F0E9F6B5 /* [CP] Embed Pods Frameworks */,
+				D70BFC5E81CFBE026C348ED2 /* [CP] Copy Pods Resources */,
 			);
 			buildRules = (
 			);
@@ -355,9 +276,12 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = F8AFAFCA15AB4F28003FE5BB /* Build configuration list for PBXNativeTarget "Songs" */;
 			buildPhases = (
+				6FF571709F448C06BCC8B9B8 /* [CP] Check Pods Manifest.lock */,
 				F8AFAFA915AB4F28003FE5BB /* Sources */,
 				F8AFAFAA15AB4F28003FE5BB /* Frameworks */,
 				F8AFAFAB15AB4F28003FE5BB /* Resources */,
+				716A91EF8690B8408711AEEA /* [CP] Embed Pods Frameworks */,
+				2AEA3173C6D0AFA3405668EA /* [CP] Copy Pods Resources */,
 			);
 			buildRules = (
 			);
@@ -424,6 +348,119 @@
 		};
 /* End PBXResourcesBuildPhase section */
 
+/* Begin PBXShellScriptBuildPhase section */
+		2AEA3173C6D0AFA3405668EA /* [CP] Copy Pods Resources */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "[CP] Copy Pods Resources";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-AFIncrementalStore-Songs/Pods-AFIncrementalStore-Songs-resources.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+		6C9DE78EA47F420FA2611AE0 /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-AFIncrementalStore-AFIncrementalStoreTests-checkManifestLockResult.txt",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			showEnvVarsInLog = 0;
+		};
+		6FF571709F448C06BCC8B9B8 /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-AFIncrementalStore-Songs-checkManifestLockResult.txt",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			showEnvVarsInLog = 0;
+		};
+		716A91EF8690B8408711AEEA /* [CP] Embed Pods Frameworks */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+				"${SRCROOT}/Pods/Target Support Files/Pods-AFIncrementalStore-Songs/Pods-AFIncrementalStore-Songs-frameworks.sh",
+				"${BUILT_PRODUCTS_DIR}/AFNetworking/AFNetworking.framework",
+				"${BUILT_PRODUCTS_DIR}/InflectorKit/InflectorKit.framework",
+				"${BUILT_PRODUCTS_DIR}/TransformerKit/TransformerKit.framework",
+			);
+			name = "[CP] Embed Pods Frameworks";
+			outputPaths = (
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/AFNetworking.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/InflectorKit.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/TransformerKit.framework",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-AFIncrementalStore-Songs/Pods-AFIncrementalStore-Songs-frameworks.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+		997C0AB9A3A969A5F0E9F6B5 /* [CP] Embed Pods Frameworks */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+				"${SRCROOT}/Pods/Target Support Files/Pods-AFIncrementalStore-AFIncrementalStoreTests/Pods-AFIncrementalStore-AFIncrementalStoreTests-frameworks.sh",
+				"${BUILT_PRODUCTS_DIR}/AFNetworking/AFNetworking.framework",
+				"${BUILT_PRODUCTS_DIR}/InflectorKit/InflectorKit.framework",
+				"${BUILT_PRODUCTS_DIR}/TransformerKit/TransformerKit.framework",
+			);
+			name = "[CP] Embed Pods Frameworks";
+			outputPaths = (
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/AFNetworking.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/InflectorKit.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/TransformerKit.framework",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-AFIncrementalStore-AFIncrementalStoreTests/Pods-AFIncrementalStore-AFIncrementalStoreTests-frameworks.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+		D70BFC5E81CFBE026C348ED2 /* [CP] Copy Pods Resources */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "[CP] Copy Pods Resources";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-AFIncrementalStore-AFIncrementalStoreTests/Pods-AFIncrementalStore-AFIncrementalStoreTests-resources.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+/* End PBXShellScriptBuildPhase section */
+
 /* Begin PBXSourcesBuildPhase section */
 		6620235D2019D0E3000F684D /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
@@ -451,23 +488,8 @@
 				883E9E4220236527005F985E /* AFRESTClient.swift in Sources */,
 				F8874F1F15B08C2A0048680F /* main.m in Sources */,
 				F8874F2315B08CA80048680F /* IncrementalStoreExample.xcdatamodeld in Sources */,
-				F8AD92D815D9A0B400402FE9 /* AFHTTPClient.m in Sources */,
-				F8AD92D915D9A0B400402FE9 /* AFHTTPRequestOperation.m in Sources */,
-				F8AD92DA15D9A0B400402FE9 /* AFImageRequestOperation.m in Sources */,
-				F8AD92DB15D9A0B400402FE9 /* AFJSONRequestOperation.m in Sources */,
-				F8AD92DD15D9A0B400402FE9 /* AFNetworkActivityIndicatorManager.m in Sources */,
-				F8AD92DE15D9A0B400402FE9 /* AFPropertyListRequestOperation.m in Sources */,
 				883E9E502023779E005F985E /* SongsIncrementalStore.m in Sources */,
-				F8AD92DF15D9A0B400402FE9 /* AFURLConnectionOperation.m in Sources */,
-				F8AD92E015D9A0B400402FE9 /* AFXMLRequestOperation.m in Sources */,
-				F8AD92E115D9A0B400402FE9 /* UIImageView+AFNetworking.m in Sources */,
 				F8AD92E715D9A0BB00402FE9 /* AFIncrementalStore.m in Sources */,
-				F81D904116F3DED80043C85A /* NSValueTransformer+TransformerKit.m in Sources */,
-				F81D904916F3DEEB0043C85A /* NSString+InflectorKit.m in Sources */,
-				F81D904A16F3DEEB0043C85A /* TTTStringInflector.m in Sources */,
-				F8F8240D173893C000ED7E21 /* TTTDateTransformers.m in Sources */,
-				F8F8240E173893C000ED7E21 /* TTTImageTransformers.m in Sources */,
-				F8F8240F173893C000ED7E21 /* TTTStringTransformers.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -484,6 +506,7 @@
 /* Begin XCBuildConfiguration section */
 		662023682019D0E3000F684D /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 603B85B32222A5D7258B8C8F /* Pods-AFIncrementalStore-AFIncrementalStoreTests.debug.xcconfig */;
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				BUNDLE_LOADER = "$(TEST_HOST)";
@@ -537,6 +560,7 @@
 		};
 		662023692019D0E3000F684D /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = D912DD839776B7606686F0B1 /* Pods-AFIncrementalStore-AFIncrementalStoreTests.release.xcconfig */;
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				BUNDLE_LOADER = "$(TEST_HOST)";
@@ -646,12 +670,13 @@
 		};
 		F8AFAFCB15AB4F28003FE5BB /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 34724888D1B8ECEBD71B821B /* Pods-AFIncrementalStore-Songs.debug.xcconfig */;
 			buildSettings = {
 				CLANG_ENABLE_MODULES = YES;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = Prefix.pch;
 				INFOPLIST_FILE = Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 11.2;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_OBJC_BRIDGING_HEADER = "./Songs-Bridging-Header.h";
@@ -663,12 +688,13 @@
 		};
 		F8AFAFCC15AB4F28003FE5BB /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = E81B349BC33292F6F613719A /* Pods-AFIncrementalStore-Songs.release.xcconfig */;
 			buildSettings = {
 				CLANG_ENABLE_MODULES = YES;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = Prefix.pch;
 				INFOPLIST_FILE = Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 11.2;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_OBJC_BRIDGING_HEADER = "./Songs-Bridging-Header.h";

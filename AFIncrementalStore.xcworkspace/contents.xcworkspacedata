@@ -23,4 +23,7 @@
    <FileRef
       location = "group:Examples/CheckIns Example/CheckIns Example.xcodeproj">
    </FileRef>
+   <FileRef
+      location = "group:Examples/Basic Example/Pods/Pods.xcodeproj">
+   </FileRef>
 </Workspace>

@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import AFNetworking
 
 var songAPIClient: SongAPIClient {
     return .sharedInstance
@@ -17,13 +18,13 @@ class SongAPIClient: AFRESTClient {
     // MARK: - Singleton
 
     @objc
-    static let sharedInstance = SongAPIClient(baseURL: URL(string:"http://afincrementalstore-example-api.herokuapp.com"))!
+    static let sharedInstance = SongAPIClient(baseURL: URL(string:"http://afincrementalstore-example-api.herokuapp.com"))
 
-    override init!(baseURL url: URL!) {
-        super.init(baseURL: url)
+    override init(baseURL url: URL?, sessionConfiguration configuration: URLSessionConfiguration?) {
+        super.init(baseURL: url, sessionConfiguration: configuration)
 
-        self.registerHTTPOperationClass(AFJSONRequestOperation.self)
-        self.setDefaultHeader("application/json", value: "Accept")
+        requestSerializer = AFJSONRequestSerializer()
+        responseSerializer = AFJSONResponseSerializer()
     }
 
     required init?(coder aDecoder: NSCoder) {
