@@ -4,7 +4,7 @@ platform :ios, '11.2'
 abstract_target 'AFIncrementalStore' do
     use_frameworks!
 
-    pod 'AFNetworking', '3.1.0'
+    pod 'AFNetworking'
     pod 'InflectorKit'
     pod 'TransformerKit'
 
