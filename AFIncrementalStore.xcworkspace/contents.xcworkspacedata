@@ -5,12 +5,6 @@
       location = "group:AFIncrementalStore"
       name = "AFIncrementalStore">
       <FileRef
-         location = "group:AFIncrementalStore.h">
-      </FileRef>
-      <FileRef
-         location = "group:AFIncrementalStore.m">
-      </FileRef>
-      <FileRef
          location = "group:AFRESTClient.swift">
       </FileRef>
       <FileRef

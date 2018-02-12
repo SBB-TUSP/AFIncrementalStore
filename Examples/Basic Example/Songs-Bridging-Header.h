@@ -7,6 +7,7 @@
 
 #import "AFHTTPClient.h"
 #import "AFHTTPRequestOperation.h"
+#import "AFJSONRequestOperation.h"
 
 #import "TTTStringInflector.h"
 #import "TTTDateTransformers.h"

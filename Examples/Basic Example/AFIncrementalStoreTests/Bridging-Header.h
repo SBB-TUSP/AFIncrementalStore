@@ -8,7 +8,9 @@
 #ifndef Bridging_Header_h
 #define Bridging_Header_h
 
-#import "AFIncrementalStore.h"
+#import "AFHTTPClient.h"
+#import "AFHTTPRequestOperation.h"
+#import "AFJSONRequestOperation.h"
 
 #import "Artist.h"
 #import "ObjCAssertWrapper.h"

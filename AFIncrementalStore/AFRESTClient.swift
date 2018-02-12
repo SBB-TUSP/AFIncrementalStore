@@ -33,14 +33,10 @@ class AFRESTClient: AFHTTPClient {
 
     func path(for object: NSManagedObject) -> String {
         let rootPath = path(forEntity: object.entity)
-
-        guard
-            let persistentStore = object.objectID.persistentStore as? NSIncrementalStore,
-            let resourceIdentifier = AFResourceIdentifier(from: persistentStore.referenceObject(for: object.objectID))
-            else {
-                return rootPath
+        guard let persistentStore = object.objectID.persistentStore as? NSIncrementalStore else {
+            return rootPath
         }
-
+        let resourceIdentifier = AFResourceIdentifier(from: persistentStore.referenceObject(for: object.objectID))
         return (rootPath as NSString).appendingPathComponent(resourceIdentifier)
     }
 

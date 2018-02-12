@@ -378,14 +378,14 @@ public class AFIncrementalStore: NSIncrementalStore {
     /**
      The HTTP client used to manage requests and responses with the associated web services.
      */
-    public var httpClient: (AFHTTPClient & AFIncrementalStoreHttpClient)?
+    @objc public var httpClient: (AFHTTPClient & AFIncrementalStoreHttpClient)?
 
     /**
      The persistent store coordinator used to persist data from the associated web serivices locally.
 
      @discussion Rather than persist values directly, `AFIncrementalStore` manages and proxies through a persistent store coordinator.
      */
-    private(set) public var backingPersistentStoreCoordinator: NSPersistentStoreCoordinator?
+    @objc public var backingPersistentStoreCoordinator: NSPersistentStoreCoordinator?
 
     // MARK: -
 
@@ -402,8 +402,9 @@ public class AFIncrementalStore: NSIncrementalStore {
 
      @return The string used to describe the type of the store.
      */
-    public static var type: String {
+    @objc public class var type: String {
         NSException(name: .AFIncrementalStoreUnimplementedMethodException, reason: NSLocalizedString("Unimplemented method: +type. Must be overridden in a subclass", comment: ""), userInfo: nil).raise()
+        return ""
     }
 
     /**
@@ -411,8 +412,9 @@ public class AFIncrementalStore: NSIncrementalStore {
 
      @return The managed object model used by the store
      */
-    public static var model: NSManagedObjectModel {
+    @objc public class var model: NSManagedObjectModel {
         NSException(name: .AFIncrementalStoreUnimplementedMethodException, reason: NSLocalizedString("Unimplemented method: +model. Must be overridden in a subclass", comment: ""), userInfo: nil).raise()
+        return NSManagedObjectModel.init()
     }
 
     // MARK: - Optional Methods
@@ -542,6 +544,10 @@ public class AFIncrementalStore: NSIncrementalStore {
                 return nil
             }
         }
+        if let error = error {
+            throw error
+        }
+        return nil
     }
 
     /**
@@ -550,167 +556,161 @@ public class AFIncrementalStore: NSIncrementalStore {
     public func execute(_ saveChangesRequest: NSSaveChangesRequest?, with context: NSManagedObjectContext?) throws -> Any? {
         var operations = [AFHTTPRequestOperation]()
         let backingContext = backingManagedObjectContext
-        if httpClient?.responds(to: #selector(AFRESTClient.request(forInsertedObject:))) == true { // TODO: Use the Protocol, Luke!
-            for insertedObject in saveChangesRequest?.insertedObjects ?? [] {
-                let request = httpClient?.request(forInsertedObject: insertedObject)
-                if request == nil,
-                    let entityName = insertedObject.entity.name {
-                    backingContext.performAndWait {
-                        var UUID = CFUUIDCreate(kCFAllocatorDefault)
-                        let resourceIdentifier = CFUUIDCreateString(kCFAllocatorDefault, UUID)
-                        UUID = nil
-                        let backingObject = NSEntityDescription.insertNewObject(forEntityName: entityName, into: backingContext)
-                        _ = try? backingObject.managedObjectContext?.obtainPermanentIDs(for: [backingObject])
-                        backingObject.setValue(resourceIdentifier, forKey: kAFIncrementalStoreResourceIdentifierAttributeName)
-                        update(backingObject, withAttributeAndRelationshipValuesFrom: insertedObject)
-                        _ = try? backingContext.save()
-                    }
-                    context?.performAndWait {
-                        insertedObject.willChangeValue(forKey: "objectID")
-                        _ = try? context?.obtainPermanentIDs(for: [insertedObject])
-                        insertedObject.didChangeValue(forKey: "objectID")
-                    }
-                    continue
+        for insertedObject in saveChangesRequest?.insertedObjects ?? [] {
+            let request = httpClient?.request?(forInsertedObject: insertedObject)
+            if request == nil,
+                let entityName = insertedObject.entity.name {
+                backingContext.performAndWait {
+                    var UUID = CFUUIDCreate(kCFAllocatorDefault)
+                    let resourceIdentifier = CFUUIDCreateString(kCFAllocatorDefault, UUID)
+                    UUID = nil
+                    let backingObject = NSEntityDescription.insertNewObject(forEntityName: entityName, into: backingContext)
+                    _ = try? backingObject.managedObjectContext?.obtainPermanentIDs(for: [backingObject])
+                    backingObject.setValue(resourceIdentifier, forKey: kAFIncrementalStoreResourceIdentifierAttributeName)
+                    update(backingObject, withAttributeAndRelationshipValuesFrom: insertedObject)
+                    _ = try? backingContext.save()
                 }
-                let operation = httpClient?.httpRequestOperation(with: request, success: {
-                    operation, responseObject in
-                    let representationOrArrayOfRepresentations = self.httpClient?.representationOrArrayOfRepresentations(ofEntity: insertedObject.entity, fromResponseObject: responseObject)
-                    guard let representation = representationOrArrayOfRepresentations as? [String: Any],
-                        let entityName = insertedObject.entity.name else {
-                            // TODO: notify
-                            return
-                    }
-                    let resourceIdentifier = self.httpClient?.resourceIdentifier(forRepresentation: representation, ofEntity: insertedObject.entity, from: operation?.response)
-                    let backingObjectId = self.objectIdForBackingObject(for: insertedObject.entity, with: resourceIdentifier)
-                    insertedObject.af_resourceIdentifier = resourceIdentifier
-                    if let dictionary = self.httpClient?.attributes(forRepresentation: representation, ofEntity: insertedObject.entity, from: operation?.response) {
-                        insertedObject.managedObjectContext?.performAndWait {
-                            insertedObject.setValuesForKeys(dictionary)
-                        }
-                    }
-                    var backingObject: NSManagedObject?
-                    backingContext.performAndWait {
-                        if let backingObjectId = backingObjectId {
-                            backingObject = try? backingContext.existingObject(with: backingObjectId)
-                        }
-                        if backingObject == nil {
-                            backingObject = NSEntityDescription.insertNewObject(forEntityName: entityName, into: backingContext)
-                            _ = try? backingObject!.managedObjectContext?.obtainPermanentIDs(for: [backingObject!])
-                        }
-                        backingObject?.setValue(resourceIdentifier, forKey: kAFIncrementalStoreResourceIdentifierAttributeName)
-                        self.update(backingObject, withAttributeAndRelationshipValuesFrom: insertedObject)
-                        _ = try? backingContext.save()
-                    }
-                    context?.performAndWait {
-                        insertedObject.willChangeValue(forKey: "objectID")
-                        _ = try? context?.obtainPermanentIDs(for: [insertedObject])
-                        insertedObject.didChangeValue(forKey: "objectID")
-                        context?.refresh(insertedObject, mergeChanges: false)
-                    }
-                }) {
-                    operation, error in
-                    if let error = error {
-                        print("Insert Error:", error)
-                    }
-                    // Reset destination objects to prevent dangling relationships
-                    for relationship in insertedObject.entity.relationshipsByName.map({$1}) {
-                        if relationship.inverseRelationship == nil {
-                            continue
-                        }
-                        var destinationObjects: NSFastEnumeration? = nil
-                        if relationship.isToMany {
-                            destinationObjects = insertedObject.value(forKey: relationship.name) as? NSFastEnumeration
-                        } else if let destinationObject = insertedObject.value(forKey: relationship.name) as? NSManagedObject {
-                            destinationObjects = Array<NSManagedObject>([destinationObject]) as NSFastEnumeration
-                        }
-                        for destinationObject in destinationObjects {
-                            context?.performAndWait {
-                                context?.refresh(destinationObject, mergeChanges: false)
-                            }
-                        }
+                context?.performAndWait {
+                    insertedObject.willChangeValue(forKey: "objectID")
+                    _ = try? context?.obtainPermanentIDs(for: [insertedObject])
+                    insertedObject.didChangeValue(forKey: "objectID")
+                }
+                continue
+            }
+            let operation = httpClient?.httpRequestOperation(with: request, success: {
+                operation, responseObject in
+                let representationOrArrayOfRepresentations = self.httpClient?.representationOrArrayOfRepresentations(ofEntity: insertedObject.entity, fromResponseObject: responseObject)
+                guard let representation = representationOrArrayOfRepresentations as? [String: Any],
+                    let entityName = insertedObject.entity.name else {
+                        // TODO: notify
+                        return
+                }
+                let resourceIdentifier = self.httpClient?.resourceIdentifier(forRepresentation: representation, ofEntity: insertedObject.entity, from: operation?.response)
+                let backingObjectId = self.objectIdForBackingObject(for: insertedObject.entity, with: resourceIdentifier)
+                insertedObject.af_resourceIdentifier = resourceIdentifier
+                if let dictionary = self.httpClient?.attributes(forRepresentation: representation, ofEntity: insertedObject.entity, from: operation?.response) {
+                    insertedObject.managedObjectContext?.performAndWait {
+                        insertedObject.setValuesForKeys(dictionary)
                     }
                 }
-                if let operation = operation {
-                    operations.append(operation)
+                var backingObject: NSManagedObject?
+                backingContext.performAndWait {
+                    if let backingObjectId = backingObjectId {
+                        backingObject = try? backingContext.existingObject(with: backingObjectId)
+                    }
+                    if backingObject == nil {
+                        backingObject = NSEntityDescription.insertNewObject(forEntityName: entityName, into: backingContext)
+                        _ = try? backingObject!.managedObjectContext?.obtainPermanentIDs(for: [backingObject!])
+                    }
+                    backingObject?.setValue(resourceIdentifier, forKey: kAFIncrementalStoreResourceIdentifierAttributeName)
+                    self.update(backingObject, withAttributeAndRelationshipValuesFrom: insertedObject)
+                    _ = try? backingContext.save()
+                }
+                context?.performAndWait {
+                    insertedObject.willChangeValue(forKey: "objectID")
+                    _ = try? context?.obtainPermanentIDs(for: [insertedObject])
+                    insertedObject.didChangeValue(forKey: "objectID")
+                    context?.refresh(insertedObject, mergeChanges: false)
+                }
+            }) {
+                operation, error in
+                if let error = error {
+                    print("Insert Error:", error)
+                }
+                // Reset destination objects to prevent dangling relationships
+                for relationship in insertedObject.entity.relationshipsByName.map({$1}) {
+                    if relationship.inverseRelationship == nil {
+                        continue
+                    }
+                    let destinationObjects: [NSManagedObject]
+                    if relationship.isToMany {
+                        destinationObjects = (insertedObject.value(forKey: relationship.name) as? [NSManagedObject]) ?? []
+                    } else if let destinationObject = insertedObject.value(forKey: relationship.name) as? NSManagedObject {
+                        destinationObjects = [destinationObject]
+                    } else {
+                        destinationObjects = []
+                    }
+                    for destinationObject in destinationObjects {
+                        context?.performAndWait {
+                            context?.refresh(destinationObject, mergeChanges: false)
+                        }
+                    }
                 }
             }
+            if let operation = operation {
+                operations.append(operation)
+            }
         }
-        // TODO: change selector
-        if httpClient?.responds(to: #selector(AFRESTClient.request(forUpdatedObject:))) == true {
-            for updatedObject in saveChangesRequest?.updatedObjects ?? [] {
-                let backingObjectId = objectIdForBackingObject(for: updatedObject.entity, with: AFResourceIdentifier(from: referenceObject(for: updatedObject.objectID)))
-                let request = httpClient?.request(forUpdatedObject: updatedObject)
-                if request == nil {
-                    backingContext.performAndWait {
-                        let backingObject = backingObjectId == nil ? nil : try? backingContext.existingObject(with: backingObjectId!)
-                        self.update(backingObject, withAttributeAndRelationshipValuesFrom: updatedObject)
-                        _ = try? backingContext.save()
-                    }
-                    continue
+        for updatedObject in saveChangesRequest?.updatedObjects ?? [] {
+            let backingObjectId = objectIdForBackingObject(for: updatedObject.entity, with: AFResourceIdentifier(from: referenceObject(for: updatedObject.objectID)))
+            let request = httpClient?.request?(forUpdatedObject: updatedObject)
+            if request == nil {
+                backingContext.performAndWait {
+                    let backingObject = backingObjectId == nil ? nil : try? backingContext.existingObject(with: backingObjectId!)
+                    self.update(backingObject, withAttributeAndRelationshipValuesFrom: updatedObject)
+                    _ = try? backingContext.save()
                 }
-                let operation = self.httpClient?.httpRequestOperation(with: request, success: {
-                    operation, responseObject in
-                    let representationOrArrayOfRepresentations = self.httpClient?.representationOrArrayOfRepresentations(ofEntity: updatedObject.entity, fromResponseObject: responseObject)
-                    if let representation = representationOrArrayOfRepresentations as? [String: Any] {
-                        if let dictionary = self.httpClient?.attributes(forRepresentation: representation, ofEntity: updatedObject.entity, from: operation?.response) {
-                            updatedObject.managedObjectContext?.performAndWait {
-                                updatedObject.setValuesForKeys(dictionary)
-                            }
-                            if let backingObjectId = backingObjectId {
-                                backingContext.performAndWait {
-                                    if let backingObject = try? backingContext.existingObject(with: backingObjectId) {
-                                        self.update(backingObject, withAttributeAndRelationshipValuesFrom: updatedObject)
-                                        _ = try? backingContext.save()
-                                    }
+                continue
+            }
+            let operation = self.httpClient?.httpRequestOperation(with: request, success: {
+                operation, responseObject in
+                let representationOrArrayOfRepresentations = self.httpClient?.representationOrArrayOfRepresentations(ofEntity: updatedObject.entity, fromResponseObject: responseObject)
+                if let representation = representationOrArrayOfRepresentations as? [String: Any] {
+                    if let dictionary = self.httpClient?.attributes(forRepresentation: representation, ofEntity: updatedObject.entity, from: operation?.response) {
+                        updatedObject.managedObjectContext?.performAndWait {
+                            updatedObject.setValuesForKeys(dictionary)
+                        }
+                        if let backingObjectId = backingObjectId {
+                            backingContext.performAndWait {
+                                if let backingObject = try? backingContext.existingObject(with: backingObjectId) {
+                                    self.update(backingObject, withAttributeAndRelationshipValuesFrom: updatedObject)
+                                    _ = try? backingContext.save()
                                 }
                             }
                         }
-                        context?.performAndWait {
-                            context?.refresh(updatedObject, mergeChanges: true)
-                        }
-                    }
-                }) {
-                    operation, error in
-                    if let error = error {
-                        print("Update Error:", error)
                     }
                     context?.performAndWait {
                         context?.refresh(updatedObject, mergeChanges: true)
                     }
                 }
+            }) {
+                operation, error in
+                if let error = error {
+                    print("Update Error:", error)
+                }
+                context?.performAndWait {
+                    context?.refresh(updatedObject, mergeChanges: true)
+                }
             }
         }
-        // TODO: change selector
-        if self.httpClient?.responds(to: #selector(AFRESTClient.request(forDeletedObject:))) == true {
-            for deletedObject in saveChangesRequest?.deletedObjects ?? [] {
-                let backingObjectId = self.objectIdForBackingObject(for: deletedObject.entity, with: AFResourceIdentifier(from: referenceObject(for: deletedObject.objectID)))
-                let request = self.httpClient?.request(forDeletedObject: deletedObject)
-                if request == nil {
-                    backingContext.performAndWait {
-                        if let backingObject = backingObjectId == nil ? nil : try? backingContext.existingObject(with: backingObjectId!) {
-                            backingContext.delete(backingObject)
-                            _ = try? backingContext.save()
-                        }
+        for deletedObject in saveChangesRequest?.deletedObjects ?? [] {
+            let backingObjectId = self.objectIdForBackingObject(for: deletedObject.entity, with: AFResourceIdentifier(from: referenceObject(for: deletedObject.objectID)))
+            let request = self.httpClient?.request?(forDeletedObject: deletedObject)
+            if request == nil {
+                backingContext.performAndWait {
+                    if let backingObject = backingObjectId == nil ? nil : try? backingContext.existingObject(with: backingObjectId!) {
+                        backingContext.delete(backingObject)
+                        _ = try? backingContext.save()
                     }
-                    continue
                 }
-                let operation = self.httpClient?.httpRequestOperation(with: request, success: {
-                    operation, responseObject in
-                    backingContext.performAndWait {
-                        if let backingObject = backingObjectId == nil ? nil : try? backingContext.existingObject(with: backingObjectId!) {
-                            backingContext.delete(backingObject)
-                            _ = try? backingContext.save()
-                        }
+                continue
+            }
+            let operation = self.httpClient?.httpRequestOperation(with: request, success: {
+                operation, responseObject in
+                backingContext.performAndWait {
+                    if let backingObject = backingObjectId == nil ? nil : try? backingContext.existingObject(with: backingObjectId!) {
+                        backingContext.delete(backingObject)
+                        _ = try? backingContext.save()
                     }
-                }, failure: {
-                    operation, error in
-                    if let error = error {
-                        print("Delete Error:", error)
-                    }
-                })
-                if let operation = operation {
-                    operations.append(operation)
                 }
+            }, failure: {
+                operation, error in
+                if let error = error {
+                    print("Delete Error:", error)
+                }
+            })
+            if let operation = operation {
+                operations.append(operation)
             }
         }
         // NSManagedObjectContext removes object references from an NSSaveChangesRequest as each object is saved, so create a copy of the original in order to send useful information in AFIncrementalStoreContextDidSaveRemoteValues notification.
@@ -811,7 +811,7 @@ public class AFIncrementalStore: NSIncrementalStore {
         guard let entityName = entity.name,
             let resourceIdentifier = resourceIdentifier,
             let objectId = self.objectId(for: entity, with: resourceIdentifier) else {
-            return nil
+                return nil
         }
         var backingObjectId = backingObjectIdByObjectId.object(forKey: objectId)
         if backingObjectId == nil {
@@ -997,7 +997,7 @@ public class AFIncrementalStore: NSIncrementalStore {
 
     // MARK: -
 
-    public override func loadMetadata() throws {
+    @objc public override func loadMetadata() throws {
         guard backingObjectIdByObjectId == nil,
             let model = persistentStoreCoordinator?.managedObjectModel.copy() as? NSManagedObjectModel else {
                 return
@@ -1026,7 +1026,7 @@ public class AFIncrementalStore: NSIncrementalStore {
         backingPersistentStoreCoordinator = NSPersistentStoreCoordinator(managedObjectModel: model)
     }
 
-    public override func obtainPermanentIDs(for array: [NSManagedObject]) throws -> [NSManagedObjectID] {
+    @objc public override func obtainPermanentIDs(for array: [NSManagedObject]) throws -> [NSManagedObjectID] {
         var permanentIds = [NSManagedObjectID]()
         for object in array {
             let objectId = object.objectID
@@ -1041,7 +1041,7 @@ public class AFIncrementalStore: NSIncrementalStore {
         return permanentIds
     }
 
-    public override func execute(_ request: NSPersistentStoreRequest, with context: NSManagedObjectContext?) throws -> Any {
+    @objc public override func execute(_ request: NSPersistentStoreRequest, with context: NSManagedObjectContext?) throws -> Any {
         switch request.requestType {
         case .fetchRequestType:
             var toReturn: Any = [Any]()
@@ -1066,7 +1066,7 @@ public class AFIncrementalStore: NSIncrementalStore {
         }
     }
 
-    public override func newValuesForObject(with objectID: NSManagedObjectID, with context: NSManagedObjectContext) throws -> NSIncrementalStoreNode {
+    @objc public override func newValuesForObject(with objectID: NSManagedObjectID, with context: NSManagedObjectContext) throws -> NSIncrementalStoreNode {
         var error: NSError?
         let entityName = objectID.entity.name ?? ""
         let fetchRequest = NSFetchRequest<NSDictionary>(entityName: entityName)
@@ -1089,8 +1089,7 @@ public class AFIncrementalStore: NSIncrementalStore {
         }
         var attributeValues = results.last ?? [:]
         let node = NSIncrementalStoreNode(objectID: objectID, withValues: attributeValues, version: 1)
-        guard httpClient?.responds(to: #selector(AFRESTClient.shouldFetchRemoteAttributeValues(forObjectWith:in:))) == true,
-            httpClient?.shouldFetchRemoteAttributeValues(forObjectWith: objectID, in: context) == true,
+        guard httpClient?.shouldFetchRemoteAttributeValues?(forObjectWith: objectID, in: context) == true,
             !attributeValues.isEmpty,
             var request = httpClient?.request(withMethod: "GET", pathForObjectWith: objectID, with: context) else {
                 if let error = error {
@@ -1152,7 +1151,7 @@ public class AFIncrementalStore: NSIncrementalStore {
         return node
     }
 
-    public override func newValue(forRelationship relationship: NSRelationshipDescription, forObjectWith objectID: NSManagedObjectID, with context: NSManagedObjectContext?) throws -> Any {
+    @objc public override func newValue(forRelationship relationship: NSRelationshipDescription, forObjectWith objectID: NSManagedObjectID, with context: NSManagedObjectContext?) throws -> Any {
         var objectExists = false
         var existingObjectHasChanges = false
         context?.performAndWait {
@@ -1164,8 +1163,7 @@ public class AFIncrementalStore: NSIncrementalStore {
         if objectExists,
             !existingObjectHasChanges,
             let context = context,
-            httpClient?.responds(to: #selector(AFRESTClient.shouldFetchRemoteValues(forRelationship:forObjectWith:in:))) == true,
-            httpClient?.shouldFetchRemoteValues(forRelationship: relationship, forObjectWith: objectID, in: context) == true {
+            httpClient?.shouldFetchRemoteValues?(forRelationship: relationship, forObjectWith: objectID, in: context) == true {
             let request = httpClient?.request(withMethod: "GET", pathForRelationship: relationship, forObjectWith: objectID, with: context)
             let childContext = NSManagedObjectContext(concurrencyType: .privateQueueConcurrencyType)
             childContext.parent = context
@@ -1261,7 +1259,7 @@ public class AFIncrementalStore: NSIncrementalStore {
         return toReturn
     }
 
-    public override func managedObjectContextDidRegisterObjects(with objectIDs: [NSManagedObjectID]) {
+    @objc public override func managedObjectContextDidRegisterObjects(with objectIDs: [NSManagedObjectID]) {
         super.managedObjectContextDidRegisterObjects(with: objectIDs)
         for objectId in objectIDs {
             guard let entityName = objectId.entity.name else {
@@ -1274,7 +1272,7 @@ public class AFIncrementalStore: NSIncrementalStore {
         }
     }
 
-    public override func managedObjectContextDidUnregisterObjects(with objectIDs: [NSManagedObjectID]) {
+    @objc public override func managedObjectContextDidUnregisterObjects(with objectIDs: [NSManagedObjectID]) {
         super.managedObjectContextDidUnregisterObjects(with: objectIDs)
         for objectId in objectIDs {
             guard let entityName = objectId.entity.name,

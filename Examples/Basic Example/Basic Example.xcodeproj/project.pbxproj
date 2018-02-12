@@ -10,12 +10,12 @@
 		662023642019D0E3000F684D /* AFIncrementalStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 662023632019D0E3000F684D /* AFIncrementalStoreTests.swift */; };
 		6620236C2019E1C6000F684D /* IncrementalStoreExample.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = F8874F2115B08CA80048680F /* IncrementalStoreExample.xcdatamodeld */; };
 		66202371201A1526000F684D /* ObjCAssertWrapper.m in Sources */ = {isa = PBXBuildFile; fileRef = 66202370201A1526000F684D /* ObjCAssertWrapper.m */; };
+		662F9D6E20318C36008E819D /* SongsIncrementalStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 662F9D6D20318C36008E819D /* SongsIncrementalStore.swift */; };
 		6688B4BB202A063400BA2170 /* AFIncrementalStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6688B4BA202A063400BA2170 /* AFIncrementalStore.swift */; };
 		883E9E4120236521005F985E /* AFRESTClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 883E9E4020236521005F985E /* AFRESTClient.swift */; };
 		883E9E4220236527005F985E /* AFRESTClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 883E9E4020236521005F985E /* AFRESTClient.swift */; };
 		883E9E4620236734005F985E /* SongAPIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 883E9E4520236734005F985E /* SongAPIClient.swift */; };
 		883E9E4D2023778A005F985E /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 883E9E4C2023778A005F985E /* AppDelegate.m */; };
-		883E9E502023779E005F985E /* SongsIncrementalStore.m in Sources */ = {isa = PBXBuildFile; fileRef = 883E9E4F2023779E005F985E /* SongsIncrementalStore.m */; };
 		88E8B58F201B66B7000516ED /* AFRESTClientTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88E8B58E201B66B7000516ED /* AFRESTClientTests.swift */; };
 		88E8B596201F24C3000516ED /* FakeClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88E8B595201F24C3000516ED /* FakeClient.swift */; };
 		F81D904116F3DED80043C85A /* NSValueTransformer+TransformerKit.m in Sources */ = {isa = PBXBuildFile; fileRef = F81D903B16F3DED80043C85A /* NSValueTransformer+TransformerKit.m */; };
@@ -65,13 +65,12 @@
 		6620236B2019DC06000F684D /* Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Bridging-Header.h"; sourceTree = "<group>"; };
 		6620236F201A1526000F684D /* ObjCAssertWrapper.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ObjCAssertWrapper.h; sourceTree = "<group>"; };
 		66202370201A1526000F684D /* ObjCAssertWrapper.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ObjCAssertWrapper.m; sourceTree = "<group>"; };
+		662F9D6D20318C36008E819D /* SongsIncrementalStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SongsIncrementalStore.swift; sourceTree = SOURCE_ROOT; };
 		6688B4BA202A063400BA2170 /* AFIncrementalStore.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AFIncrementalStore.swift; sourceTree = "<group>"; };
 		883E9E4020236521005F985E /* AFRESTClient.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AFRESTClient.swift; sourceTree = "<group>"; };
 		883E9E4520236734005F985E /* SongAPIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SongAPIClient.swift; path = Classes/SongAPIClient.swift; sourceTree = SOURCE_ROOT; };
 		883E9E4B20237789005F985E /* AppDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = SOURCE_ROOT; };
 		883E9E4C2023778A005F985E /* AppDelegate.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = SOURCE_ROOT; };
-		883E9E4E2023779E005F985E /* SongsIncrementalStore.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = SongsIncrementalStore.h; path = Classes/SongsIncrementalStore.h; sourceTree = SOURCE_ROOT; };
-		883E9E4F2023779E005F985E /* SongsIncrementalStore.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = SongsIncrementalStore.m; path = Classes/SongsIncrementalStore.m; sourceTree = SOURCE_ROOT; };
 		883E9E512023789F005F985E /* Songs-Bridging-Header.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "Songs-Bridging-Header.h"; sourceTree = SOURCE_ROOT; };
 		88E8B58E201B66B7000516ED /* AFRESTClientTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AFRESTClientTests.swift; sourceTree = "<group>"; };
 		88E8B595201F24C3000516ED /* FakeClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FakeClient.swift; sourceTree = "<group>"; };
@@ -296,8 +295,7 @@
 				883E9E512023789F005F985E /* Songs-Bridging-Header.h */,
 				883E9E4B20237789005F985E /* AppDelegate.h */,
 				883E9E4C2023778A005F985E /* AppDelegate.m */,
-				883E9E4E2023779E005F985E /* SongsIncrementalStore.h */,
-				883E9E4F2023779E005F985E /* SongsIncrementalStore.m */,
+				662F9D6D20318C36008E819D /* SongsIncrementalStore.swift */,
 				883E9E4520236734005F985E /* SongAPIClient.swift */,
 				F8874E5B15AF92830048680F /* Models */,
 				F8874E5915AF927D0048680F /* Controllers */,
@@ -455,7 +453,6 @@
 				F8AD92DB15D9A0B400402FE9 /* AFJSONRequestOperation.m in Sources */,
 				F8AD92DD15D9A0B400402FE9 /* AFNetworkActivityIndicatorManager.m in Sources */,
 				F8AD92DE15D9A0B400402FE9 /* AFPropertyListRequestOperation.m in Sources */,
-				883E9E502023779E005F985E /* SongsIncrementalStore.m in Sources */,
 				F8AD92DF15D9A0B400402FE9 /* AFURLConnectionOperation.m in Sources */,
 				F8AD92E015D9A0B400402FE9 /* AFXMLRequestOperation.m in Sources */,
 				F8AD92E115D9A0B400402FE9 /* UIImageView+AFNetworking.m in Sources */,
@@ -464,6 +461,7 @@
 				F81D904916F3DEEB0043C85A /* NSString+InflectorKit.m in Sources */,
 				F81D904A16F3DEEB0043C85A /* TTTStringInflector.m in Sources */,
 				F8F8240D173893C000ED7E21 /* TTTDateTransformers.m in Sources */,
+				662F9D6E20318C36008E819D /* SongsIncrementalStore.swift in Sources */,
 				F8F8240E173893C000ED7E21 /* TTTImageTransformers.m in Sources */,
 				F8F8240F173893C000ED7E21 /* TTTStringTransformers.m in Sources */,
 			);
