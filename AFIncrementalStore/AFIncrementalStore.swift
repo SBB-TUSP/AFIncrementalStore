@@ -182,61 +182,126 @@ public func AFResourceIdentifier(from referenceObject: Any) -> String {
 
 // MARK: - Constants
 
-// MARK: -
+public extension NSExceptionName {
 
-fileprivate extension NSExceptionName {
-
-    fileprivate static var AFIncrementalStoreUnimplementedMethodException: NSExceptionName {
+    /**
+     The name of the exception called when `AFIncrementalStore` or a subclass is attempted to be used, without implementing one of the required methods.
+     */
+    public static var AFIncrementalStoreUnimplementedMethodException: NSExceptionName {
         return .init("com.alamofire.incremental-store.exceptions.unimplemented-method")
     }
 
 }
 
-private let AFIncrementalStoreRequestOperationsKey: String = "AFIncrementalStoreRequestOperations"
+// MARK: - Notifications
 
-private let AFIncrementalStoreFetchedObjectIDsKey: String = "AFIncrementalStoreFetchedObjectIDs"
+public extension Notification.Name {
 
-private let AFIncrementalStoreFaultingObjectIDKey: String = "AFIncrementalStoreFaultingObjectID"
-
-private let AFIncrementalStoreFaultingRelationshipKey: String = "AFIncrementalStoreFaultingRelationship"
-
-private let AFIncrementalStorePersistentStoreRequestKey: String = "AFIncrementalStorePersistentStoreRequest"
-
-fileprivate extension Notification.Name {
-
-    fileprivate static var AFIncrementalStoreContextWillFetchRemoteValues: Notification.Name {
+    /**
+     Posted before an HTTP request operation corresponding to a fetch request starts.
+     The object is the managed object context of the request.
+     The notification `userInfo` contains the finished request operation, keyed at `AFIncrementalStoreRequestOperationKey`, as well as the associated persistent store request, if applicable, keyed at `AFIncrementalStorePersistentStoreRequestKey`.
+     */
+    public static var AFIncrementalStoreContextWillFetchRemoteValues: Notification.Name {
         return .init("AFIncrementalStoreContextWillFetchRemoteValues")
     }
 
-    fileprivate static var AFIncrementalStoreContextDidFetchRemoteValues: Notification.Name {
+    /**
+     Posted after an HTTP request operation corresponding to a fetch request finishes.
+     The object is the managed object context of the request.
+     The notification `userInfo` contains the finished request operation, keyed at `AFIncrementalStoreRequestOperationKey`, as well as the associated persistent store request, if applicable, keyed at `AFIncrementalStorePersistentStoreRequestKey`.
+     */
+    public static var AFIncrementalStoreContextDidFetchRemoteValues: Notification.Name {
         return .init("AFIncrementalStoreContextDidFetchRemoteValues")
     }
 
-    fileprivate static var AFIncrementalStoreContextWillSaveRemoteValues: Notification.Name {
+    /**
+     Posted before an HTTP request operation corresponding to a fetch request starts.
+     The object is the managed object context of the request.
+     The notification `userInfo` contains an array of request operations, keyed at `AFIncrementalStoreRequestOperationKey`, as well as the associated persistent store request, if applicable, keyed at `AFIncrementalStorePersistentStoreRequestKey`.
+     */
+    public static var AFIncrementalStoreContextWillSaveRemoteValues: Notification.Name {
         return .init("AFIncrementalStoreContextWillSaveRemoteValues")
     }
 
-    fileprivate static var AFIncrementalStoreContextDidSaveRemoteValues: Notification.Name {
+    /**
+     Posted after an HTTP request operation corresponding to a fetch request finishes.
+     The object is the managed object context of the request.
+     The notification `userInfo` contains an array of request operations, keyed at `AFIncrementalStoreRequestOperationKey`, as well as the associated persistent store request, if applicable, keyed at `AFIncrementalStorePersistentStoreRequestKey`.
+     */
+    public static var AFIncrementalStoreContextDidSaveRemoteValues: Notification.Name {
         return .init("AFIncrementalStoreContextDidSaveRemoteValues")
     }
 
-    fileprivate static var AFIncrementalStoreContextWillFetchNewValuesForObject: Notification.Name {
+    /**
+     Posted before an HTTP request operation corresponding to an attribute fault starts.
+     The object is the managed object context of the request.
+     The notification `userInfo` contains an array of request operations, keyed at `AFIncrementalStoreRequestOperationKey`, as well as the managed object ID of the faulting object, keyed at `AFIncrementalStoreFaultingObjectIDKey`.
+     */
+    public static var AFIncrementalStoreContextWillFetchNewValuesForObject: Notification.Name {
         return .init("AFIncrementalStoreContextWillFetchNewValuesForObject")
     }
 
-    fileprivate static var AFIncrementalStoreContextDidFetchNewValuesForObject: Notification.Name {
+    /**
+     Posted after an HTTP request operation corresponding to an attribute fault finishes.
+     The object is the managed object context of the request.
+     The notification `userInfo` contains an array of request operations, keyed at `AFIncrementalStoreRequestOperationKey`, as well as the managed object ID of the faulting object, keyed at `AFIncrementalStoreFaultingObjectIDKey`.
+     */
+    public static var AFIncrementalStoreContextDidFetchNewValuesForObject: Notification.Name {
         return .init("AFIncrementalStoreContextDidFetchNewValuesForObject")
     }
 
-    fileprivate static var AFIncrementalStoreContextWillFetchNewValuesForRelationship: Notification.Name {
+    /**
+     Posted before an HTTP request operation corresponding to an relationship fault starts.
+     The object is the managed object context of the request.
+     The notification `userInfo` contains an array of request operations, keyed at `AFIncrementalStoreRequestOperationKey`, as well as the faulting relationship, keyed at `AFIncrementalStoreFaultingRelationshipKey`, and the managed object ID of the faulting object, keyed at `AFIncrementalStoreFaultingObjectIDKey`.
+
+     */
+    public static var AFIncrementalStoreContextWillFetchNewValuesForRelationship: Notification.Name {
         return .init("AFIncrementalStoreContextWillFetchNewValuesForRelationship")
     }
 
-    fileprivate static var AFIncrementalStoreContextDidFetchNewValuesForRelationship: Notification.Name {
+    /**
+     Posted after an HTTP request operation corresponding to a relationship fault finishes.
+     The object is the managed object context of the request.
+     The notification `userInfo` contains an array of request operations, keyed at `AFIncrementalStoreRequestOperationKey`, as well as the faulting relationship, keyed at `AFIncrementalStoreFaultingRelationshipKey`, and the managed object ID of the faulting object, keyed at `AFIncrementalStoreFaultingObjectIDKey`.
+     */
+    public static var AFIncrementalStoreContextDidFetchNewValuesForRelationship: Notification.Name {
         return .init("AFIncrementalStoreContextDidFetchNewValuesForRelationship")
     }
 
 }
+
+/**
+ A key in the `userInfo` dictionary in a `AFIncrementalStoreContextWillFetchRemoteValues` or `AFIncrementalStoreContextDidFetchRemoteValues` as well as `AFIncrementalStoreContextWillSaveRemoteValues` or `AFIncrementalStoreContextDidSaveRemoteValues` notifications.
+ The corresponding value is an `NSArray` of `AFHTTPRequestOperation` objects corresponding to the request operations triggered by the fetch or save changes request.
+ */
+public let AFIncrementalStoreRequestOperationsKey: String = "AFIncrementalStoreRequestOperations"
+
+/**
+ A key in the `userInfo` dictionary in a `AFIncrementalStoreContextWillFetchRemoteValues` or `AFIncrementalStoreContextDidFetchRemoteValues` notification.
+ The corresponding value is an `NSArray` of `NSManagedObjectIDs` for the objects returned by the remote HTTP request for the associated fetch request.
+ */
+public let AFIncrementalStoreFetchedObjectIDsKey: String = "AFIncrementalStoreFetchedObjectIDs"
+
+/**
+ A key in the `userInfo` dictionary in a `AFIncrementalStoreContextWillFetchNewValuesForObject` or `AFIncrementalStoreContextDidFetchNewValuesForObject` notification.
+ The corresponding value is an `NSManagedObjectID` for the faulting managed object.
+ */
+public let AFIncrementalStoreFaultingObjectIDKey: String = "AFIncrementalStoreFaultingObjectID"
+
+/**
+ A key in the `userInfo` dictionary in a `AFIncrementalStoreContextWillFetchNewValuesForRelationship` or `AFIncrementalStoreContextDidFetchNewValuesForRelationship` notification.
+ The corresponding value is an `NSRelationshipDescription` for the faulting relationship.
+ */
+public let AFIncrementalStoreFaultingRelationshipKey: String = "AFIncrementalStoreFaultingRelationship"
+
+/**
+ A key in the `userInfo` dictionary in a `AFIncrementalStoreContextWillFetchRemoteValues` or `AFIncrementalStoreContextDidFetchRemoteValues` notification.
+ The corresponding value is an `NSPersistentStoreRequest` object representing the associated fetch or save request. */
+public let AFIncrementalStorePersistentStoreRequestKey: String = "AFIncrementalStorePersistentStoreRequest"
+
+// MARK: -
 
 private var kAFResourceIdentifierObjectKey = UInt8(0)
 
