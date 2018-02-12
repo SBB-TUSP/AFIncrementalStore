@@ -12,13 +12,8 @@ import CoreData.NSManagedObjectModel
 @objc
 class SongsIncrementalStore: AFIncrementalStore {
 
-    @objc override init(persistentStoreCoordinator root: NSPersistentStoreCoordinator?, configurationName name: String?, at url: URL, options: [AnyHashable : Any]? = nil) {
-        NSPersistentStoreCoordinator.registerStoreClass(SongsIncrementalStore.self, forStoreType: SongsIncrementalStore.type)
-        super.init(persistentStoreCoordinator: root, configurationName: name, at: url, options: options)
-    }
-
     @objc override class var type: String {
-        return NSStringFromClass(self) as String
+        return NSStringFromClass(self)
     }
 
     @objc override class var model: NSManagedObjectModel {

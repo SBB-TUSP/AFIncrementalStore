@@ -414,7 +414,7 @@ public class AFIncrementalStore: NSIncrementalStore {
      */
     @objc public class var model: NSManagedObjectModel {
         NSException(name: .AFIncrementalStoreUnimplementedMethodException, reason: NSLocalizedString("Unimplemented method: +model. Must be overridden in a subclass", comment: ""), userInfo: nil).raise()
-        return NSManagedObjectModel.init()
+        return NSManagedObjectModel()
     }
 
     // MARK: - Optional Methods
@@ -422,7 +422,7 @@ public class AFIncrementalStore: NSIncrementalStore {
     /**
 
      */
-    public func execute(_ fetchRequest: NSFetchRequest<NSFetchRequestResult>?, with context: NSManagedObjectContext?) throws -> Any? {
+    public func executeFetchRequest(_ fetchRequest: NSFetchRequest<NSFetchRequestResult>?, with context: NSManagedObjectContext?) throws -> Any? {
         var error: NSError?
         let request = httpClient?.request(for: fetchRequest, with: context)
         if let _ = request?.url {
@@ -438,25 +438,30 @@ public class AFIncrementalStore: NSIncrementalStore {
                     } else {
                         childContext.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
                     }
-                    childContext.performAndWait {
-                        _ = try? self.insertOrUpdateObjects(from: representationOrArrayOfRepresentations, of: fetchRequest?.entity, from: operation?.response, with: childContext) {
-                            objects, backingObjects in
-                            let childObjects = childContext.registeredObjects
+                    _ = try? self.insertOrUpdateObjects(from: representationOrArrayOfRepresentations, of: fetchRequest?.entity, from: operation?.response, with: childContext) {
+                        objects, backingObjects in
+                        var childObjects = Set<NSManagedObject>()
+                        childContext.performAndWait {
+                            childObjects = childContext.registeredObjects
                             AFSaveManagedObjectContextOrThrowInternalConsistencyException(childContext)
-                            let backingContext = self.backingManagedObjectContext
-                            backingContext.performAndWait {
-                                AFSaveManagedObjectContextOrThrowInternalConsistencyException(backingContext)
-                            }
-                            context?.performAndWait {
-                                for childObject in childObjects {
-                                    guard let parentObject = context?.object(with: childObject.objectID) else {
-                                        continue
-                                    }
-                                    context?.refresh(parentObject, mergeChanges: true)
-                                }
-                            }
-                            self.notify(context: context, about: operation, for: fetchRequest, fetchedObjectIds: objects.map{$0.objectID}, didFetch: true)
                         }
+                        let backingContext = self.backingManagedObjectContext
+                        backingContext.performAndWait {
+                            AFSaveManagedObjectContextOrThrowInternalConsistencyException(backingContext)
+                        }
+                        var childObjectIds = [NSManagedObjectID]()
+                        childContext.performAndWait {
+                            childObjectIds = childObjects.map{$0.objectID}
+                        }
+                        context?.performAndWait {
+                            for childObjectId in childObjectIds {
+                                guard let parentObject = context?.object(with: childObjectId) else {
+                                    continue
+                                }
+                                context?.refresh(parentObject, mergeChanges: true)
+                            }
+                        }
+                        self.notify(context: context, about: operation, for: fetchRequest, fetchedObjectIds: objects.map{$0.objectID}, didFetch: true)
                     }
                 }
             }) {
@@ -467,6 +472,7 @@ public class AFIncrementalStore: NSIncrementalStore {
                 self.notify(context: context, about: operation, for: fetchRequest, fetchedObjectIds: nil, didFetch: true)
             }
             notify(context: context, about: operation, for: fetchRequest, fetchedObjectIds: nil, didFetch: false)
+            httpClient?.enqueue(operation)
         }
         let backingContext = backingManagedObjectContext
         let backingFetchRequest = fetchRequest?.copy() as? NSFetchRequest<NSFetchRequestResult>
@@ -553,7 +559,7 @@ public class AFIncrementalStore: NSIncrementalStore {
     /**
 
      */
-    public func execute(_ saveChangesRequest: NSSaveChangesRequest?, with context: NSManagedObjectContext?) throws -> Any? {
+    public func executeSaveChangesRequest(_ saveChangesRequest: NSSaveChangesRequest?, with context: NSManagedObjectContext?) throws -> Any? {
         var operations = [AFHTTPRequestOperation]()
         let backingContext = backingManagedObjectContext
         for insertedObject in saveChangesRequest?.insertedObjects ?? [] {
@@ -582,7 +588,6 @@ public class AFIncrementalStore: NSIncrementalStore {
                 let representationOrArrayOfRepresentations = self.httpClient?.representationOrArrayOfRepresentations(ofEntity: insertedObject.entity, fromResponseObject: responseObject)
                 guard let representation = representationOrArrayOfRepresentations as? [String: Any],
                     let entityName = insertedObject.entity.name else {
-                        // TODO: notify
                         return
                 }
                 let resourceIdentifier = self.httpClient?.resourceIdentifier(forRepresentation: representation, ofEntity: insertedObject.entity, from: operation?.response)
@@ -718,7 +723,7 @@ public class AFIncrementalStore: NSIncrementalStore {
         notify(context: context, about: operations, for: saveChangesRequestCopy, didSave: false)
         httpClient?.enqueueBatch(ofHTTPRequestOperations: operations, progressBlock: nil, completionBlock: {
             operations in
-            self.notify(context: context, about: operations?.filter({$0 is AFHTTPRequestOperation}).map({$0 as! AFHTTPRequestOperation}), for: saveChangesRequest, didSave: true)
+            self.notify(context: context, about: operations?.filter({$0 is AFHTTPRequestOperation}).map({$0 as! AFHTTPRequestOperation}), for: saveChangesRequestCopy, didSave: true)
         })
         return [Any]()
     }
@@ -931,24 +936,27 @@ public class AFIncrementalStore: NSIncrementalStore {
             var object: NSManagedObject?
             context.performAndWait {
                 object = try? context.existingObject(with: objectId)
+                object?.setValuesForKeys(attributes)
             }
-            object?.setValuesForKeys(attributes)
-            let backingObjectId = objectIdForBackingObject(for: entity, with: resourceIdentifier)
             var backingObject: NSManagedObject?
+            var backingObjectId: NSManagedObjectID?
             backingContext.performAndWait {
+                backingObjectId = objectIdForBackingObject(for: entity, with: resourceIdentifier)
                 if let backingObjectId = backingObjectId {
                     backingObject = try? backingContext.existingObject(with: backingObjectId)
                 } else {
                     backingObject = NSEntityDescription.insertNewObject(forEntityName: entityName, into: backingContext)
                     _ = try? backingObject?.managedObjectContext?.obtainPermanentIDs(for: [backingObject!])
                 }
+                backingObject?.setValue(resourceIdentifier, forKey: kAFIncrementalStoreResourceIdentifierAttributeName)
+                backingObject?.setValue(lastModified, forKey: kAFIncrementalStoreLastModifiedAttributeName)
+                backingObject?.setValuesForKeys(attributes)
             }
-            backingObject?.setValue(resourceIdentifier, forKey: kAFIncrementalStoreResourceIdentifierAttributeName)
-            backingObject?.setValue(lastModified, forKey: kAFIncrementalStoreLastModifiedAttributeName)
-            backingObject?.setValuesForKeys(attributes)
             if let object = object,
                 backingObjectId == nil {
-                context.insert(object)
+                context.performAndWait {
+                    context.insert(object)
+                }
             }
             let relationshipRepresentations = httpClient?.representationsForRelationships(fromRepresentation: representation, ofEntity: entity, from: response)
             for relationshipRepresentationItem in relationshipRepresentations ?? [:] {
@@ -957,24 +965,40 @@ public class AFIncrementalStore: NSIncrementalStore {
                     continue
                 }
                 if relationshipRepresentationItem.value is NSNull || (relationshipRepresentationItem.value as? NSObject)?.value(forKey: "count") as? Int == 0 {
-                    object?.setValue(nil, forKey: relationshipRepresentationItem.key)
-                    backingObject?.setValue(nil, forKey: relationshipRepresentationItem.key)
+                    context.performAndWait {
+                        object?.setValue(nil, forKey: relationshipRepresentationItem.key)
+                    }
+                    backingContext.performAndWait {
+                        backingObject?.setValue(nil, forKey: relationshipRepresentationItem.key)
+                    }
                     continue
                 }
                 do {
                     _ = try insertOrUpdateObjects(from: relationshipRepresentationItem.value, of: relationship.destinationEntity, from: response, with: context) {
-                        objects, managedObjects in
+                        managedObjects, backingObjects in
                         if relationship?.isToMany == true {
                             if relationship?.isOrdered == true {
-                                object?.setValue(managedObjects, forKey: relationship!.name)
-                                backingObject?.setValue(backingObjects, forKey: relationship!.name)
+                                context.performAndWait {
+                                    object?.setValue(managedObjects, forKey: relationship!.name)
+                                }
+                                backingContext.performAndWait {
+                                    backingObject?.setValue(backingObjects, forKey: relationship!.name)
+                                }
                             } else {
-                                object?.setValue(Set<NSManagedObject>(managedObjects), forKey: relationship!.name)
-                                backingObject?.setValue(Set<NSManagedObject>(backingObjects), forKey: relationship!.name)
+                                context.performAndWait {
+                                    object?.setValue(Set<NSManagedObject>(managedObjects), forKey: relationship!.name)
+                                }
+                                backingContext.performAndWait {
+                                    backingObject?.setValue(Set<NSManagedObject>(backingObjects), forKey: relationship!.name)
+                                }
                             }
                         } else {
-                            object?.setValue(managedObjects.last, forKey: relationship!.name)
-                            backingObject?.setValue(backingObjects.last, forKey: relationship!.name)
+                            context.performAndWait {
+                                object?.setValue(managedObjects.last, forKey: relationship!.name)
+                            }
+                            backingContext.performAndWait {
+                                backingObject?.setValue(backingObjects.last, forKey: relationship!.name)
+                            }
                         }
                     }
                 } catch let e as NSError {
@@ -995,22 +1019,26 @@ public class AFIncrementalStore: NSIncrementalStore {
         return true
     }
 
-    // MARK: -
+    // MARK: - Overrides
 
     @objc public override func loadMetadata() throws {
-        guard backingObjectIdByObjectId == nil,
-            let model = persistentStoreCoordinator?.managedObjectModel.copy() as? NSManagedObjectModel else {
+        guard backingObjectIdByObjectId == nil else {
+            throw NSError()
+        }
+        guard let model = persistentStoreCoordinator?.managedObjectModel.copy() as? NSManagedObjectModel else {
                 return
         }
         self.metadata = [
-            NSStoreUUIDKey: ProcessInfo.processInfo,
+            NSStoreUUIDKey: ProcessInfo.processInfo.globallyUniqueString,
             NSStoreTypeKey: NSStringFromClass(classForCoder)
         ]
         backingObjectIdByObjectId = NSCache()
-
+        registeredObjectIdsByEntityNameAndNestedResourceIdentifier = [:]
+        var mutatedEntities = [NSEntityDescription]()
         for entity in model.entities {
             // Don't add properties for sub-entities, as they already exist in the super-entity
             if let _ = entity.superentity {
+                mutatedEntities.append(entity)
                 continue
             }
             let resourceIdentifierProperty = NSAttributeDescription()
@@ -1022,7 +1050,9 @@ public class AFIncrementalStore: NSIncrementalStore {
             lastModifiedProperty.attributeType = .stringAttributeType
             lastModifiedProperty.isIndexed = false
             entity.properties.append(contentsOf: [resourceIdentifierProperty, lastModifiedProperty])
+            mutatedEntities.append(entity)
         }
+        model.entities = mutatedEntities
         backingPersistentStoreCoordinator = NSPersistentStoreCoordinator(managedObjectModel: model)
     }
 
@@ -1042,27 +1072,25 @@ public class AFIncrementalStore: NSIncrementalStore {
     }
 
     @objc public override func execute(_ request: NSPersistentStoreRequest, with context: NSManagedObjectContext?) throws -> Any {
+        var toReturn: Any?
         switch request.requestType {
         case .fetchRequestType:
-            var toReturn: Any = [Any]()
             do {
-                toReturn = try execute(request as! NSFetchRequest<NSFetchRequestResult>, with: context)
+                toReturn = try executeFetchRequest(request as? NSFetchRequest<NSFetchRequestResult>, with: context)
             } catch let error as NSError {
                 throw error
             }
-            return toReturn
+            return toReturn ?? [Any]()
         case .saveRequestType:
-            var toReturn: Any = [Any]()
             do {
-                toReturn = try execute(request as! NSSaveChangesRequest, with: context)
+                toReturn = try executeSaveChangesRequest(request as? NSSaveChangesRequest, with: context)
             } catch let error as NSError {
                 throw error
             }
-            return toReturn
+            return toReturn ?? [Any]()
         default:
             let userInfo: [String: Any] = [NSLocalizedDescriptionKey: NSLocalizedString("Unsupported NSFetchRequestResultType, \(request.requestType)", comment: "")]
             throw NSError(domain: AFNetworkingErrorDomain, code: 0, userInfo: userInfo)
-            return [Any]()
         }
     }
 

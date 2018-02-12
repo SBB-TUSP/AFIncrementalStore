@@ -22,6 +22,7 @@
 
 #import "AppDelegate.h"
 #import "Songs-Swift.h"
+#import "AFNetworkActivityIndicatorManager.h"
 #import "ArtistsListViewController.h"
 
 @implementation AppDelegate
@@ -42,8 +43,8 @@
     
     self.window = [[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
 	self.window.rootViewController = self.navigationController;
-    [self.window makeKeyAndVisible];*/
-    
+    [self.window makeKeyAndVisible];
+    */
     return YES;
 }
 
@@ -104,8 +105,9 @@
     }
     
     __persistentStoreCoordinator = [[NSPersistentStoreCoordinator alloc] initWithManagedObjectModel:[self managedObjectModel]];
-    
-    AFIncrementalStore *incrementalStore = (AFIncrementalStore *)[__persistentStoreCoordinator addPersistentStoreWithType: [SongsIncrementalStore type] configuration:nil URL:nil options:nil error:nil];
+    NSString* storeType = SongsIncrementalStore.type;
+    [NSPersistentStoreCoordinator registerStoreClass:[SongsIncrementalStore class] forStoreType:storeType];
+    AFIncrementalStore *incrementalStore = (AFIncrementalStore *)[__persistentStoreCoordinator addPersistentStoreWithType: storeType configuration:nil URL:nil options:nil error:nil];
     NSError *error = nil;
     if (![[incrementalStore backingPersistentStoreCoordinator] addPersistentStoreWithType:NSInMemoryStoreType configuration:nil URL:nil options:nil error:&error]) {
         NSLog(@"Unresolved error %@, %@", error, [error userInfo]);

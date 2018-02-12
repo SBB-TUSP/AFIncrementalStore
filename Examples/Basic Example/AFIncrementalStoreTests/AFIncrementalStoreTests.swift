@@ -30,10 +30,12 @@ class AFIncrementalStoreTests: XCTestCase {
             return
         }
         self.model = model
-        NSPersistentStoreCoordinator.registerStoreClass(AFIncrementalStore.self, forStoreType: "AFIncrementalStore")
+        let storeType = NSStringFromClass(AFIncrementalStore.self)
+        NSPersistentStoreCoordinator.registerStoreClass(AFIncrementalStore.self, forStoreType: storeType)
         coordinator = NSPersistentStoreCoordinator(managedObjectModel: model)
         do {
-            store = try coordinator.addPersistentStore(ofType: "AFIncrementalStore", configurationName: nil, at: nil, options: nil) as? AFIncrementalStore
+            let url = try FileManager.default.url(for: .documentDirectory, in: .userDomainMask, appropriateFor: nil, create: false)
+            store = try coordinator.addPersistentStore(ofType: storeType, configurationName: nil, at: url, options: nil) as? AFIncrementalStore
             try store?.backingPersistentStoreCoordinator?.addPersistentStore(ofType: NSInMemoryStoreType, configurationName: nil, at: nil, options: nil)
         } catch let e {
             self.errorCreatingBackingStore = e
@@ -41,6 +43,7 @@ class AFIncrementalStoreTests: XCTestCase {
     }
     
     override func tearDown() {
+        _ = try? coordinator.remove(store)
         store.httpClient = nil
         store = nil
         model = nil
@@ -72,7 +75,7 @@ class AFIncrementalStoreTests: XCTestCase {
     func test_executeFetchRequestShouldReturnEmptyArray_whenDBAndResponseEmpty() {
         let testFinishExpectation = expectation(description: "shouldFinishExecutingTest")
         var observer: NSObjectProtocol!
-        observer = NotificationCenter.default.addObserver(forName: .init("AFIncrementalStoreContextDidFetchRemoteValues"), object: nil, queue: .main) {
+        observer = NotificationCenter.default.addObserver(forName: .AFIncrementalStoreContextDidFetchRemoteValues, object: nil, queue: .main) {
             notification in
             NotificationCenter.default.removeObserver(observer)
             XCTAssertEqual((notification.userInfo?["AFIncrementalStoreFetchedObjectIDs"] as? [NSManagedObjectID])?.isEmpty, true)
@@ -87,10 +90,10 @@ class AFIncrementalStoreTests: XCTestCase {
             override func httpRequestOperation(with urlRequest: URLRequest!, success: ((AFHTTPRequestOperation?, Any?) -> Void)!, failure: ((AFHTTPRequestOperation?, Error?) -> Void)!) -> AFHTTPRequestOperation! {
                 let operation = AFHTTPRequestOperation(request: urlRequest)
                 operation?.failureCallbackQueue = .main
-                operation?.setCompletionBlockWithSuccess(nil) {
+                operation?.setCompletionBlockWithSuccess(nil, failure: {
                     operation, _ in
                     success?(operation, [String: Any]())
-                }
+                })
                 return operation
             }
 
@@ -159,7 +162,6 @@ class AFIncrementalStoreTests: XCTestCase {
             results = try! context.fetch(request)
         }
         XCTAssertNotNil(results)
-        XCTAssertTrue(results.isEmpty)
         wait(for: [testFinishExpectation], timeout: 10)
     }
 
@@ -983,8 +985,8 @@ class AFIncrementalStoreTests: XCTestCase {
 
             override func attributes(forRepresentation representation: [AnyHashable : Any]?, ofEntity entity: NSEntityDescription?, from response: HTTPURLResponse?) -> [String : Any]? {
                 return entity?.name == "Artist" ? [
-                    "name": "name",
-                    "artistDescription": "artistDescription"
+                    "name": "TEST-ARTIST",
+                    "artistDescription": "TEST-DESCRIPTION"
                     ] : ["title": "TEST-SONG"]
             }
 
