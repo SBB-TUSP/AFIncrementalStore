@@ -11,6 +11,7 @@
 		6620236C2019E1C6000F684D /* IncrementalStoreExample.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = F8874F2115B08CA80048680F /* IncrementalStoreExample.xcdatamodeld */; };
 		66202371201A1526000F684D /* ObjCAssertWrapper.m in Sources */ = {isa = PBXBuildFile; fileRef = 66202370201A1526000F684D /* ObjCAssertWrapper.m */; };
 		662F9D6E20318C36008E819D /* SongsIncrementalStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 662F9D6D20318C36008E819D /* SongsIncrementalStore.swift */; };
+		662F9D6F203198F6008E819D /* AFIncrementalStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6688B4BA202A063400BA2170 /* AFIncrementalStore.swift */; };
 		6688B4BB202A063400BA2170 /* AFIncrementalStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6688B4BA202A063400BA2170 /* AFIncrementalStore.swift */; };
 		883E9E4120236521005F985E /* AFRESTClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 883E9E4020236521005F985E /* AFRESTClient.swift */; };
 		883E9E4220236527005F985E /* AFRESTClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 883E9E4020236521005F985E /* AFRESTClient.swift */; };
@@ -425,6 +426,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				662F9D6F203198F6008E819D /* AFIncrementalStore.swift in Sources */,
 				883E9E4120236521005F985E /* AFRESTClient.swift in Sources */,
 				88E8B596201F24C3000516ED /* FakeClient.swift in Sources */,
 				662023642019D0E3000F684D /* AFIncrementalStoreTests.swift in Sources */,

@@ -59,7 +59,7 @@ class AFRESTClientTests: XCTestCase {
         do {
             store = try coordinator.addPersistentStore(ofType: "AFIncrementalStore", configurationName: nil, at: nil, options: nil) as? AFIncrementalStore
 
-             try store?.backingPersistentStoreCoordinator.addPersistentStore(ofType: NSInMemoryStoreType, configurationName: nil, at: nil, options: nil)
+             try store?.backingPersistentStoreCoordinator?.addPersistentStore(ofType: NSInMemoryStoreType, configurationName: nil, at: nil, options: nil)
 
         } catch let e {
             self.errorCreatingBackingStore = e

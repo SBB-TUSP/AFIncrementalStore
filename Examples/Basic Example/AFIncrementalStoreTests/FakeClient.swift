@@ -7,7 +7,10 @@
 
 import UIKit
 
-class FakeClient: AFHTTPClient, AFIncrementalStoreHTTPClient {
+class FakeClient: AFHTTPClient, AFIncrementalStoreHttpClient {
+
+    /// a simple value of URLRequest type
+    var urlRequest = URLRequest(url: URL(string: "http://localhost")!)
 
     override init() {
         super.init(baseURL: URL(string: "http://lochalhost")!)
@@ -21,32 +24,32 @@ class FakeClient: AFHTTPClient, AFIncrementalStoreHTTPClient {
         super.init(baseURL: url)
     }
 
-    func representationsForRelationships(fromRepresentation representation: [AnyHashable : Any]!, ofEntity entity: NSEntityDescription!, from response: HTTPURLResponse!) -> [AnyHashable : Any]! {
+    func representationOrArrayOfRepresentations(ofEntity entity: NSEntityDescription?, fromResponseObject responseObject: Any?) -> Any? {
         return nil
     }
 
-    func resourceIdentifier(forRepresentation representation: [AnyHashable : Any]!, ofEntity entity: NSEntityDescription!, from response: HTTPURLResponse!) -> String? {
+    func representationsForRelationships(fromRepresentation representation: [AnyHashable : Any], ofEntity entity: NSEntityDescription?, from response: HTTPURLResponse?) -> [String : Any] {
+        return [:]
+    }
+
+    func resourceIdentifier(forRepresentation representation: [AnyHashable : Any], ofEntity entity: NSEntityDescription?, from response: HTTPURLResponse?) -> String? {
         return nil
     }
 
-    func attributes(forRepresentation representation: [AnyHashable : Any]?, ofEntity entity: NSEntityDescription!, from response: HTTPURLResponse!) -> [AnyHashable : Any]? {
+    func attributes(forRepresentation representation: [AnyHashable : Any]?, ofEntity entity: NSEntityDescription?, from response: HTTPURLResponse?) -> [String : Any]? {
         return nil
     }
 
-    func request(withMethod method: String!, pathForObjectWith objectID: NSManagedObjectID!, with context: NSManagedObjectContext!) -> NSMutableURLRequest! {
+    func request(for fetchRequest: NSFetchRequest<NSFetchRequestResult>?, with context: NSManagedObjectContext?) -> URLRequest? {
         return nil
     }
 
-    func request(withMethod method: String!, pathForRelationship relationship: NSRelationshipDescription!, forObjectWith objectID: NSManagedObjectID!, with context: NSManagedObjectContext!) -> NSMutableURLRequest! {
-        return nil
+    func request(withMethod method: String, pathForObjectWith objectID: NSManagedObjectID, with context: NSManagedObjectContext) -> URLRequest {
+        return urlRequest
     }
 
-    func request(for fetchRequest: NSFetchRequest<NSFetchRequestResult>!, with context: NSManagedObjectContext!) -> NSMutableURLRequest! {
-        return nil
-    }
-
-    func representationOrArrayOfRepresentations(ofEntity entity: NSEntityDescription!, fromResponseObject responseObject: Any!) -> Any! {
-        return nil
+    func request(withMethod method: String, pathForRelationship relationship: NSRelationshipDescription?, forObjectWith objectID: NSManagedObjectID, with context: NSManagedObjectContext) -> URLRequest {
+        return urlRequest
     }
 
 
