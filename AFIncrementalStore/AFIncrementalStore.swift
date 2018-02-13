@@ -693,8 +693,10 @@ public class AFIncrementalStore: NSIncrementalStore {
             let request = self.httpClient?.request?(forDeletedObject: deletedObject)
             if request == nil {
                 backingContext.performAndWait {
-                    if let backingObject = backingObjectId == nil ? nil : try? backingContext.existingObject(with: backingObjectId!) {
+                    if let backingObjectId = backingObjectId,
+                        let backingObject = try? backingContext.existingObject(with: backingObjectId) {
                         backingContext.delete(backingObject)
+                        self.backingObjectIdByObjectId.removeObject(forKey: backingObjectId)
                         _ = try? backingContext.save()
                     }
                 }
@@ -703,8 +705,10 @@ public class AFIncrementalStore: NSIncrementalStore {
             let operation = self.httpClient?.httpRequestOperation(with: request, success: {
                 operation, responseObject in
                 backingContext.performAndWait {
-                    if let backingObject = backingObjectId == nil ? nil : try? backingContext.existingObject(with: backingObjectId!) {
+                    if let backingObjectId = backingObjectId,
+                        let backingObject = try? backingContext.existingObject(with: backingObjectId) {
                         backingContext.delete(backingObject)
+                        self.backingObjectIdByObjectId.removeObject(forKey: backingObjectId)
                         _ = try? backingContext.save()
                     }
                 }
