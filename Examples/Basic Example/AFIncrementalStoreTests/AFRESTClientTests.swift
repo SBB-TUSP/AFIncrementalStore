@@ -6,18 +6,20 @@
 //
 
 import XCTest
+import AFNetworking
+import CoreData
 
 fileprivate class FakeClientSubclass: FakeClient {
 
-    func request(forInsertedObject insertedObject: NSManagedObject!) -> NSMutableURLRequest! {
+    func request(forInsertedObject insertedObject: NSManagedObject!) -> URLRequest? {
         return nil
     }
 
-    func request(forDeletedObject deletedObject: NSManagedObject!) -> NSMutableURLRequest! {
+    func request(forDeletedObject deletedObject: NSManagedObject!) -> URLRequest? {
         return nil
     }
 
-    func request(forUpdatedObject updatedObject: NSManagedObject!) -> NSMutableURLRequest! {
+    func request(forUpdatedObject updatedObject: NSManagedObject!) -> URLRequest? {
         return nil
     }
 
@@ -93,17 +95,17 @@ class AFRESTClientTests: XCTestCase {
         let instanceRestClient = AFRESTClient(baseURL: baseURL as URL!)
 
         XCTAssertNotNil(instanceRestClient, "should be able to create an instance of AFRESTClient")
-        XCTAssertEqual(instanceRestClient?.baseURL, baseURL , "should be able to create an instance of AFRESTClient")
+        XCTAssertEqual(instanceRestClient.baseURL, baseURL , "should be able to create an instance of AFRESTClient")
     }
 
     func test_ShouldBeAbleToPathForEntity() {
         let instanceRestClient = AFRESTClient(baseURL: baseURL as URL!)
 
         XCTAssertNotNil(instanceRestClient, "should be able to create an instance of AFRESTClient")
-        XCTAssertEqual(instanceRestClient?.baseURL, baseURL , "should be able to create an instance of AFRESTClient")
+        XCTAssertEqual(instanceRestClient.baseURL, baseURL , "should be able to create an instance of AFRESTClient")
 
         let entityDescription = NSEntityDescription.entity(forEntityName: "Artist", in: moc)
-        let result = instanceRestClient?.path(forEntity: entityDescription)
+        let result = instanceRestClient.path(forEntity: entityDescription)
 
         XCTAssertNotNil(result, "should not be nil")
         XCTAssertEqual(result, "artists", "should not be equals")
@@ -113,10 +115,10 @@ class AFRESTClientTests: XCTestCase {
         let instanceRestClient = AFRESTClient(baseURL: baseURL as URL!)
 
         XCTAssertNotNil(instanceRestClient, "should be able to create an instance of AFRESTClient")
-        XCTAssertEqual(instanceRestClient?.baseURL, baseURL , "should be able to create an instance of AFRESTClient")
+        XCTAssertEqual(instanceRestClient.baseURL, baseURL , "should be able to create an instance of AFRESTClient")
 
         let artist = NSEntityDescription.insertNewObject(forEntityName: "Artist", into: moc)
-        let result = instanceRestClient?.path(for: artist)
+        let result = instanceRestClient.path(for: artist)
 
         XCTAssertNotNil(result, "should not be nil")
         XCTAssertEqual(result, "artists", "should not be equals")
@@ -128,17 +130,17 @@ class AFRESTClientTests: XCTestCase {
         let instanceRestClient = AFRESTClient(baseURL: baseURL as URL!)
 
         XCTAssertNotNil(instanceRestClient, "should be able to create an instance of AFRESTClient")
-        XCTAssertEqual(instanceRestClient?.baseURL, baseURL , "should be able to create an instance of AFRESTClient")
+        XCTAssertEqual(instanceRestClient.baseURL, baseURL , "should be able to create an instance of AFRESTClient")
 
         let artist = NSEntityDescription.insertNewObject(forEntityName: "Artist", into: moc)
 
         createFakeClientHTTPandSaveContext(moc: moc)
 
-        let result = instanceRestClient?.path(for: artist)
+        let result = instanceRestClient.path(for: artist)
         XCTAssertNotNil(result, "should not be nil")
-        let resultComponents = result?.components(separatedBy: "/")
-        XCTAssertEqual(resultComponents?.count, 2, "should not be equals")
-        XCTAssertEqual(resultComponents![0], "artists", "should be artists")
+        let resultComponents = result.components(separatedBy: "/")
+        XCTAssertEqual(resultComponents.count, 2, "should not be equals")
+        XCTAssertEqual(resultComponents[0], "artists", "should be artists")
 
     }
 
@@ -148,7 +150,7 @@ class AFRESTClientTests: XCTestCase {
         let instanceRestClient = AFRESTClient(baseURL: baseURL as URL!)
 
         XCTAssertNotNil(instanceRestClient, "should be able to create an instance of AFRESTClient")
-        XCTAssertEqual(instanceRestClient?.baseURL, baseURL , "should be able to create an instance of AFRESTClient")
+        XCTAssertEqual(instanceRestClient.baseURL, baseURL , "should be able to create an instance of AFRESTClient")
 
         let entityDescriptionArtist = NSEntityDescription.entity(forEntityName: "Artist", in: moc)
         let entityDescriptionSong = NSEntityDescription.entity(forEntityName: "Song", in: moc)
@@ -158,14 +160,14 @@ class AFRESTClientTests: XCTestCase {
 
         createFakeClientHTTPandSaveContext(moc: moc)
 
-        let result = instanceRestClient?.path(forRelationship: entityRelationshipDescription, for: artist)
+        let result = instanceRestClient.path(forRelationship: entityRelationshipDescription, for: artist)
 
         XCTAssertNotNil(result, "should not be nil")
 
-        let resultComponents = result?.components(separatedBy: "/")
-        XCTAssertEqual(resultComponents?.count, 3, "should not be equals")
-        XCTAssertEqual(resultComponents![0], "artists", "should be artists")
-        XCTAssertEqual(resultComponents![2], "songs", "should be songs")
+        let resultComponents = result.components(separatedBy: "/")
+        XCTAssertEqual(resultComponents.count, 3, "should not be equals")
+        XCTAssertEqual(resultComponents[0], "artists", "should be artists")
+        XCTAssertEqual(resultComponents[2], "songs", "should be songs")
 
     }
 
@@ -174,7 +176,7 @@ class AFRESTClientTests: XCTestCase {
         let instanceRestClient = AFRESTClient(baseURL: baseURL as URL!)
 
         XCTAssertNotNil(instanceRestClient, "should be able to create an instance of AFRESTClient")
-        XCTAssertEqual(instanceRestClient?.baseURL, baseURL , "should be able to create an instance of AFRESTClient")
+        XCTAssertEqual(instanceRestClient.baseURL, baseURL , "should be able to create an instance of AFRESTClient")
 
         let entityDescriptionArtist = NSEntityDescription.entity(forEntityName: "Artist", in: moc)
         let entityDescriptionSong = NSEntityDescription.entity(forEntityName: "Song", in: moc)
@@ -182,14 +184,14 @@ class AFRESTClientTests: XCTestCase {
 
         let artist = NSEntityDescription.insertNewObject(forEntityName: "Artist", into: moc)
 
-        let result = instanceRestClient?.path(forRelationship: entityRelationshipDescription, for: artist)
+        let result = instanceRestClient.path(forRelationship: entityRelationshipDescription, for: artist)
 
         XCTAssertNotNil(result, "should not be nil")
 
-        let resultComponents = result?.components(separatedBy: "/")
-        XCTAssertEqual(resultComponents?.count, 2, "should not be equals")
-        XCTAssertEqual(resultComponents![0], "artists", "should be artists")
-        XCTAssertEqual(resultComponents![1], "songs", "should be songs")
+        let resultComponents = result.components(separatedBy: "/")
+        XCTAssertEqual(resultComponents.count, 2, "should not be equals")
+        XCTAssertEqual(resultComponents[0], "artists", "should be artists")
+        XCTAssertEqual(resultComponents[1], "songs", "should be songs")
 
     }
 
@@ -198,7 +200,7 @@ class AFRESTClientTests: XCTestCase {
         let instanceRestClient = AFRESTClient(baseURL: baseURL as URL!)
 
         XCTAssertNotNil(instanceRestClient, "should be able to create an instance of AFRESTClient")
-        XCTAssertEqual(instanceRestClient?.baseURL, baseURL , "should be able to create an instance of AFRESTClient")
+        XCTAssertEqual(instanceRestClient.baseURL, baseURL , "should be able to create an instance of AFRESTClient")
 
         let entityDescriptionArtist = NSEntityDescription.entity(forEntityName: "Artist", in: moc)
         let responseObject = [
@@ -210,7 +212,7 @@ class AFRESTClientTests: XCTestCase {
             ]
         ]
 
-        let result = instanceRestClient?.representationOrArrayOfRepresentations(ofEntity: entityDescriptionArtist, fromResponseObject:responseObject)
+        let result = instanceRestClient.representationOrArrayOfRepresentations(ofEntity: entityDescriptionArtist, fromResponseObject:responseObject)
 
         XCTAssertNotNil(result, "should not be nil")
         guard let resultArray = result as? [Any] else { XCTFail(); return }
@@ -223,7 +225,7 @@ class AFRESTClientTests: XCTestCase {
         let instanceRestClient = AFRESTClient(baseURL: baseURL as URL!)
 
         XCTAssertNotNil(instanceRestClient, "should be able to create an instance of AFRESTClient")
-        XCTAssertEqual(instanceRestClient?.baseURL, baseURL , "should be able to create an instance of AFRESTClient")
+        XCTAssertEqual(instanceRestClient.baseURL, baseURL , "should be able to create an instance of AFRESTClient")
 
         let entityDescriptionArtist = NSEntityDescription.entity(forEntityName: "Artist", in: moc)
         let responseObject = [
@@ -231,7 +233,7 @@ class AFRESTClientTests: XCTestCase {
             "artistDescription":"test"
         ]
 
-        let result = instanceRestClient?.representationOrArrayOfRepresentations(ofEntity: entityDescriptionArtist, fromResponseObject:responseObject)
+        let result = instanceRestClient.representationOrArrayOfRepresentations(ofEntity: entityDescriptionArtist, fromResponseObject:responseObject)
 
         XCTAssertNotNil(result, "should not be nil")
         guard let resultDictionary = result as? [String: String] else { XCTFail(); return }
@@ -244,7 +246,7 @@ class AFRESTClientTests: XCTestCase {
         let instanceRestClient = AFRESTClient(baseURL: baseURL as URL!)
 
         XCTAssertNotNil(instanceRestClient, "should be able to create an instance of AFRESTClient")
-        XCTAssertEqual(instanceRestClient?.baseURL, baseURL , "should be able to create an instance of AFRESTClient")
+        XCTAssertEqual(instanceRestClient.baseURL, baseURL , "should be able to create an instance of AFRESTClient")
 
         let entityDescriptionArtist = NSEntityDescription.entity(forEntityName: "Artist", in: moc)
         let responseObject = [
@@ -255,7 +257,7 @@ class AFRESTClientTests: XCTestCase {
             ]
         ]
 
-        let result = instanceRestClient?.representationOrArrayOfRepresentations(ofEntity: entityDescriptionArtist, fromResponseObject:responseObject)
+        let result = instanceRestClient.representationOrArrayOfRepresentations(ofEntity: entityDescriptionArtist, fromResponseObject:responseObject)
 
         XCTAssertNotNil(result, "should not be nil")
         guard let resultDictionary = result as? [String: String] else { XCTFail(); return }
@@ -268,7 +270,7 @@ class AFRESTClientTests: XCTestCase {
         let instanceRestClient = AFRESTClient(baseURL: baseURL as URL!)
 
         XCTAssertNotNil(instanceRestClient, "should be able to create an instance of AFRESTClient")
-        XCTAssertEqual(instanceRestClient?.baseURL, baseURL , "should be able to create an instance of AFRESTClient")
+        XCTAssertEqual(instanceRestClient.baseURL, baseURL , "should be able to create an instance of AFRESTClient")
 
         let entityDescriptionArtist = NSEntityDescription.entity(forEntityName: "Artist", in: moc)
         let responseObject = [
@@ -284,7 +286,7 @@ class AFRESTClientTests: XCTestCase {
                 ]
         ]
 
-        let result = instanceRestClient?.representationOrArrayOfRepresentations(ofEntity: entityDescriptionArtist, fromResponseObject:responseObject)
+        let result = instanceRestClient.representationOrArrayOfRepresentations(ofEntity: entityDescriptionArtist, fromResponseObject:responseObject)
 
         XCTAssertNotNil(result, "should not be nil")
         guard let resultArray = result as? [Any] else { XCTFail(); return }
@@ -297,7 +299,7 @@ class AFRESTClientTests: XCTestCase {
         let instanceRestClient = AFRESTClient(baseURL: baseURL as URL!)
 
         XCTAssertNotNil(instanceRestClient, "should be able to create an instance of AFRESTClient")
-        XCTAssertEqual(instanceRestClient?.baseURL, baseURL , "should be able to create an instance of AFRESTClient")
+        XCTAssertEqual(instanceRestClient.baseURL, baseURL , "should be able to create an instance of AFRESTClient")
 
         let entityDescriptionArtist = NSEntityDescription.entity(forEntityName: "Artist", in: moc)
         let responseObject = [
@@ -321,7 +323,7 @@ class AFRESTClientTests: XCTestCase {
             ]
             ] as [String : Any]
 
-        let result = instanceRestClient?.representationsForRelationships(fromRepresentation: responseObject, ofEntity: entityDescriptionArtist, from: nil)
+        let result = instanceRestClient.representationsForRelationships(fromRepresentation: responseObject, ofEntity: entityDescriptionArtist, from: nil)
 
         XCTAssertNotNil(result, "should not be nil")
         guard let resultDictionary = result as? [String: Any] else { XCTFail(); return }
@@ -336,7 +338,7 @@ class AFRESTClientTests: XCTestCase {
         let instanceRestClient = AFRESTClient(baseURL: baseURL as URL!)
 
         XCTAssertNotNil(instanceRestClient, "should be able to create an instance of AFRESTClient")
-        XCTAssertEqual(instanceRestClient?.baseURL, baseURL , "should be able to create an instance of AFRESTClient")
+        XCTAssertEqual(instanceRestClient.baseURL, baseURL , "should be able to create an instance of AFRESTClient")
 
         let entityDescriptionArtist = NSEntityDescription.entity(forEntityName: "Artist", in: moc)
         let responseObject = [
@@ -355,7 +357,7 @@ class AFRESTClientTests: XCTestCase {
                 ]
             ] as [String : Any]
 
-        let result = instanceRestClient?.representationsForRelationships(fromRepresentation: responseObject, ofEntity: entityDescriptionArtist, from: nil)
+        let result = instanceRestClient.representationsForRelationships(fromRepresentation: responseObject, ofEntity: entityDescriptionArtist, from: nil)
 
         XCTAssertNotNil(result, "should not be nil")
         guard let resultDictionary = result as? [String: Any] else { XCTFail(); return }
@@ -370,7 +372,7 @@ class AFRESTClientTests: XCTestCase {
         let instanceRestClient = AFRESTClient(baseURL: baseURL as URL!)
 
         XCTAssertNotNil(instanceRestClient, "should be able to create an instance of AFRESTClient")
-        XCTAssertEqual(instanceRestClient?.baseURL, baseURL , "should be able to create an instance of AFRESTClient")
+        XCTAssertEqual(instanceRestClient.baseURL, baseURL , "should be able to create an instance of AFRESTClient")
 
         let entityDescriptionArtist = NSEntityDescription.entity(forEntityName: "Artist", in: moc)
 
@@ -379,7 +381,7 @@ class AFRESTClientTests: XCTestCase {
                     "artistDescription":"test"
             ] as [String : String]
 
-        let result = instanceRestClient?.resourceIdentifier(forRepresentation: responseObject, ofEntity: entityDescriptionArtist, from: nil)
+        let result = instanceRestClient.resourceIdentifier(forRepresentation: responseObject, ofEntity: entityDescriptionArtist, from: nil)
 
         XCTAssertNil(result, "should be nil")
 
@@ -391,7 +393,7 @@ class AFRESTClientTests: XCTestCase {
         let instanceRestClient = AFRESTClient(baseURL: baseURL as URL!)
 
         XCTAssertNotNil(instanceRestClient, "should be able to create an instance of AFRESTClient")
-        XCTAssertEqual(instanceRestClient?.baseURL, baseURL , "should be able to create an instance of AFRESTClient")
+        XCTAssertEqual(instanceRestClient.baseURL, baseURL , "should be able to create an instance of AFRESTClient")
 
         let entityDescriptionArtist = NSEntityDescription.entity(forEntityName: "Artist", in: moc)
 
@@ -401,7 +403,7 @@ class AFRESTClientTests: XCTestCase {
             "artistDescription":"test"
             ] as [String : String]
 
-        let result = instanceRestClient?.resourceIdentifier(forRepresentation: responseObject, ofEntity: entityDescriptionArtist, from: nil)
+        let result = instanceRestClient.resourceIdentifier(forRepresentation: responseObject, ofEntity: entityDescriptionArtist, from: nil)
 
         XCTAssertNotNil(result, "should not be nil")
 
@@ -415,11 +417,11 @@ class AFRESTClientTests: XCTestCase {
         let instanceRestClient = AFRESTClient(baseURL: baseURL as URL!)
 
         XCTAssertNotNil(instanceRestClient, "should be able to create an instance of AFRESTClient")
-        XCTAssertEqual(instanceRestClient?.baseURL, baseURL , "should be able to create an instance of AFRESTClient")
+        XCTAssertEqual(instanceRestClient.baseURL, baseURL , "should be able to create an instance of AFRESTClient")
 
         let entityDescriptionArtist = NSEntityDescription.entity(forEntityName: "Artist", in: moc)
 
-        let result = instanceRestClient?.attributes(forRepresentation: nil, ofEntity: entityDescriptionArtist, from: nil)
+        let result = instanceRestClient.attributes(forRepresentation: nil, ofEntity: entityDescriptionArtist, from: nil)
 
         XCTAssertNil(result, "should be nil")
     }
@@ -429,7 +431,7 @@ class AFRESTClientTests: XCTestCase {
         let instanceRestClient = AFRESTClient(baseURL: baseURL as URL!)
 
         XCTAssertNotNil(instanceRestClient, "should be able to create an instance of AFRESTClient")
-        XCTAssertEqual(instanceRestClient?.baseURL, baseURL , "should be able to create an instance of AFRESTClient")
+        XCTAssertEqual(instanceRestClient.baseURL, baseURL , "should be able to create an instance of AFRESTClient")
 
         let entityDescriptionArtist = NSEntityDescription.entity(forEntityName: "Artist", in: moc)
 
@@ -440,7 +442,7 @@ class AFRESTClientTests: XCTestCase {
             "artistDescription":"test"
             ] as [String : String]
 
-        let result = instanceRestClient?.attributes(forRepresentation: responseObject, ofEntity: entityDescriptionArtist, from: nil)
+        let result = instanceRestClient.attributes(forRepresentation: responseObject, ofEntity: entityDescriptionArtist, from: nil)
 
         XCTAssertNotNil(result, "should not be nil")
         XCTAssertTrue(result?.keys.count == 2, "should be equals to 2")
@@ -453,7 +455,7 @@ class AFRESTClientTests: XCTestCase {
         let instanceRestClient = AFRESTClient(baseURL: baseURL as URL!)
 
         XCTAssertNotNil(instanceRestClient, "should be able to create an instance of AFRESTClient")
-        XCTAssertEqual(instanceRestClient?.baseURL, baseURL , "should be able to create an instance of AFRESTClient")
+        XCTAssertEqual(instanceRestClient.baseURL, baseURL , "should be able to create an instance of AFRESTClient")
 
         let entityDescriptionArtist = NSEntityDescription.entity(forEntityName: "Artist", in: moc)
 
@@ -465,7 +467,7 @@ class AFRESTClientTests: XCTestCase {
             "birthDate": "2013-09-29T18:46:19Z" //YYYY-MM-dd'T'HH:mm:ssZ
             ] as [String : String]
 
-        let result = instanceRestClient?.attributes(forRepresentation: responseObject, ofEntity: entityDescriptionArtist, from: nil)
+        let result = instanceRestClient.attributes(forRepresentation: responseObject, ofEntity: entityDescriptionArtist, from: nil)
 
         XCTAssertNotNil(result, "should not be nil")
         XCTAssertTrue(result?.keys.count == 3, "should be equals to 3")
@@ -480,14 +482,14 @@ class AFRESTClientTests: XCTestCase {
         let instanceRestClient = AFRESTClient(baseURL: baseURL as URL!)
 
         XCTAssertNotNil(instanceRestClient, "should be able to create an instance of AFRESTClient")
-        XCTAssertEqual(instanceRestClient?.baseURL, baseURL , "should be able to create an instance of AFRESTClient")
+        XCTAssertEqual(instanceRestClient.baseURL, baseURL , "should be able to create an instance of AFRESTClient")
 
         let entityDescriptionArtist = NSEntityDescription.entity(forEntityName: "Artist", in: moc)
 
         let fetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: "Artist")
         fetchRequest.entity = entityDescriptionArtist
 
-        let result = instanceRestClient?.request(for: fetchRequest, with: moc)
+        let result = instanceRestClient.request(for: fetchRequest, with: moc)
 
         XCTAssertNotNil(result, "should not be nil")
         XCTAssertTrue(result?.url?.absoluteString == "https://localhost/artists", "should be equals to https://localhost/artists")
@@ -499,13 +501,13 @@ class AFRESTClientTests: XCTestCase {
         let instanceRestClient = AFRESTClient(baseURL: baseURL as URL!)
 
         XCTAssertNotNil(instanceRestClient, "should be able to create an instance of AFRESTClient")
-        XCTAssertEqual(instanceRestClient?.baseURL, baseURL , "should be able to create an instance of AFRESTClient")
+        XCTAssertEqual(instanceRestClient.baseURL, baseURL , "should be able to create an instance of AFRESTClient")
 
         let artist = NSEntityDescription.insertNewObject(forEntityName: "Artist", into: moc)
 
         createFakeClientHTTPandSaveContext(moc: moc)
 
-        let result = instanceRestClient?.request(withMethod: "GET", pathForObjectWith: artist.objectID, with: moc)
+        let result = instanceRestClient.request(withMethod: "GET", pathForObjectWith: artist.objectID, with: moc)
 
         XCTAssertNotNil(result, "should not be nil")
         XCTAssertTrue((result?.url?.absoluteString.contains("https://localhost/artists/"))! , "should contains to https://localhost/artists")
@@ -520,7 +522,7 @@ class AFRESTClientTests: XCTestCase {
         let instanceRestClient = AFRESTClient(baseURL: baseURL as URL!)
 
         XCTAssertNotNil(instanceRestClient, "should be able to create an instance of AFRESTClient")
-        XCTAssertEqual(instanceRestClient?.baseURL, baseURL , "should be able to create an instance of AFRESTClient")
+        XCTAssertEqual(instanceRestClient.baseURL, baseURL , "should be able to create an instance of AFRESTClient")
 
         let entityDescriptionArtist = NSEntityDescription.entity(forEntityName: "Artist", in: moc)
         let entityDescriptionSong = NSEntityDescription.entity(forEntityName: "Song", in: moc)
@@ -530,7 +532,7 @@ class AFRESTClientTests: XCTestCase {
 
         createFakeClientHTTPandSaveContext(moc: moc)
 
-        let result = instanceRestClient?.request(withMethod: "GET", pathForRelationship: entityRelationshipDescription, forObjectWith: artist.objectID, with: moc)
+        let result = instanceRestClient.request(withMethod: "GET", pathForRelationship: entityRelationshipDescription, forObjectWith: artist.objectID, with: moc)
 
         XCTAssertNotNil(result, "should not be nil")
         XCTAssertTrue((result?.url?.absoluteString.contains("https://localhost/artists/"))! , "should contains to https://localhost/artists")
@@ -550,15 +552,15 @@ class AFRESTClientTests: XCTestCase {
         let instanceRestClient = AFRESTClient(baseURL: baseURL as URL!)
 
         XCTAssertNotNil(instanceRestClient, "should be able to create an instance of AFRESTClient")
-        XCTAssertEqual(instanceRestClient?.baseURL, baseURL , "should be able to create an instance of AFRESTClient")
+        XCTAssertEqual(instanceRestClient.baseURL, baseURL , "should be able to create an instance of AFRESTClient")
 
         let entityDescriptionArtist = NSEntityDescription.entity(forEntityName: "Artist", in: moc)
         let entityDescriptionSong = NSEntityDescription.entity(forEntityName: "Song", in: moc)
         let entityRelationshipDescription = entityDescriptionArtist?.relationships(forDestination: entityDescriptionSong!)[0]
 
-        let result = instanceRestClient?.shouldFetchRemoteValues(forRelationship: entityRelationshipDescription, forObjectWith: nil, in: nil)
+        let result = instanceRestClient.shouldFetchRemoteValues(forRelationship: entityRelationshipDescription, forObjectWith: nil, in: nil)
 
-        XCTAssertTrue(result!, "should be true")
+        XCTAssertTrue(result, "should be true")
     }
 
 
@@ -567,7 +569,7 @@ class AFRESTClientTests: XCTestCase {
         let instanceRestClient = AFRESTClient(baseURL: baseURL as URL!)
 
         XCTAssertNotNil(instanceRestClient, "should be able to create an instance of AFRESTClient")
-        XCTAssertEqual(instanceRestClient?.baseURL, baseURL , "should be able to create an instance of AFRESTClient")
+        XCTAssertEqual(instanceRestClient.baseURL, baseURL , "should be able to create an instance of AFRESTClient")
 
         let artist = NSEntityDescription.insertNewObject(forEntityName: "Artist", into: moc) as? Artist
         artist?.name = "test"
@@ -577,7 +579,7 @@ class AFRESTClientTests: XCTestCase {
         let lazyMapCollection = artist?.entity.attributesByName.keys
         let componentArray = Array(lazyMapCollection!)
         let dictionary = artist?.dictionaryWithValues(forKeys: componentArray)
-        let result = instanceRestClient?.representation(ofAttributes: dictionary, of: artist)
+        let result = instanceRestClient.representation(ofAttributes: dictionary, of: artist)
 
         XCTAssertNotNil(result, "should not be nil")
         XCTAssertTrue(result?.keys.count == 3, "should be equals to 3")
@@ -592,7 +594,7 @@ class AFRESTClientTests: XCTestCase {
         let instanceRestClient = AFRESTClient(baseURL: baseURL as URL!)
 
         XCTAssertNotNil(instanceRestClient, "should be able to create an instance of AFRESTClient")
-        XCTAssertEqual(instanceRestClient?.baseURL, baseURL , "should be able to create an instance of AFRESTClient")
+        XCTAssertEqual(instanceRestClient.baseURL, baseURL , "should be able to create an instance of AFRESTClient")
 
         let artist = NSEntityDescription.insertNewObject(forEntityName: "Artist", into: moc) as? Artist
         artist?.name = "test"
@@ -601,7 +603,7 @@ class AFRESTClientTests: XCTestCase {
 
         createFakeClientHTTPandSaveContext(moc: moc)
 
-        var result = instanceRestClient?.request(forInsertedObject: artist)
+        var result = instanceRestClient.request(forInsertedObject: artist)
 
         //encoding AFFormURLParameterEncoding
         XCTAssertNotNil(result , "should not be nil")
@@ -614,14 +616,14 @@ class AFRESTClientTests: XCTestCase {
 
         var httpHeader = result?.allHTTPHeaderFields
         XCTAssertNotNil(httpHeader, "should not be nil")
-        XCTAssertTrue(httpHeader?["Content-Type"] == "application/x-www-form-urlencoded; charset=utf-8", "shoul be equals to application/x-www-form-urlencoded; charset=utf-8")
+        XCTAssertTrue((httpHeader?["Content-Type"]?.contains("application/x-www-form-urlencoded"))!, "shoul be equals to application/x-www-form-urlencoded")
         XCTAssertNotNil(httpHeader?["User-Agent"], "should not be nil")
         XCTAssertNotNil(httpHeader?["Accept-Language"], "should not be nil")
 
         //encoding AFJSONParameterEncoding
 
-        instanceRestClient?.parameterEncoding = AFJSONParameterEncoding
-        result = instanceRestClient?.request(forInsertedObject: artist)
+        instanceRestClient.requestSerializer = AFJSONRequestSerializer()
+        result = instanceRestClient.request(forInsertedObject: artist)
 
         XCTAssertNotNil(result , "should not be nil")
         XCTAssertTrue(result?.url?.absoluteString == "https://localhost/artists" , "should be equals to https://localhost/artists")
@@ -632,15 +634,17 @@ class AFRESTClientTests: XCTestCase {
 
         httpHeader = result?.allHTTPHeaderFields
         XCTAssertNotNil(httpHeader, "should not be nil")
-        XCTAssertTrue(httpHeader?["Content-Type"] == "application/json; charset=utf-8", "shoul be equals to application/json; charset=utf-8")
+        XCTAssertTrue((httpHeader?["Content-Type"]?.contains("application/json"))!, "shoul be equals to application/json")
         XCTAssertNotNil(httpHeader?["User-Agent"], "should not be nil")
         XCTAssertNotNil(httpHeader?["Accept-Language"], "should not be nil")
 
 
         //encoding AFPropertyListParameterEncoding
 
-        instanceRestClient?.parameterEncoding = AFPropertyListParameterEncoding
-        result = instanceRestClient?.request(forInsertedObject: artist)
+        let requestSerializer = AFPropertyListRequestSerializer()
+        requestSerializer.format = .xml
+        instanceRestClient.requestSerializer = requestSerializer
+        result = instanceRestClient.request(forInsertedObject: artist)
 
         XCTAssertNotNil(result , "should not be nil")
         XCTAssertTrue(result?.url?.absoluteString == "https://localhost/artists" , "should be equals to https://localhost/artists")
@@ -652,7 +656,7 @@ class AFRESTClientTests: XCTestCase {
 
         httpHeader = result?.allHTTPHeaderFields
         XCTAssertNotNil(httpHeader, "should not be nil")
-        XCTAssertTrue(httpHeader?["Content-Type"] == "application/x-plist; charset=utf-8", "shoul be equals to application/x-plist; charset=utf-8")
+        XCTAssertTrue((httpHeader?["Content-Type"]?.contains("application/x-plist"))!, "should be equals to application/x-plist")
         XCTAssertNotNil(httpHeader?["User-Agent"], "should not be nil")
         XCTAssertNotNil(httpHeader?["Accept-Language"], "should not be nil")
 
@@ -665,7 +669,7 @@ class AFRESTClientTests: XCTestCase {
         let instanceRestClient = AFRESTClient(baseURL: baseURL as URL!)
 
         XCTAssertNotNil(instanceRestClient, "should be able to create an instance of AFRESTClient")
-        XCTAssertEqual(instanceRestClient?.baseURL, baseURL , "should be able to create an instance of AFRESTClient")
+        XCTAssertEqual(instanceRestClient.baseURL, baseURL , "should be able to create an instance of AFRESTClient")
 
         let artist = NSEntityDescription.insertNewObject(forEntityName: "Artist", into: moc) as? Artist
         artist?.name = "test"
@@ -674,13 +678,13 @@ class AFRESTClientTests: XCTestCase {
 
         createFakeClientHTTPandSaveContext(moc: moc)
 
-        var result = instanceRestClient?.request(forUpdatedObject: artist)
+        var result = instanceRestClient.request(forUpdatedObject: artist)
 
         XCTAssertNil(result , "should be nil")
 
         artist?.birthDate = Date.distantFuture
 
-        result = instanceRestClient?.request(forUpdatedObject: artist)
+        result = instanceRestClient.request(forUpdatedObject: artist)
 
         //encoding AFFormURLParameterEncoding
         XCTAssertNotNil(result , "should not be nil")
@@ -693,14 +697,14 @@ class AFRESTClientTests: XCTestCase {
 
         var httpHeader = result?.allHTTPHeaderFields
         XCTAssertNotNil(httpHeader, "should not be nil")
-        XCTAssertTrue(httpHeader?["Content-Type"] == "application/x-www-form-urlencoded; charset=utf-8", "shoul be equals to application/x-www-form-urlencoded; charset=utf-8")
+        XCTAssertTrue((httpHeader?["Content-Type"]?.contains("application/x-www-form-urlencoded"))!, "shoul be equals to application/x-www-form-urlencoded")
         XCTAssertNotNil(httpHeader?["User-Agent"], "should not be nil")
         XCTAssertNotNil(httpHeader?["Accept-Language"], "should not be nil")
 
         //encoding AFJSONParameterEncoding
 
-        instanceRestClient?.parameterEncoding = AFJSONParameterEncoding
-        result = instanceRestClient?.request(forUpdatedObject: artist)
+        instanceRestClient.requestSerializer = AFJSONRequestSerializer()
+        result = instanceRestClient.request(forUpdatedObject: artist)
 
         XCTAssertNotNil(result , "should not be nil")
         XCTAssertTrue((result?.url?.absoluteString.contains("https://localhost/artists/"))!, "should contains https://localhost/artists/")
@@ -711,15 +715,17 @@ class AFRESTClientTests: XCTestCase {
 
         httpHeader = result?.allHTTPHeaderFields
         XCTAssertNotNil(httpHeader, "should not be nil")
-        XCTAssertTrue(httpHeader?["Content-Type"] == "application/json; charset=utf-8", "shoul be equals to application/json; charset=utf-8")
+        XCTAssertTrue((httpHeader?["Content-Type"]?.contains("application/json"))!, "shoul be equals to application/json")
         XCTAssertNotNil(httpHeader?["User-Agent"], "should not be nil")
         XCTAssertNotNil(httpHeader?["Accept-Language"], "should not be nil")
 
 
         //encoding AFPropertyListParameterEncoding
 
-        instanceRestClient?.parameterEncoding = AFPropertyListParameterEncoding
-        result = instanceRestClient?.request(forUpdatedObject: artist)
+        let requestSerializer = AFPropertyListRequestSerializer()
+        requestSerializer.format = .xml
+        instanceRestClient.requestSerializer = requestSerializer
+        result = instanceRestClient.request(forUpdatedObject: artist)
 
         XCTAssertNotNil(result , "should not be nil")
         XCTAssertTrue((result?.url?.absoluteString.contains("https://localhost/artists/"))!, "should contains https://localhost/artists/")
@@ -731,7 +737,7 @@ class AFRESTClientTests: XCTestCase {
 
         httpHeader = result?.allHTTPHeaderFields
         XCTAssertNotNil(httpHeader, "should not be nil")
-        XCTAssertTrue(httpHeader?["Content-Type"] == "application/x-plist; charset=utf-8", "shoul be equals to application/x-plist; charset=utf-8")
+        XCTAssertTrue((httpHeader?["Content-Type"]?.contains("application/x-plist"))!, "shoul be equals to application/x-plist")
         XCTAssertNotNil(httpHeader?["User-Agent"], "should not be nil")
         XCTAssertNotNil(httpHeader?["Accept-Language"], "should not be nil")
 
@@ -742,7 +748,7 @@ class AFRESTClientTests: XCTestCase {
         let instanceRestClient = AFRESTClient(baseURL: baseURL as URL!)
 
         XCTAssertNotNil(instanceRestClient, "should be able to create an instance of AFRESTClient")
-        XCTAssertEqual(instanceRestClient?.baseURL, baseURL , "should be able to create an instance of AFRESTClient")
+        XCTAssertEqual(instanceRestClient.baseURL, baseURL , "should be able to create an instance of AFRESTClient")
 
         let artist = NSEntityDescription.insertNewObject(forEntityName: "Artist", into: moc) as? Artist
         artist?.name = "test"
@@ -751,7 +757,7 @@ class AFRESTClientTests: XCTestCase {
 
         createFakeClientHTTPandSaveContext(moc: moc)
 
-        var result = instanceRestClient?.request(forDeletedObject: artist)
+        var result = instanceRestClient.request(forDeletedObject: artist)
 
         //encoding AFFormURLParameterEncoding
         XCTAssertNotNil(result , "should not be nil")
@@ -765,8 +771,8 @@ class AFRESTClientTests: XCTestCase {
 
         //encoding AFJSONParameterEncoding
 
-        instanceRestClient?.parameterEncoding = AFJSONParameterEncoding
-        result = instanceRestClient?.request(forDeletedObject: artist)
+        instanceRestClient.requestSerializer = AFJSONRequestSerializer()
+        result = instanceRestClient.request(forDeletedObject: artist)
 
         XCTAssertNotNil(result , "should not be nil")
         XCTAssertTrue((result?.url?.absoluteString.contains("https://localhost/artists/"))!, "should contains https://localhost/artists/")
@@ -778,9 +784,10 @@ class AFRESTClientTests: XCTestCase {
 
 
         //encoding AFPropertyListParameterEncoding
-
-        instanceRestClient?.parameterEncoding = AFPropertyListParameterEncoding
-        result = instanceRestClient?.request(forDeletedObject: artist)
+        let requestSerializer = AFPropertyListRequestSerializer()
+        requestSerializer.format = .xml
+        instanceRestClient.requestSerializer = requestSerializer
+        result = instanceRestClient.request(forDeletedObject: artist)
 
         XCTAssertNotNil(result , "should not be nil")
         XCTAssertTrue((result?.url?.absoluteString.contains("https://localhost/artists/"))!, "should contains https://localhost/artists/")

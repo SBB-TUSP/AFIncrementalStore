@@ -8,6 +8,7 @@
 import Foundation
 import CoreData.NSPersistentStoreCoordinator
 import CoreData.NSManagedObjectModel
+import AFNetworking
 
 @objc
 class SongsIncrementalStore: AFIncrementalStore {
@@ -20,7 +21,7 @@ class SongsIncrementalStore: AFIncrementalStore {
         return NSManagedObjectModel(contentsOf: Bundle.main.url(forResource: "IncrementalStoreExample", withExtension: "xcdatamodeld")!)!
     }
 
-    @objc override var httpClient: (AFHTTPClient & AFIncrementalStoreHttpClient)? {
+    @objc override var httpClient: (AFHTTPSessionManager & AFIncrementalStoreHttpClient)? {
         get {
             return SongAPIClient.sharedInstance
         }

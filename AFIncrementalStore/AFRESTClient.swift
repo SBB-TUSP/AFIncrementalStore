@@ -7,9 +7,12 @@
 
 import CoreData
 import Foundation
+import TransformerKit
+import AFNetworking
+import InflectorKit
 
 @objc
-class AFRESTClient: AFHTTPClient {
+class AFRESTClient: AFHTTPSessionManager {
 
     var paginator: AFPaginator?
 
@@ -17,8 +20,8 @@ class AFRESTClient: AFHTTPClient {
         return TTTStringInflector.default()
     }
 
-    override init!(baseURL url: URL!) {
-        super.init(baseURL: url)
+    override init(baseURL url: URL?, sessionConfiguration configuration: URLSessionConfiguration?) {
+        super.init(baseURL: url, sessionConfiguration: configuration)
     }
 
     required init?(coder aDecoder: NSCoder) {
@@ -155,6 +158,11 @@ extension AFRESTClient: AFIncrementalStoreHttpClient {
         return mutableAttributes as? [String : Any]
     }
 
+    private func URLStringWithBase(endpoint: String) -> String? {
+        return URL(string: endpoint, relativeTo: baseURL)?.absoluteString
+    }
+    
+
     func request(for fetchRequest: NSFetchRequest<NSFetchRequestResult>?, with context: NSManagedObjectContext?) -> URLRequest? {
         guard let fetchRequest = fetchRequest,
             let _ = context else {
@@ -164,18 +172,21 @@ extension AFRESTClient: AFIncrementalStoreHttpClient {
         if paginator != nil {
             mutableParameters.addEntries(from: (paginator?.parameters(for: fetchRequest))!)
         }
-        let mutableRequest = request(withMethod: "GET", path: path(forEntity: fetchRequest.entity!), parameters: mutableParameters.count == 0 ? nil : mutableParameters as! [AnyHashable : Any])
-        return mutableRequest as URLRequest!
+        guard let entity = fetchRequest.entity else { return nil }
+        guard let urlString = URLStringWithBase(endpoint: path(forEntity: entity)) else { return nil }
+        return  requestSerializer.request(withMethod: "GET", urlString: urlString, parameters: mutableParameters.count == 0 ? nil : mutableParameters as? [AnyHashable : Any], error: nil) as URLRequest
     }
 
-    func request(withMethod method: String, pathForObjectWith objectID: NSManagedObjectID, with context: NSManagedObjectContext) -> URLRequest {
+    func request(withMethod method: String, pathForObjectWith objectID: NSManagedObjectID, with context: NSManagedObjectContext) -> URLRequest? {
         let object = context.object(with: objectID)
-        return request(withMethod: method, path: path(for: object), parameters: nil) as URLRequest
+        guard let urlString = URLStringWithBase(endpoint: path(for: object)) else { return nil }
+        return requestSerializer.request(withMethod: method, urlString: urlString, parameters: nil, error: nil) as URLRequest
     }
 
-    func request(withMethod method: String, pathForRelationship relationship: NSRelationshipDescription?, forObjectWith objectID: NSManagedObjectID, with context: NSManagedObjectContext) -> URLRequest {
+    func request(withMethod method: String, pathForRelationship relationship: NSRelationshipDescription?, forObjectWith objectID: NSManagedObjectID, with context: NSManagedObjectContext) -> URLRequest? {
         let object = context.object(with: objectID)
-        return request(withMethod: method, path: path(forRelationship: relationship, for: object), parameters: nil) as URLRequest
+        guard let urlString = URLStringWithBase(endpoint: path(forRelationship: relationship, for: object)) else { return nil }
+        return requestSerializer.request(withMethod: method, urlString: urlString, parameters: nil, error: nil) as URLRequest
     }
 
     func shouldFetchRemoteValues(forRelationship relationship: NSRelationshipDescription!, forObjectWith objectID: NSManagedObjectID!, in context: NSManagedObjectContext!) -> Bool {
@@ -199,13 +210,13 @@ extension AFRESTClient: AFIncrementalStoreHttpClient {
         return mutableAttributes as! [AnyHashable : Any]
     }
 
-
-    func request(forInsertedObject insertedObject: NSManagedObject!) -> URLRequest! {
+    func request(forInsertedObject insertedObject: NSManagedObject!) -> URLRequest? {
         let parameters = representation(ofAttributes: insertedObject.dictionaryWithValues(forKeys: Array(insertedObject.entity.attributesByName.keys)), of: insertedObject)
-        return request(withMethod: "POST", path: path(forEntity: insertedObject.entity), parameters: parameters) as URLRequest
+        guard let urlString = URLStringWithBase(endpoint: path(forEntity: insertedObject.entity)) else { return nil }
+        return requestSerializer.request(withMethod: "POST", urlString: urlString, parameters: parameters, error: nil) as URLRequest
     }
 
-    func request(forUpdatedObject updatedObject: NSManagedObject!) -> URLRequest! {
+    func request(forUpdatedObject updatedObject: NSManagedObject!) -> URLRequest? {
         
         var mutableChangedAttributeKeys = Set(updatedObject.changedValues().keys)
         mutableChangedAttributeKeys = mutableChangedAttributeKeys.intersection(Set(updatedObject.entity.attributesByName.keys))
@@ -215,11 +226,13 @@ extension AFRESTClient: AFIncrementalStoreHttpClient {
         let updatedObjectDictionary = updatedObject.changedValues().filter { mutableChangedAttributeKeys.contains($0.key) }
 
         let parameters = representation(ofAttributes: updatedObjectDictionary, of: updatedObject)
-        return request(withMethod: "PUT", path: path(for: updatedObject), parameters: parameters) as URLRequest
+        guard let urlString = URLStringWithBase(endpoint: path(for: updatedObject)) else { return nil }
+        return requestSerializer.request(withMethod: "PUT", urlString: urlString, parameters: parameters, error: nil) as URLRequest
     }
 
-    func request(forDeletedObject deletedObject: NSManagedObject!) -> URLRequest! {
-        return request(withMethod: "DELETE", path: path(for: deletedObject), parameters: nil) as URLRequest
+    func request(forDeletedObject deletedObject: NSManagedObject!) -> URLRequest? {
+        guard let urlString = URLStringWithBase(endpoint: path(for: deletedObject)) else { return nil }
+        return requestSerializer.request(withMethod: "DELETE", urlString: urlString, parameters: nil, error: nil) as URLRequest
     }
 }
 

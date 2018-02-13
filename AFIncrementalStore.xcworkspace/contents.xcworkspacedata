@@ -5,10 +5,10 @@
       location = "group:AFIncrementalStore"
       name = "AFIncrementalStore">
       <FileRef
-         location = "group:AFRESTClient.swift">
+         location = "group:AFIncrementalStore.swift">
       </FileRef>
       <FileRef
-         location = "group:AFIncrementalStore.swift">
+         location = "group:AFRESTClient.swift">
       </FileRef>
    </Group>
    <FileRef
@@ -19,5 +19,8 @@
    </FileRef>
    <FileRef
       location = "group:Examples/CheckIns Example/CheckIns Example.xcodeproj">
+   </FileRef>
+   <FileRef
+      location = "group:Examples/Basic Example/Pods/Pods.xcodeproj">
    </FileRef>
 </Workspace>

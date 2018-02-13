@@ -22,8 +22,8 @@
 
 #import "AppDelegate.h"
 #import "Songs-Swift.h"
-#import "AFNetworkActivityIndicatorManager.h"
 #import "ArtistsListViewController.h"
+@import AFNetworking;
 
 @implementation AppDelegate
 @synthesize window = _window;

@@ -5,12 +5,5 @@
 #ifndef Bridging_Header_h
 #define Bridging_Header_h
 
-#import "AFHTTPClient.h"
-#import "AFHTTPRequestOperation.h"
-#import "AFJSONRequestOperation.h"
-
-#import "TTTStringInflector.h"
-#import "TTTDateTransformers.h"
-
 #endif /* Bridging_Header_h */
 

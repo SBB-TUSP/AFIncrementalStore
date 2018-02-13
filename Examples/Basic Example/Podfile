@@ -1,0 +1,13 @@
+# Uncomment the next line to define a global platform for your project
+platform :ios, '11.2'
+
+abstract_target 'AFIncrementalStore' do
+    use_frameworks!
+
+    pod 'AFNetworking'
+    pod 'InflectorKit'
+    pod 'TransformerKit'
+
+    target 'Songs'
+    target 'AFIncrementalStoreTests'
+end

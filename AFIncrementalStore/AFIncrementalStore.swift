@@ -7,6 +7,7 @@
 
 import Foundation
 import CoreData
+import AFNetworking
 
 /**
  The `AFIncrementalStoreHTTPClient` protocol defines the methods used by the HTTP client to interract with the associated web services of an `AFIncrementalStore`.
@@ -90,7 +91,7 @@ public protocol AFIncrementalStoreHttpClient {
 
      @return An `NSURLRequest` object with the provided HTTP method for the resource corresponding to the managed object.
      */
-    @objc func request(withMethod method: String, pathForObjectWith objectID: NSManagedObjectID, with context: NSManagedObjectContext) -> URLRequest
+    @objc func request(withMethod method: String, pathForObjectWith objectID: NSManagedObjectID, with context: NSManagedObjectContext) -> URLRequest?
 
     /**
      Returns a URL request object with a given HTTP method for a particular relationship of a given managed object. This method is used in `AFIncrementalStore -newValueForRelationship:forObjectWithID:withContext:error:`.
@@ -105,7 +106,7 @@ public protocol AFIncrementalStoreHttpClient {
      @return An `NSURLRequest` object with the provided HTTP method for the resource or resoures corresponding to the relationship of the managed object.
 
      */
-    @objc func request(withMethod method: String, pathForRelationship relationship: NSRelationshipDescription?, forObjectWith objectID: NSManagedObjectID, with context: NSManagedObjectContext) -> URLRequest
+    @objc func request(withMethod method: String, pathForRelationship relationship: NSRelationshipDescription?, forObjectWith objectID: NSManagedObjectID, with context: NSManagedObjectContext) -> URLRequest?
 
     // MARK: - Optional Methods
 
@@ -124,17 +125,17 @@ public protocol AFIncrementalStoreHttpClient {
     /**
 
      */
-    @objc optional func request(forInsertedObject insertedObject: NSManagedObject!) -> URLRequest!
+    @objc optional func request(forInsertedObject insertedObject: NSManagedObject!) -> URLRequest?
 
     /**
 
      */
-    @objc optional func request(forUpdatedObject updatedObject: NSManagedObject!) -> URLRequest!
+    @objc optional func request(forUpdatedObject updatedObject: NSManagedObject!) -> URLRequest?
 
     /**
 
      */
-    @objc optional func request(forDeletedObject deletedObject: NSManagedObject!) -> URLRequest!
+    @objc optional func request(forDeletedObject deletedObject: NSManagedObject!) -> URLRequest?
 
     /**
      Returns whether the client should fetch remote attribute values for a particular managed object. This method is consulted when a managed object faults on an attribute, and will call `-requestWithMethod:pathForObjectWithID:withContext:` if `YES`.
@@ -378,7 +379,7 @@ public class AFIncrementalStore: NSIncrementalStore {
     /**
      The HTTP client used to manage requests and responses with the associated web services.
      */
-    @objc public var httpClient: (AFHTTPClient & AFIncrementalStoreHttpClient)?
+    @objc public var httpClient: (AFHTTPSessionManager & AFIncrementalStoreHttpClient)?
 
     /**
      The persistent store coordinator used to persist data from the associated web serivices locally.
@@ -425,10 +426,15 @@ public class AFIncrementalStore: NSIncrementalStore {
     public func executeFetchRequest(_ fetchRequest: NSFetchRequest<NSFetchRequestResult>?, with context: NSManagedObjectContext?) throws -> Any? {
         var error: NSError?
         let request = httpClient?.request(for: fetchRequest, with: context)
-        if let _ = request?.url {
-            var operation: AFHTTPRequestOperation?
-            operation = httpClient?.httpRequestOperation(with: request, success: {
-                operation, responseObject in
+        if let _ = request?.url, let request = request {
+            var operation: URLSessionTask?
+            operation = httpClient?.dataTask(with: request, uploadProgress: nil, downloadProgress: nil, completionHandler: { (urlResponse, responseObject, error) in
+
+                guard error == nil else {
+                    self.notify(context: context, about: operation, for: fetchRequest, fetchedObjectIds: nil, didFetch: true)
+                    return
+                }
+
                 context?.performAndWait {
                     let representationOrArrayOfRepresentations = self.httpClient?.representationOrArrayOfRepresentations(ofEntity: fetchRequest?.entity, fromResponseObject: responseObject)
                     let childContext = NSManagedObjectContext(concurrencyType: .privateQueueConcurrencyType)
@@ -438,7 +444,10 @@ public class AFIncrementalStore: NSIncrementalStore {
                     } else {
                         childContext.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
                     }
-                    _ = try? self.insertOrUpdateObjects(from: representationOrArrayOfRepresentations, of: fetchRequest?.entity, from: operation?.response, with: childContext) {
+
+                    guard let httpUrlResponse  = urlResponse as? HTTPURLResponse else { return }
+
+                    _ = try? self.insertOrUpdateObjects(from: representationOrArrayOfRepresentations, of: fetchRequest?.entity, from: httpUrlResponse, with: childContext) {
                         objects, backingObjects in
                         var childObjects = Set<NSManagedObject>()
                         childContext.performAndWait {
@@ -464,15 +473,10 @@ public class AFIncrementalStore: NSIncrementalStore {
                         self.notify(context: context, about: operation, for: fetchRequest, fetchedObjectIds: objects.map{$0.objectID}, didFetch: true)
                     }
                 }
-            }) {
-                operation, error in
-                if let error = error {
-                    print("Error:", error)
-                }
-                self.notify(context: context, about: operation, for: fetchRequest, fetchedObjectIds: nil, didFetch: true)
-            }
+
+            })
             notify(context: context, about: operation, for: fetchRequest, fetchedObjectIds: nil, didFetch: false)
-            httpClient?.enqueue(operation)
+            operation?.resume()
         }
         let backingContext = backingManagedObjectContext
         let backingFetchRequest = fetchRequest?.copy() as? NSFetchRequest<NSFetchRequestResult>
@@ -560,7 +564,8 @@ public class AFIncrementalStore: NSIncrementalStore {
 
      */
     public func executeSaveChangesRequest(_ saveChangesRequest: NSSaveChangesRequest?, with context: NSManagedObjectContext?) throws -> Any? {
-        var operations = [AFHTTPRequestOperation]()
+        let operation_dispatch_group = DispatchGroup()
+        var operations = [URLSessionTask]()
         let backingContext = backingManagedObjectContext
         for insertedObject in saveChangesRequest?.insertedObjects ?? [] {
             let request = httpClient?.request?(forInsertedObject: insertedObject)
@@ -583,17 +588,50 @@ public class AFIncrementalStore: NSIncrementalStore {
                 }
                 continue
             }
-            let operation = httpClient?.httpRequestOperation(with: request, success: {
-                operation, responseObject in
+            operation_dispatch_group.enter()
+            let operation = httpClient?.dataTask(with: request!, uploadProgress: nil, downloadProgress: nil, completionHandler: { (urlResponse, responseObject, error) in
+
+                guard error == nil else {
+
+                    // Reset destination objects to prevent dangling relationships
+                    for relationship in insertedObject.entity.relationshipsByName.map({$1}) {
+                        if relationship.inverseRelationship == nil {
+                            continue
+                        }
+                        let destinationObjects: [NSManagedObject]
+                        if relationship.isToMany {
+                            destinationObjects = (insertedObject.value(forKey: relationship.name) as? [NSManagedObject]) ?? []
+                        } else if let destinationObject = insertedObject.value(forKey: relationship.name) as? NSManagedObject {
+                            destinationObjects = [destinationObject]
+                        } else {
+                            destinationObjects = []
+                        }
+                        for destinationObject in destinationObjects {
+                            context?.performAndWait {
+                                context?.refresh(destinationObject, mergeChanges: false)
+                            }
+                        }
+                    }
+
+                    operation_dispatch_group.leave()
+                    return
+
+                }
+
                 let representationOrArrayOfRepresentations = self.httpClient?.representationOrArrayOfRepresentations(ofEntity: insertedObject.entity, fromResponseObject: responseObject)
                 guard let representation = representationOrArrayOfRepresentations as? [String: Any],
                     let entityName = insertedObject.entity.name else {
                         return
                 }
-                let resourceIdentifier = self.httpClient?.resourceIdentifier(forRepresentation: representation, ofEntity: insertedObject.entity, from: operation?.response)
+
+                guard let httpUrlResponse  = urlResponse as? HTTPURLResponse else {
+                    return
+                }
+
+                let resourceIdentifier = self.httpClient?.resourceIdentifier(forRepresentation: representation, ofEntity: insertedObject.entity, from: httpUrlResponse)
                 let backingObjectId = self.objectIdForBackingObject(for: insertedObject.entity, with: resourceIdentifier)
                 insertedObject.af_resourceIdentifier = resourceIdentifier
-                if let dictionary = self.httpClient?.attributes(forRepresentation: representation, ofEntity: insertedObject.entity, from: operation?.response) {
+                if let dictionary = self.httpClient?.attributes(forRepresentation: representation, ofEntity: insertedObject.entity, from: httpUrlResponse) {
                     insertedObject.managedObjectContext?.performAndWait {
                         insertedObject.setValuesForKeys(dictionary)
                     }
@@ -617,35 +655,15 @@ public class AFIncrementalStore: NSIncrementalStore {
                     insertedObject.didChangeValue(forKey: "objectID")
                     context?.refresh(insertedObject, mergeChanges: false)
                 }
-            }) {
-                operation, error in
-                if let error = error {
-                    print("Insert Error:", error)
-                }
-                // Reset destination objects to prevent dangling relationships
-                for relationship in insertedObject.entity.relationshipsByName.map({$1}) {
-                    if relationship.inverseRelationship == nil {
-                        continue
-                    }
-                    let destinationObjects: [NSManagedObject]
-                    if relationship.isToMany {
-                        destinationObjects = (insertedObject.value(forKey: relationship.name) as? [NSManagedObject]) ?? []
-                    } else if let destinationObject = insertedObject.value(forKey: relationship.name) as? NSManagedObject {
-                        destinationObjects = [destinationObject]
-                    } else {
-                        destinationObjects = []
-                    }
-                    for destinationObject in destinationObjects {
-                        context?.performAndWait {
-                            context?.refresh(destinationObject, mergeChanges: false)
-                        }
-                    }
-                }
-            }
+
+                operation_dispatch_group.leave()
+            })
+
             if let operation = operation {
                 operations.append(operation)
             }
         }
+
         for updatedObject in saveChangesRequest?.updatedObjects ?? [] {
             let backingObjectId = objectIdForBackingObject(for: updatedObject.entity, with: AFResourceIdentifier(from: referenceObject(for: updatedObject.objectID)))
             let request = httpClient?.request?(forUpdatedObject: updatedObject)
@@ -657,11 +675,26 @@ public class AFIncrementalStore: NSIncrementalStore {
                 }
                 continue
             }
-            let operation = self.httpClient?.httpRequestOperation(with: request, success: {
-                operation, responseObject in
+
+            operation_dispatch_group.enter()
+            let operation = self.httpClient?.dataTask(with: request!, uploadProgress: nil, downloadProgress: nil, completionHandler: { (urlResponse, responseObject, error) in
+
+                guard error == nil else {
+
+                    context?.performAndWait {
+                        context?.refresh(updatedObject, mergeChanges: true)
+                    }
+                    operation_dispatch_group.leave()
+                    return
+
+                }
+
                 let representationOrArrayOfRepresentations = self.httpClient?.representationOrArrayOfRepresentations(ofEntity: updatedObject.entity, fromResponseObject: responseObject)
                 if let representation = representationOrArrayOfRepresentations as? [String: Any] {
-                    if let dictionary = self.httpClient?.attributes(forRepresentation: representation, ofEntity: updatedObject.entity, from: operation?.response) {
+
+                    guard let httpUrlResponse  = urlResponse as? HTTPURLResponse else { return }
+
+                    if let dictionary = self.httpClient?.attributes(forRepresentation: representation, ofEntity: updatedObject.entity, from: httpUrlResponse) {
                         updatedObject.managedObjectContext?.performAndWait {
                             updatedObject.setValuesForKeys(dictionary)
                         }
@@ -678,15 +711,13 @@ public class AFIncrementalStore: NSIncrementalStore {
                         context?.refresh(updatedObject, mergeChanges: true)
                     }
                 }
-            }) {
-                operation, error in
-                if let error = error {
-                    print("Update Error:", error)
-                }
-                context?.performAndWait {
-                    context?.refresh(updatedObject, mergeChanges: true)
-                }
+                operation_dispatch_group.leave()
+            })
+
+            if let operation = operation {
+                operations.append(operation)
             }
+
         }
         for deletedObject in saveChangesRequest?.deletedObjects ?? [] {
             let backingObjectId = self.objectIdForBackingObject(for: deletedObject.entity, with: AFResourceIdentifier(from: referenceObject(for: deletedObject.objectID)))
@@ -696,27 +727,29 @@ public class AFIncrementalStore: NSIncrementalStore {
                     if let backingObjectId = backingObjectId,
                         let backingObject = try? backingContext.existingObject(with: backingObjectId) {
                         backingContext.delete(backingObject)
-                        self.backingObjectIdByObjectId.removeObject(forKey: backingObjectId)
+                        self.backingObjectIdByObjectId.removeObject(forKey: deletedObject.objectID)
                         _ = try? backingContext.save()
                     }
                 }
                 continue
             }
-            let operation = self.httpClient?.httpRequestOperation(with: request, success: {
-                operation, responseObject in
+
+            operation_dispatch_group.enter()
+            let operation = self.httpClient?.dataTask(with: request!, uploadProgress: nil, downloadProgress: nil, completionHandler: { (urlResponse, responseObject, error) in
+                guard error == nil else {
+                    operation_dispatch_group.leave()
+                    return
+                }
+
                 backingContext.performAndWait {
                     if let backingObjectId = backingObjectId,
                         let backingObject = try? backingContext.existingObject(with: backingObjectId) {
                         backingContext.delete(backingObject)
-                        self.backingObjectIdByObjectId.removeObject(forKey: backingObjectId)
+                        self.backingObjectIdByObjectId.removeObject(forKey: deletedObject.objectID)
                         _ = try? backingContext.save()
                     }
                 }
-            }, failure: {
-                operation, error in
-                if let error = error {
-                    print("Delete Error:", error)
-                }
+                operation_dispatch_group.leave()
             })
             if let operation = operation {
                 operations.append(operation)
@@ -725,16 +758,20 @@ public class AFIncrementalStore: NSIncrementalStore {
         // NSManagedObjectContext removes object references from an NSSaveChangesRequest as each object is saved, so create a copy of the original in order to send useful information in AFIncrementalStoreContextDidSaveRemoteValues notification.
         let saveChangesRequestCopy = NSSaveChangesRequest(inserted: saveChangesRequest?.insertedObjects, updated: saveChangesRequest?.updatedObjects, deleted: saveChangesRequest?.deletedObjects, locked: saveChangesRequest?.lockedObjects)
         notify(context: context, about: operations, for: saveChangesRequestCopy, didSave: false)
-        httpClient?.enqueueBatch(ofHTTPRequestOperations: operations, progressBlock: nil, completionBlock: {
-            operations in
-            self.notify(context: context, about: operations?.filter({$0 is AFHTTPRequestOperation}).map({$0 as! AFHTTPRequestOperation}), for: saveChangesRequestCopy, didSave: true)
-        })
+
+        operations.forEach { (operation) in
+            operation.resume()
+        }
+
+        operation_dispatch_group.notify(queue: .main) {
+            self.notify(context: context, about: operations, for: saveChangesRequestCopy, didSave: true)
+        }
         return [Any]()
     }
 
     // MARK: -
 
-    private func notify(context: NSManagedObjectContext?, about operation: AFHTTPRequestOperation?, for fetchRequest: NSFetchRequest<NSFetchRequestResult>?, fetchedObjectIds: [NSManagedObjectID]?, didFetch: Bool) {
+    private func notify(context: NSManagedObjectContext?, about operation: URLSessionTask?, for fetchRequest: NSFetchRequest<NSFetchRequestResult>?, fetchedObjectIds: [NSManagedObjectID]?, didFetch: Bool) {
         guard let context = context,
             let operation = operation,
             let fetchRequest = fetchRequest else {
@@ -752,7 +789,7 @@ public class AFIncrementalStore: NSIncrementalStore {
         NotificationCenter.default.post(name: name, object: context, userInfo: userInfo)
     }
 
-    private func notify(context: NSManagedObjectContext?, about operations: [AFHTTPRequestOperation]?, for request: NSSaveChangesRequest?, didSave: Bool) {
+    private func notify(context: NSManagedObjectContext?, about operations: [URLSessionTask]?, for request: NSSaveChangesRequest?, didSave: Bool) {
         guard let context = context,
             let operations = operations,
             let request = request else {
@@ -766,7 +803,7 @@ public class AFIncrementalStore: NSIncrementalStore {
         NotificationCenter.default.post(name: name, object: context, userInfo: userInfo)
     }
 
-    private func notify(context: NSManagedObjectContext?, about operation: AFHTTPRequestOperation?, forNewValuesForObjectWithId objectId: NSManagedObjectID?, didFetch: Bool) {
+    private func notify(context: NSManagedObjectContext?, about operation: URLSessionTask?, forNewValuesForObjectWithId objectId: NSManagedObjectID?, didFetch: Bool) {
         guard let context = context,
             let operation = operation,
             let objectId = objectId else {
@@ -780,7 +817,7 @@ public class AFIncrementalStore: NSIncrementalStore {
         NotificationCenter.default.post(name: name, object: context, userInfo: userInfo)
     }
 
-    private func notify(context: NSManagedObjectContext?, about operation: AFHTTPRequestOperation?, forNewValuesFor relationship: NSRelationshipDescription?, forObjectWithId objectId: NSManagedObjectID?, didFetch: Bool) {
+    private func notify(context: NSManagedObjectContext?, about operation: URLSessionTask?, forNewValuesFor relationship: NSRelationshipDescription?, forObjectWithId objectId: NSManagedObjectID?, didFetch: Bool) {
         guard let context = context,
             let operation = operation,
             let relationship = relationship,
@@ -1094,7 +1131,7 @@ public class AFIncrementalStore: NSIncrementalStore {
             return toReturn ?? [Any]()
         default:
             let userInfo: [String: Any] = [NSLocalizedDescriptionKey: NSLocalizedString("Unsupported NSFetchRequestResultType, \(request.requestType)", comment: "")]
-            throw NSError(domain: AFNetworkingErrorDomain, code: 0, userInfo: userInfo)
+            throw NSError(domain: "AFNetworkingErrorDomain", code: 0, userInfo: userInfo)
         }
     }
 
@@ -1139,12 +1176,23 @@ public class AFIncrementalStore: NSIncrementalStore {
         if let lastModified = attributeValues[kAFIncrementalStoreLastModifiedAttributeName] as? String {
             request.setValue(lastModified, forHTTPHeaderField: "Last-Modified")
         }
-        let operation = httpClient?.httpRequestOperation(with: request, success: {
-            operation, representation in
-            if let representation = representation as? [AnyHashable: Any] {
+        var operation: URLSessionTask?
+        operation = httpClient?.dataTask(with: request, uploadProgress: nil, downloadProgress: nil, completionHandler: { (urlResponse, responseObject, error) in
+            guard error == nil else {
+
+                self.notify(context: context, about: operation, forNewValuesForObjectWithId: objectID, didFetch: true)
+
+                return
+            }
+
+            if let representation = responseObject as? [AnyHashable: Any] {
+
+                guard let httpUrlResponse  = urlResponse as? HTTPURLResponse else { return }
+
                 childContext.performAndWait {
                     let object = try? childContext.existingObject(with: objectID)
-                    if let attributes = self.httpClient?.attributes(forRepresentation: representation, ofEntity: object?.entity, from: operation?.response) {
+
+                    if let attributes = self.httpClient?.attributes(forRepresentation: representation, ofEntity: object?.entity, from: httpUrlResponse) {
                         attributeValues.merge(attributes){$1}
                     }
                     _ = attributeValues.removeValue(forKey: kAFIncrementalStoreLastModifiedAttributeName)
@@ -1155,7 +1203,7 @@ public class AFIncrementalStore: NSIncrementalStore {
                     if let backingObjectId = self.objectIdForBackingObject(for: objectID.entity, with: AFResourceIdentifier(from: self.referenceObject(for: objectID))) {
                         let backingObject = try? backingContext.existingObject(with: backingObjectId)
                         backingObject?.setValuesForKeys(attributeValues)
-                        if let lastModified = operation?.response?.allHeaderFields["Last-Modified"] {
+                        if let lastModified = httpUrlResponse.allHeaderFields["Last-Modified"] {
                             backingObject?.setValue(lastModified, forKey: kAFIncrementalStoreLastModifiedAttributeName)
                         }
                     }
@@ -1168,15 +1216,11 @@ public class AFIncrementalStore: NSIncrementalStore {
                 }
             }
             self.notify(context: context, about: operation, forNewValuesForObjectWithId: objectID, didFetch: true)
-        }, failure: {
-            operation, error in
-            if let error = error {
-                print("Error:", error)
-            }
-            self.notify(context: context, about: operation, forNewValuesForObjectWithId: objectID, didFetch: true)
         })
+
         notify(context: context, about: operation, forNewValuesForObjectWithId: objectID, didFetch: false)
-        httpClient?.enqueue(operation)
+        operation?.resume()
+
         if let error = error {
             throw error
         }
@@ -1204,11 +1248,19 @@ public class AFIncrementalStore: NSIncrementalStore {
             } else {
                 childContext.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
             }
-            let operation = httpClient?.httpRequestOperation(with: request, success: {
-                operation, responseObject in
+            var operation: URLSessionTask?
+            operation = httpClient?.dataTask(with: request!, uploadProgress: nil, downloadProgress: nil, completionHandler: { (urlResponse, responseObject, error) in
+                guard error == nil else {
+                    self.notify(context: context, about: operation, forNewValuesFor: relationship, forObjectWithId: objectID, didFetch: true)
+                    return
+                }
+
                 let representationOrArrayOfRepresentations = self.httpClient?.representationOrArrayOfRepresentations(ofEntity: relationship.destinationEntity, fromResponseObject: responseObject)
+
+                guard let httpUrlResponse  = urlResponse as? HTTPURLResponse else { return }
+
                 childContext.performAndWait {
-                    _ = try? self.insertOrUpdateObjects(from: representationOrArrayOfRepresentations, of: relationship.destinationEntity, from: operation?.response, with: childContext) {
+                    _ = try? self.insertOrUpdateObjects(from: representationOrArrayOfRepresentations, of: relationship.destinationEntity, from: httpUrlResponse, with: childContext) {
                         objects, backingObjects in
                         var object: NSManagedObject?
                         childContext.performAndWait {
@@ -1252,15 +1304,10 @@ public class AFIncrementalStore: NSIncrementalStore {
                     }
                 }
                 self.notify(context: context, about: operation, forNewValuesFor: relationship, forObjectWithId: objectID, didFetch: true)
-            }, failure: {
-                operation, error in
-                if let error = error {
-                    print("Error: ", error)
-                }
-                self.notify(context: context, about: operation, forNewValuesFor: relationship, forObjectWithId: objectID, didFetch: true)
             })
+
             notify(context: context, about: operation, forNewValuesFor: relationship, forObjectWithId: objectID, didFetch: false)
-            httpClient?.enqueue(operation)
+            operation?.resume()
         }
         var toReturn: Any!
         backingContext.performAndWait {
