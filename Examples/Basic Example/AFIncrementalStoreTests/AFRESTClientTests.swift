@@ -7,18 +7,19 @@
 
 import XCTest
 import AFNetworking
+import CoreData
 
 fileprivate class FakeClientSubclass: FakeClient {
 
-    func request(forInsertedObject insertedObject: NSManagedObject!) -> NSMutableURLRequest! {
+    func request(forInsertedObject insertedObject: NSManagedObject!) -> URLRequest? {
         return nil
     }
 
-    func request(forDeletedObject deletedObject: NSManagedObject!) -> NSMutableURLRequest! {
+    func request(forDeletedObject deletedObject: NSManagedObject!) -> URLRequest? {
         return nil
     }
 
-    func request(forUpdatedObject updatedObject: NSManagedObject!) -> NSMutableURLRequest! {
+    func request(forUpdatedObject updatedObject: NSManagedObject!) -> URLRequest? {
         return nil
     }
 
@@ -54,13 +55,14 @@ class AFRESTClientTests: XCTestCase {
             return
         }
         self.model = model
-        NSPersistentStoreCoordinator.registerStoreClass(AFIncrementalStore.self, forStoreType: "AFIncrementalStore")
+        NSPersistentStoreCoordinator.registerStoreClass(AFIncrementalStore.self, forStoreType: NSStringFromClass(AFIncrementalStore.self))
         coordinator = NSPersistentStoreCoordinator(managedObjectModel: model)
 
         do {
-            store = try coordinator.addPersistentStore(ofType: "AFIncrementalStore", configurationName: nil, at: nil, options: nil) as? AFIncrementalStore
+            let url = try FileManager.default.url(for: .documentDirectory, in: .userDomainMask, appropriateFor: nil, create: false)
+            store = try coordinator.addPersistentStore(ofType: NSStringFromClass(AFIncrementalStore.self), configurationName: nil, at: url, options: nil) as? AFIncrementalStore
 
-             try store?.backingPersistentStoreCoordinator.addPersistentStore(ofType: NSInMemoryStoreType, configurationName: nil, at: nil, options: nil)
+             try store?.backingPersistentStoreCoordinator?.addPersistentStore(ofType: NSInMemoryStoreType, configurationName: nil, at: nil, options: nil)
 
         } catch let e {
             self.errorCreatingBackingStore = e
@@ -74,6 +76,7 @@ class AFRESTClientTests: XCTestCase {
     override func tearDown() {
         // Put teardown code here. This method is called after the invocation of each test method in the class.
         super.tearDown()
+        _ = try? coordinator.remove(store)
     }
 
     fileprivate func createFakeClientHTTPandSaveContext(moc: NSManagedObjectContext){

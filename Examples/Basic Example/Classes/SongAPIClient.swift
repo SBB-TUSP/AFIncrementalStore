@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import CoreData.NSEntityDescription
 import AFNetworking
 
 var songAPIClient: SongAPIClient {
@@ -33,14 +34,14 @@ class SongAPIClient: AFRESTClient {
 
     //MARK: - Methods
 
-    override func attributes(forRepresentation representation: [AnyHashable : Any]?, ofEntity entity: NSEntityDescription?, from response: HTTPURLResponse?) -> [AnyHashable : Any]? {
+    override func attributes(forRepresentation representation: [AnyHashable : Any]?, ofEntity entity: NSEntityDescription?, from response: HTTPURLResponse?) -> [String : Any]? {
         guard let superAttributes = super.attributes(forRepresentation: representation, ofEntity: entity, from: response) else { return nil }
         let mutablePropertyValues = NSMutableDictionary(dictionary: superAttributes)
         if entity?.name == "Artist" {
             let description = representation?["description"]
             mutablePropertyValues.setValue(description, forKey: "artistDescription")
         }
-        return mutablePropertyValues as? [AnyHashable : Any]
+        return mutablePropertyValues as? [String : Any]
     }
 
     func shouldFetchRemoteAttributeValuesForObject(with objectID: NSManagedObjectID!, in context: NSManagedObjectContext!) -> Bool {
