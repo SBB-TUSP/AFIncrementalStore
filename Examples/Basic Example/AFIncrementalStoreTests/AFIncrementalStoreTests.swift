@@ -933,12 +933,6 @@ class AFIncrementalStoreTests: XCTestCase {
             let operations: [URLSessionTask]! = userInfo["AFIncrementalStoreRequestOperations"] as? [URLSessionTask]
             XCTAssertNotNil(operations)
             XCTAssertTrue(operations.isEmpty)
-            context.performAndWait {
-                let request = NSFetchRequest<Artist>(entityName: "Artist")
-                request.entity = NSEntityDescription.entity(forEntityName: "Artist", in: context)
-                let count = try! context.count(for: request)
-                XCTAssertEqual(count, 1)
-            }
             didSaveNotification.fulfill()
         }
         class FakeClientSubclass9: FakeClient {
