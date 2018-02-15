@@ -10,7 +10,7 @@ Pod::Spec.new do |s|
   s.osx.deployment_target = '10.7'
 
   s.source       = { :git => "https://github.com/AFNetworking/AFIncrementalStore.git", :tag => "0.5.1" }
-  s.source_files = 'AFIncrementalStore/*.{h,m}'
+  s.source_files = 'AFIncrementalStore/*.{swift}'
 
   s.framework  = 'CoreData'
 
