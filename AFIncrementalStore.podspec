@@ -7,7 +7,7 @@ Pod::Spec.new do |s|
   s.license      = 'MIT'
 
   s.ios.deployment_target = '8.0'
-  s.osx.deployment_target = '10.8'
+  s.osx.deployment_target = '10.9'
 
   s.source       = { :git => "https://github.com/SBB-TUSP/AFIncrementalStore.git", :tag => "0.5.1" }
   s.source_files = 'AFIncrementalStore/*.{swift}'
