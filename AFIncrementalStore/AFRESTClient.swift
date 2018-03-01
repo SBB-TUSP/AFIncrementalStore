@@ -240,13 +240,13 @@ extension AFRESTClient: AFIncrementalStoreHttpClient {
 //MARK: -
 
 
-protocol AFPaginator {
+public protocol AFPaginator {
     func parameters(for fetchRequest: NSFetchRequest<NSFetchRequestResult>) -> [AnyHashable:Any]
 }
 
 //MARK: -
 
-class AFLimitAndOffsetPaginator: AFPaginator{
+public class AFLimitAndOffsetPaginator: AFPaginator{
 
     var limitParameter: String?
     var offsetParameter: String?
@@ -259,7 +259,7 @@ class AFLimitAndOffsetPaginator: AFPaginator{
         self.offsetParameter = offsetParameter
     }
 
-    func parameters(for fetchRequest: NSFetchRequest<NSFetchRequestResult>) -> [AnyHashable:Any] {
+    public func parameters(for fetchRequest: NSFetchRequest<NSFetchRequestResult>) -> [AnyHashable:Any] {
 
         let mutableParameters = NSMutableDictionary()
 
@@ -279,7 +279,7 @@ class AFLimitAndOffsetPaginator: AFPaginator{
 
 //MARK: -
 
-class AFPageAndPerPagePaginator: AFPaginator{
+public class AFPageAndPerPagePaginator: AFPaginator{
 
     private let kAFPaginationDefaultPage = 1
     private let kAFPaginationDefaultPerPage = 20
@@ -295,7 +295,7 @@ class AFPageAndPerPagePaginator: AFPaginator{
         self.perPageParameter = perPageParameter
     }
 
-    func parameters(for fetchRequest: NSFetchRequest<NSFetchRequestResult>) -> [AnyHashable:Any] {
+    public func parameters(for fetchRequest: NSFetchRequest<NSFetchRequestResult>) -> [AnyHashable:Any] {
         let perPage = fetchRequest.fetchLimit == 0 ? kAFPaginationDefaultPerPage : fetchRequest.fetchLimit
         let page = fetchRequest.fetchOffset == 0 ? kAFPaginationDefaultPage : Int(floorf(Float(fetchRequest.fetchOffset) / Float(perPage)) + 1)
 
@@ -310,7 +310,7 @@ class AFPageAndPerPagePaginator: AFPaginator{
 
 //MARK: -
 
-class AFBlockPaginator: AFPaginator{
+public class AFBlockPaginator: AFPaginator{
 
     var paginationParameters: ((NSFetchRequest<NSFetchRequestResult>) -> [AnyHashable:Any])?
 
@@ -320,7 +320,7 @@ class AFBlockPaginator: AFPaginator{
         self.paginationParameters = paginationParameters!
     }
 
-    func parameters(for fetchRequest: NSFetchRequest<NSFetchRequestResult>) -> [AnyHashable:Any] {
+    public func parameters(for fetchRequest: NSFetchRequest<NSFetchRequestResult>) -> [AnyHashable:Any] {
         return paginationParameters!(fetchRequest)
     }
 
