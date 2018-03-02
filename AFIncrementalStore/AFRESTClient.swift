@@ -12,7 +12,7 @@ import AFNetworking
 import InflectorKit
 
 @objc
-public class AFRESTClient: AFHTTPSessionManager {
+open class AFRESTClient: AFHTTPSessionManager {
 
     var paginator: AFPaginator?
 
@@ -55,7 +55,7 @@ public class AFRESTClient: AFHTTPSessionManager {
 
 extension AFRESTClient: AFIncrementalStoreHttpClient {
 
-    public func representationOrArrayOfRepresentations(ofEntity entity: NSEntityDescription?, fromResponseObject responseObject: Any?) -> Any? {
+    open func representationOrArrayOfRepresentations(ofEntity entity: NSEntityDescription?, fromResponseObject responseObject: Any?) -> Any? {
 
         if let responseArray = responseObject as? Array<Any> {
             return responseArray
@@ -84,7 +84,7 @@ extension AFRESTClient: AFIncrementalStoreHttpClient {
         return responseObject
     }
 
-    public func representationsForRelationships(fromRepresentation representation: [AnyHashable : Any], ofEntity entity: NSEntityDescription?, from response: HTTPURLResponse?) -> [String : Any] {
+    open func representationsForRelationships(fromRepresentation representation: [AnyHashable : Any], ofEntity entity: NSEntityDescription?, from response: HTTPURLResponse?) -> [String : Any] {
         var mutableRelationshipRepresentations: [String : Any] = [:]
 
         guard let relationshipsByName = entity?.relationshipsByName else { return mutableRelationshipRepresentations }
@@ -112,7 +112,7 @@ extension AFRESTClient: AFIncrementalStoreHttpClient {
         return mutableRelationshipRepresentations
     }
 
-    public func resourceIdentifier(forRepresentation representation: [AnyHashable : Any], ofEntity entity: NSEntityDescription?, from response: HTTPURLResponse?) -> String? {
+    open func resourceIdentifier(forRepresentation representation: [AnyHashable : Any], ofEntity entity: NSEntityDescription?, from response: HTTPURLResponse?) -> String? {
         let candidateKeys = ["id", "_id", "identifier", "url", "URL"]
 
         if let key = representation.keys.filter(
@@ -127,7 +127,7 @@ extension AFRESTClient: AFIncrementalStoreHttpClient {
         return nil
     }
 
-    public func attributes(forRepresentation representation: [AnyHashable : Any]?, ofEntity entity: NSEntityDescription?, from response: HTTPURLResponse?) -> [String : Any]? {
+    open func attributes(forRepresentation representation: [AnyHashable : Any]?, ofEntity entity: NSEntityDescription?, from response: HTTPURLResponse?) -> [String : Any]? {
 
         guard let tempRepresentation = representation else { return nil }
 
@@ -158,12 +158,12 @@ extension AFRESTClient: AFIncrementalStoreHttpClient {
         return mutableAttributes as? [String : Any]
     }
 
-    private func URLStringWithBase(endpoint: String) -> String? {
+    open func URLStringWithBase(endpoint: String) -> String? {
         return URL(string: endpoint, relativeTo: baseURL)?.absoluteString
     }
-    
 
-    public func request(for fetchRequest: NSFetchRequest<NSFetchRequestResult>?, with context: NSManagedObjectContext?) -> URLRequest? {
+
+    open func request(for fetchRequest: NSFetchRequest<NSFetchRequestResult>?, with context: NSManagedObjectContext?) -> URLRequest? {
         guard let fetchRequest = fetchRequest,
             let _ = context else {
                 return nil
@@ -177,26 +177,26 @@ extension AFRESTClient: AFIncrementalStoreHttpClient {
         return  requestSerializer.request(withMethod: "GET", urlString: urlString, parameters: mutableParameters.count == 0 ? nil : mutableParameters as? [AnyHashable : Any], error: nil) as URLRequest
     }
 
-    public func request(withMethod method: String, pathForObjectWith objectID: NSManagedObjectID, with context: NSManagedObjectContext) -> URLRequest? {
+    open func request(withMethod method: String, pathForObjectWith objectID: NSManagedObjectID, with context: NSManagedObjectContext) -> URLRequest? {
         let object = context.object(with: objectID)
         guard let urlString = URLStringWithBase(endpoint: path(for: object)) else { return nil }
         return requestSerializer.request(withMethod: method, urlString: urlString, parameters: nil, error: nil) as URLRequest
     }
 
-    public func request(withMethod method: String, pathForRelationship relationship: NSRelationshipDescription?, forObjectWith objectID: NSManagedObjectID, with context: NSManagedObjectContext) -> URLRequest? {
+    open func request(withMethod method: String, pathForRelationship relationship: NSRelationshipDescription?, forObjectWith objectID: NSManagedObjectID, with context: NSManagedObjectContext) -> URLRequest? {
         let object = context.object(with: objectID)
         guard let urlString = URLStringWithBase(endpoint: path(forRelationship: relationship, for: object)) else { return nil }
         return requestSerializer.request(withMethod: method, urlString: urlString, parameters: nil, error: nil) as URLRequest
     }
 
-    public func shouldFetchRemoteValues(forRelationship relationship: NSRelationshipDescription!, forObjectWith objectID: NSManagedObjectID!, in context: NSManagedObjectContext!) -> Bool {
+    open func shouldFetchRemoteValues(forRelationship relationship: NSRelationshipDescription!, forObjectWith objectID: NSManagedObjectID!, in context: NSManagedObjectContext!) -> Bool {
         return relationship.isToMany || relationship.inverseRelationship == nil
     }
 
     //MARK: - write methods
 
 
-    public func representation(ofAttributes attributes: [AnyHashable : Any]! = [:], of managedObject: NSManagedObject!) -> [AnyHashable : Any]! {
+    open func representation(ofAttributes attributes: [AnyHashable : Any]! = [:], of managedObject: NSManagedObject!) -> [AnyHashable : Any]! {
         let mutableAttributes: NSMutableDictionary = NSMutableDictionary(dictionary: attributes)
 
         for key in attributes.keys {
@@ -210,14 +210,14 @@ extension AFRESTClient: AFIncrementalStoreHttpClient {
         return mutableAttributes as! [AnyHashable : Any]
     }
 
-    public func request(forInsertedObject insertedObject: NSManagedObject!) -> URLRequest? {
+    open func request(forInsertedObject insertedObject: NSManagedObject!) -> URLRequest? {
         let parameters = representation(ofAttributes: insertedObject.dictionaryWithValues(forKeys: Array(insertedObject.entity.attributesByName.keys)), of: insertedObject)
         guard let urlString = URLStringWithBase(endpoint: path(forEntity: insertedObject.entity)) else { return nil }
         return requestSerializer.request(withMethod: "POST", urlString: urlString, parameters: parameters, error: nil) as URLRequest
     }
 
-    public func request(forUpdatedObject updatedObject: NSManagedObject!) -> URLRequest? {
-        
+    open func request(forUpdatedObject updatedObject: NSManagedObject!) -> URLRequest? {
+
         var mutableChangedAttributeKeys = Set(updatedObject.changedValues().keys)
         mutableChangedAttributeKeys = mutableChangedAttributeKeys.intersection(Set(updatedObject.entity.attributesByName.keys))
 
@@ -230,7 +230,7 @@ extension AFRESTClient: AFIncrementalStoreHttpClient {
         return requestSerializer.request(withMethod: "PUT", urlString: urlString, parameters: parameters, error: nil) as URLRequest
     }
 
-    public func request(forDeletedObject deletedObject: NSManagedObject!) -> URLRequest? {
+    open func request(forDeletedObject deletedObject: NSManagedObject!) -> URLRequest? {
         guard let urlString = URLStringWithBase(endpoint: path(for: deletedObject)) else { return nil }
         return requestSerializer.request(withMethod: "DELETE", urlString: urlString, parameters: nil, error: nil) as URLRequest
     }
