@@ -188,7 +188,7 @@ public extension NSExceptionName {
     /**
      The name of the exception called when `AFIncrementalStore` or a subclass is attempted to be used, without implementing one of the required methods.
      */
-    public static var AFIncrementalStoreUnimplementedMethodException: NSExceptionName {
+    open static var AFIncrementalStoreUnimplementedMethodException: NSExceptionName {
         return .init("com.alamofire.incremental-store.exceptions.unimplemented-method")
     }
 
@@ -203,7 +203,7 @@ public extension Notification.Name {
      The object is the managed object context of the request.
      The notification `userInfo` contains the finished request operation, keyed at `AFIncrementalStoreRequestOperationKey`, as well as the associated persistent store request, if applicable, keyed at `AFIncrementalStorePersistentStoreRequestKey`.
      */
-    public static var AFIncrementalStoreContextWillFetchRemoteValues: Notification.Name {
+    open static var AFIncrementalStoreContextWillFetchRemoteValues: Notification.Name {
         return .init("AFIncrementalStoreContextWillFetchRemoteValues")
     }
 
@@ -212,7 +212,7 @@ public extension Notification.Name {
      The object is the managed object context of the request.
      The notification `userInfo` contains the finished request operation, keyed at `AFIncrementalStoreRequestOperationKey`, as well as the associated persistent store request, if applicable, keyed at `AFIncrementalStorePersistentStoreRequestKey`.
      */
-    public static var AFIncrementalStoreContextDidFetchRemoteValues: Notification.Name {
+    open static var AFIncrementalStoreContextDidFetchRemoteValues: Notification.Name {
         return .init("AFIncrementalStoreContextDidFetchRemoteValues")
     }
 
@@ -221,7 +221,7 @@ public extension Notification.Name {
      The object is the managed object context of the request.
      The notification `userInfo` contains an array of request operations, keyed at `AFIncrementalStoreRequestOperationKey`, as well as the associated persistent store request, if applicable, keyed at `AFIncrementalStorePersistentStoreRequestKey`.
      */
-    public static var AFIncrementalStoreContextWillSaveRemoteValues: Notification.Name {
+    open static var AFIncrementalStoreContextWillSaveRemoteValues: Notification.Name {
         return .init("AFIncrementalStoreContextWillSaveRemoteValues")
     }
 
@@ -230,7 +230,7 @@ public extension Notification.Name {
      The object is the managed object context of the request.
      The notification `userInfo` contains an array of request operations, keyed at `AFIncrementalStoreRequestOperationKey`, as well as the associated persistent store request, if applicable, keyed at `AFIncrementalStorePersistentStoreRequestKey`.
      */
-    public static var AFIncrementalStoreContextDidSaveRemoteValues: Notification.Name {
+    open static var AFIncrementalStoreContextDidSaveRemoteValues: Notification.Name {
         return .init("AFIncrementalStoreContextDidSaveRemoteValues")
     }
 
@@ -239,7 +239,7 @@ public extension Notification.Name {
      The object is the managed object context of the request.
      The notification `userInfo` contains an array of request operations, keyed at `AFIncrementalStoreRequestOperationKey`, as well as the managed object ID of the faulting object, keyed at `AFIncrementalStoreFaultingObjectIDKey`.
      */
-    public static var AFIncrementalStoreContextWillFetchNewValuesForObject: Notification.Name {
+    open static var AFIncrementalStoreContextWillFetchNewValuesForObject: Notification.Name {
         return .init("AFIncrementalStoreContextWillFetchNewValuesForObject")
     }
 
@@ -248,7 +248,7 @@ public extension Notification.Name {
      The object is the managed object context of the request.
      The notification `userInfo` contains an array of request operations, keyed at `AFIncrementalStoreRequestOperationKey`, as well as the managed object ID of the faulting object, keyed at `AFIncrementalStoreFaultingObjectIDKey`.
      */
-    public static var AFIncrementalStoreContextDidFetchNewValuesForObject: Notification.Name {
+    open static var AFIncrementalStoreContextDidFetchNewValuesForObject: Notification.Name {
         return .init("AFIncrementalStoreContextDidFetchNewValuesForObject")
     }
 
@@ -258,7 +258,7 @@ public extension Notification.Name {
      The notification `userInfo` contains an array of request operations, keyed at `AFIncrementalStoreRequestOperationKey`, as well as the faulting relationship, keyed at `AFIncrementalStoreFaultingRelationshipKey`, and the managed object ID of the faulting object, keyed at `AFIncrementalStoreFaultingObjectIDKey`.
 
      */
-    public static var AFIncrementalStoreContextWillFetchNewValuesForRelationship: Notification.Name {
+    open static var AFIncrementalStoreContextWillFetchNewValuesForRelationship: Notification.Name {
         return .init("AFIncrementalStoreContextWillFetchNewValuesForRelationship")
     }
 
@@ -267,7 +267,7 @@ public extension Notification.Name {
      The object is the managed object context of the request.
      The notification `userInfo` contains an array of request operations, keyed at `AFIncrementalStoreRequestOperationKey`, as well as the faulting relationship, keyed at `AFIncrementalStoreFaultingRelationshipKey`, and the managed object ID of the faulting object, keyed at `AFIncrementalStoreFaultingObjectIDKey`.
      */
-    public static var AFIncrementalStoreContextDidFetchNewValuesForRelationship: Notification.Name {
+    open static var AFIncrementalStoreContextDidFetchNewValuesForRelationship: Notification.Name {
         return .init("AFIncrementalStoreContextDidFetchNewValuesForRelationship")
     }
 
@@ -372,21 +372,21 @@ fileprivate extension NSManagedObject {
  Subclasses should not override `-executeRequest:withContext:error`. Instead, override `-executeFetchRequest:withContext:error:` or `-executeSaveChangesRequest:withContext:error:`, which are called by `-executeRequest:withContext:error` depending on the type of persistent store request.
  */
 @objc
-public class AFIncrementalStore: NSIncrementalStore {
+open class AFIncrementalStore: NSIncrementalStore {
 
     // MARK: - Accessing Incremental Store Properties
 
     /**
      The HTTP client used to manage requests and responses with the associated web services.
      */
-    @objc public var httpClient: (AFHTTPSessionManager & AFIncrementalStoreHttpClient)?
+    @objc open var httpClient: (AFHTTPSessionManager & AFIncrementalStoreHttpClient)?
 
     /**
      The persistent store coordinator used to persist data from the associated web serivices locally.
 
      @discussion Rather than persist values directly, `AFIncrementalStore` manages and proxies through a persistent store coordinator.
      */
-    @objc public var backingPersistentStoreCoordinator: NSPersistentStoreCoordinator?
+    @objc open var backingPersistentStoreCoordinator: NSPersistentStoreCoordinator?
 
     // MARK: -
 
@@ -403,7 +403,7 @@ public class AFIncrementalStore: NSIncrementalStore {
 
      @return The string used to describe the type of the store.
      */
-    @objc public class var type: String {
+    @objc open class var type: String {
         NSException(name: .AFIncrementalStoreUnimplementedMethodException, reason: NSLocalizedString("Unimplemented method: +type. Must be overridden in a subclass", comment: ""), userInfo: nil).raise()
         return ""
     }
@@ -413,7 +413,7 @@ public class AFIncrementalStore: NSIncrementalStore {
 
      @return The managed object model used by the store
      */
-    @objc public class var model: NSManagedObjectModel {
+    @objc open class var model: NSManagedObjectModel {
         NSException(name: .AFIncrementalStoreUnimplementedMethodException, reason: NSLocalizedString("Unimplemented method: +model. Must be overridden in a subclass", comment: ""), userInfo: nil).raise()
         return NSManagedObjectModel()
     }
@@ -423,7 +423,7 @@ public class AFIncrementalStore: NSIncrementalStore {
     /**
 
      */
-    public func executeFetchRequest(_ fetchRequest: NSFetchRequest<NSFetchRequestResult>?, with context: NSManagedObjectContext?) throws -> Any? {
+    open func executeFetchRequest(_ fetchRequest: NSFetchRequest<NSFetchRequestResult>?, with context: NSManagedObjectContext?) throws -> Any? {
         var error: NSError?
         let request = httpClient?.request(for: fetchRequest, with: context)
         if let _ = request?.url, let request = request {
@@ -563,7 +563,7 @@ public class AFIncrementalStore: NSIncrementalStore {
     /**
 
      */
-    public func executeSaveChangesRequest(_ saveChangesRequest: NSSaveChangesRequest?, with context: NSManagedObjectContext?) throws -> Any? {
+    open func executeSaveChangesRequest(_ saveChangesRequest: NSSaveChangesRequest?, with context: NSManagedObjectContext?) throws -> Any? {
         let operation_dispatch_group = DispatchGroup()
         var operations = [URLSessionTask]()
         let backingContext = backingManagedObjectContext
@@ -1062,7 +1062,7 @@ public class AFIncrementalStore: NSIncrementalStore {
 
     // MARK: - Overrides
 
-    @objc public override func loadMetadata() throws {
+    @objc open override func loadMetadata() throws {
         guard backingObjectIdByObjectId == nil else {
             throw NSError()
         }
@@ -1097,7 +1097,7 @@ public class AFIncrementalStore: NSIncrementalStore {
         backingPersistentStoreCoordinator = NSPersistentStoreCoordinator(managedObjectModel: model)
     }
 
-    @objc public override func obtainPermanentIDs(for array: [NSManagedObject]) throws -> [NSManagedObjectID] {
+    @objc open override func obtainPermanentIDs(for array: [NSManagedObject]) throws -> [NSManagedObjectID] {
         var permanentIds = [NSManagedObjectID]()
         for object in array {
             let objectId = object.objectID
@@ -1112,7 +1112,7 @@ public class AFIncrementalStore: NSIncrementalStore {
         return permanentIds
     }
 
-    @objc public override func execute(_ request: NSPersistentStoreRequest, with context: NSManagedObjectContext?) throws -> Any {
+    @objc open override func execute(_ request: NSPersistentStoreRequest, with context: NSManagedObjectContext?) throws -> Any {
         var toReturn: Any?
         switch request.requestType {
         case .fetchRequestType:
@@ -1135,7 +1135,7 @@ public class AFIncrementalStore: NSIncrementalStore {
         }
     }
 
-    @objc public override func newValuesForObject(with objectID: NSManagedObjectID, with context: NSManagedObjectContext) throws -> NSIncrementalStoreNode {
+    @objc open override func newValuesForObject(with objectID: NSManagedObjectID, with context: NSManagedObjectContext) throws -> NSIncrementalStoreNode {
         var error: NSError?
         let entityName = objectID.entity.name ?? ""
         let fetchRequest = NSFetchRequest<NSDictionary>(entityName: entityName)
@@ -1227,7 +1227,7 @@ public class AFIncrementalStore: NSIncrementalStore {
         return node
     }
 
-    @objc public override func newValue(forRelationship relationship: NSRelationshipDescription, forObjectWith objectID: NSManagedObjectID, with context: NSManagedObjectContext?) throws -> Any {
+    @objc open override func newValue(forRelationship relationship: NSRelationshipDescription, forObjectWith objectID: NSManagedObjectID, with context: NSManagedObjectContext?) throws -> Any {
         var objectExists = false
         var existingObjectHasChanges = false
         context?.performAndWait {
@@ -1338,7 +1338,7 @@ public class AFIncrementalStore: NSIncrementalStore {
         return toReturn
     }
 
-    @objc public override func managedObjectContextDidRegisterObjects(with objectIDs: [NSManagedObjectID]) {
+    @objc open override func managedObjectContextDidRegisterObjects(with objectIDs: [NSManagedObjectID]) {
         super.managedObjectContextDidRegisterObjects(with: objectIDs)
         for objectId in objectIDs {
             guard let entityName = objectId.entity.name else {
@@ -1351,7 +1351,7 @@ public class AFIncrementalStore: NSIncrementalStore {
         }
     }
 
-    @objc public override func managedObjectContextDidUnregisterObjects(with objectIDs: [NSManagedObjectID]) {
+    @objc open override func managedObjectContextDidUnregisterObjects(with objectIDs: [NSManagedObjectID]) {
         super.managedObjectContextDidUnregisterObjects(with: objectIDs)
         for objectId in objectIDs {
             guard let entityName = objectId.entity.name,
