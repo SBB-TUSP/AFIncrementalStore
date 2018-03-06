@@ -196,6 +196,84 @@ public extension NSExceptionName {
 
 // MARK: - Notifications
 
+@objc
+public extension NSNotification {
+
+    /**
+     Posted before an HTTP request operation corresponding to a fetch request starts.
+     The object is the managed object context of the request.
+     The notification `userInfo` contains the finished request operation, keyed at `AFIncrementalStoreRequestOperationKey`, as well as the associated persistent store request, if applicable, keyed at `AFIncrementalStorePersistentStoreRequestKey`.
+     */
+    public static var AFIncrementalStoreContextWillFetchRemoteValues: String {
+        return "AFIncrementalStoreContextWillFetchRemoteValues"
+    }
+
+    /**
+     Posted after an HTTP request operation corresponding to a fetch request finishes.
+     The object is the managed object context of the request.
+     The notification `userInfo` contains the finished request operation, keyed at `AFIncrementalStoreRequestOperationKey`, as well as the associated persistent store request, if applicable, keyed at `AFIncrementalStorePersistentStoreRequestKey`.
+     */
+    public static var AFIncrementalStoreContextDidFetchRemoteValues: String {
+        return "AFIncrementalStoreContextDidFetchRemoteValues"
+    }
+
+    /**
+     Posted before an HTTP request operation corresponding to a fetch request starts.
+     The object is the managed object context of the request.
+     The notification `userInfo` contains an array of request operations, keyed at `AFIncrementalStoreRequestOperationKey`, as well as the associated persistent store request, if applicable, keyed at `AFIncrementalStorePersistentStoreRequestKey`.
+     */
+    public static var AFIncrementalStoreContextWillSaveRemoteValues: String {
+        return "AFIncrementalStoreContextWillSaveRemoteValues"
+    }
+
+    /**
+     Posted after an HTTP request operation corresponding to a fetch request finishes.
+     The object is the managed object context of the request.
+     The notification `userInfo` contains an array of request operations, keyed at `AFIncrementalStoreRequestOperationKey`, as well as the associated persistent store request, if applicable, keyed at `AFIncrementalStorePersistentStoreRequestKey`.
+     */
+    public static var AFIncrementalStoreContextDidSaveRemoteValues: String {
+        return "AFIncrementalStoreContextDidSaveRemoteValues"
+    }
+
+    /**
+     Posted before an HTTP request operation corresponding to an attribute fault starts.
+     The object is the managed object context of the request.
+     The notification `userInfo` contains an array of request operations, keyed at `AFIncrementalStoreRequestOperationKey`, as well as the managed object ID of the faulting object, keyed at `AFIncrementalStoreFaultingObjectIDKey`.
+     */
+    public static var AFIncrementalStoreContextWillFetchNewValuesForObject: String {
+        return "AFIncrementalStoreContextWillFetchNewValuesForObject"
+    }
+
+    /**
+     Posted after an HTTP request operation corresponding to an attribute fault finishes.
+     The object is the managed object context of the request.
+     The notification `userInfo` contains an array of request operations, keyed at `AFIncrementalStoreRequestOperationKey`, as well as the managed object ID of the faulting object, keyed at `AFIncrementalStoreFaultingObjectIDKey`.
+     */
+    public static var AFIncrementalStoreContextDidFetchNewValuesForObject: String {
+        return "AFIncrementalStoreContextDidFetchNewValuesForObject"
+    }
+
+    /**
+     Posted before an HTTP request operation corresponding to an relationship fault starts.
+     The object is the managed object context of the request.
+     The notification `userInfo` contains an array of request operations, keyed at `AFIncrementalStoreRequestOperationKey`, as well as the faulting relationship, keyed at `AFIncrementalStoreFaultingRelationshipKey`, and the managed object ID of the faulting object, keyed at `AFIncrementalStoreFaultingObjectIDKey`.
+
+     */
+    public static var AFIncrementalStoreContextWillFetchNewValuesForRelationship: String {
+        return "AFIncrementalStoreContextWillFetchNewValuesForRelationship"
+    }
+
+    /**
+     Posted after an HTTP request operation corresponding to a relationship fault finishes.
+     The object is the managed object context of the request.
+     The notification `userInfo` contains an array of request operations, keyed at `AFIncrementalStoreRequestOperationKey`, as well as the faulting relationship, keyed at `AFIncrementalStoreFaultingRelationshipKey`, and the managed object ID of the faulting object, keyed at `AFIncrementalStoreFaultingObjectIDKey`.
+     */
+    public static var AFIncrementalStoreContextDidFetchNewValuesForRelationship: String {
+        return "AFIncrementalStoreContextDidFetchNewValuesForRelationship"
+    }
+
+}
+
 public extension Notification.Name {
 
     /**
