@@ -188,7 +188,7 @@ public extension NSExceptionName {
     /**
      The name of the exception called when `AFIncrementalStore` or a subclass is attempted to be used, without implementing one of the required methods.
      */
-    open static var AFIncrementalStoreUnimplementedMethodException: NSExceptionName {
+    public static var AFIncrementalStoreUnimplementedMethodException: NSExceptionName {
         return .init("com.alamofire.incremental-store.exceptions.unimplemented-method")
     }
 
@@ -203,7 +203,7 @@ public extension Notification.Name {
      The object is the managed object context of the request.
      The notification `userInfo` contains the finished request operation, keyed at `AFIncrementalStoreRequestOperationKey`, as well as the associated persistent store request, if applicable, keyed at `AFIncrementalStorePersistentStoreRequestKey`.
      */
-    open static var AFIncrementalStoreContextWillFetchRemoteValues: Notification.Name {
+    public static var AFIncrementalStoreContextWillFetchRemoteValues: Notification.Name {
         return .init("AFIncrementalStoreContextWillFetchRemoteValues")
     }
 
@@ -212,7 +212,7 @@ public extension Notification.Name {
      The object is the managed object context of the request.
      The notification `userInfo` contains the finished request operation, keyed at `AFIncrementalStoreRequestOperationKey`, as well as the associated persistent store request, if applicable, keyed at `AFIncrementalStorePersistentStoreRequestKey`.
      */
-    open static var AFIncrementalStoreContextDidFetchRemoteValues: Notification.Name {
+    public static var AFIncrementalStoreContextDidFetchRemoteValues: Notification.Name {
         return .init("AFIncrementalStoreContextDidFetchRemoteValues")
     }
 
@@ -221,7 +221,7 @@ public extension Notification.Name {
      The object is the managed object context of the request.
      The notification `userInfo` contains an array of request operations, keyed at `AFIncrementalStoreRequestOperationKey`, as well as the associated persistent store request, if applicable, keyed at `AFIncrementalStorePersistentStoreRequestKey`.
      */
-    open static var AFIncrementalStoreContextWillSaveRemoteValues: Notification.Name {
+    public static var AFIncrementalStoreContextWillSaveRemoteValues: Notification.Name {
         return .init("AFIncrementalStoreContextWillSaveRemoteValues")
     }
 
@@ -230,7 +230,7 @@ public extension Notification.Name {
      The object is the managed object context of the request.
      The notification `userInfo` contains an array of request operations, keyed at `AFIncrementalStoreRequestOperationKey`, as well as the associated persistent store request, if applicable, keyed at `AFIncrementalStorePersistentStoreRequestKey`.
      */
-    open static var AFIncrementalStoreContextDidSaveRemoteValues: Notification.Name {
+    public static var AFIncrementalStoreContextDidSaveRemoteValues: Notification.Name {
         return .init("AFIncrementalStoreContextDidSaveRemoteValues")
     }
 
@@ -239,7 +239,7 @@ public extension Notification.Name {
      The object is the managed object context of the request.
      The notification `userInfo` contains an array of request operations, keyed at `AFIncrementalStoreRequestOperationKey`, as well as the managed object ID of the faulting object, keyed at `AFIncrementalStoreFaultingObjectIDKey`.
      */
-    open static var AFIncrementalStoreContextWillFetchNewValuesForObject: Notification.Name {
+    public static var AFIncrementalStoreContextWillFetchNewValuesForObject: Notification.Name {
         return .init("AFIncrementalStoreContextWillFetchNewValuesForObject")
     }
 
@@ -248,7 +248,7 @@ public extension Notification.Name {
      The object is the managed object context of the request.
      The notification `userInfo` contains an array of request operations, keyed at `AFIncrementalStoreRequestOperationKey`, as well as the managed object ID of the faulting object, keyed at `AFIncrementalStoreFaultingObjectIDKey`.
      */
-    open static var AFIncrementalStoreContextDidFetchNewValuesForObject: Notification.Name {
+    public static var AFIncrementalStoreContextDidFetchNewValuesForObject: Notification.Name {
         return .init("AFIncrementalStoreContextDidFetchNewValuesForObject")
     }
 
@@ -258,7 +258,7 @@ public extension Notification.Name {
      The notification `userInfo` contains an array of request operations, keyed at `AFIncrementalStoreRequestOperationKey`, as well as the faulting relationship, keyed at `AFIncrementalStoreFaultingRelationshipKey`, and the managed object ID of the faulting object, keyed at `AFIncrementalStoreFaultingObjectIDKey`.
 
      */
-    open static var AFIncrementalStoreContextWillFetchNewValuesForRelationship: Notification.Name {
+    public static var AFIncrementalStoreContextWillFetchNewValuesForRelationship: Notification.Name {
         return .init("AFIncrementalStoreContextWillFetchNewValuesForRelationship")
     }
 
@@ -267,7 +267,7 @@ public extension Notification.Name {
      The object is the managed object context of the request.
      The notification `userInfo` contains an array of request operations, keyed at `AFIncrementalStoreRequestOperationKey`, as well as the faulting relationship, keyed at `AFIncrementalStoreFaultingRelationshipKey`, and the managed object ID of the faulting object, keyed at `AFIncrementalStoreFaultingObjectIDKey`.
      */
-    open static var AFIncrementalStoreContextDidFetchNewValuesForRelationship: Notification.Name {
+    public static var AFIncrementalStoreContextDidFetchNewValuesForRelationship: Notification.Name {
         return .init("AFIncrementalStoreContextDidFetchNewValuesForRelationship")
     }
 
