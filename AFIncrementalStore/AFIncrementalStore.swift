@@ -496,6 +496,19 @@ open class AFIncrementalStore: NSIncrementalStore {
         return NSManagedObjectModel()
     }
 
+    @objc open func beforeInsertOrUpdateObjects(from representationOrArrayOfRepresentation: Any?,
+                                                of fetchRequest: NSFetchRequest<NSFetchRequestResult>?,
+                                                from response: HTTPURLResponse?,
+                                                with childContext: NSManagedObjectContext,
+                                                with backingContext: NSManagedObjectContext,
+                                                with backingObjectIdByObjectId: NSCache<NSManagedObjectID, NSManagedObjectID>) {
+        print("implemented in child")
+    }
+
+    @objc open func afterInsertOrUpdateObjects(_ context: NSManagedObjectContext?, parentObject: NSManagedObject) {
+        context?.refresh(parentObject, mergeChanges: true)
+    }
+
     // MARK: - Optional Methods
 
     /**
@@ -525,6 +538,13 @@ open class AFIncrementalStore: NSIncrementalStore {
 
                     guard let httpUrlResponse  = urlResponse as? HTTPURLResponse else { return }
 
+                    self.beforeInsertOrUpdateObjects(from: representationOrArrayOfRepresentations,
+                                                     of: fetchRequest,
+                                                     from: httpUrlResponse,
+                                                     with: childContext,
+                                                     with: self.backingManagedObjectContext,
+                                                     with: self.backingObjectIdByObjectId)
+
                     _ = try? self.insertOrUpdateObjects(from: representationOrArrayOfRepresentations, of: fetchRequest?.entity, from: httpUrlResponse, with: childContext) {
                         objects, backingObjects in
                         var childObjects = Set<NSManagedObject>()
@@ -545,9 +565,12 @@ open class AFIncrementalStore: NSIncrementalStore {
                                 guard let parentObject = context?.object(with: childObjectId) else {
                                     continue
                                 }
-                                context?.refresh(parentObject, mergeChanges: true)
+
+                                self.afterInsertOrUpdateObjects(context, parentObject: parentObject)
+
                             }
                         }
+
                         self.notify(context: context, about: operation, for: fetchRequest, fetchedObjectIds: objects.map{$0.objectID}, didFetch: true)
                     }
                 }
@@ -923,7 +946,7 @@ open class AFIncrementalStore: NSIncrementalStore {
         return _backingManagedObjectContext!
     }
 
-    private func objectId(for entity: NSEntityDescription, with resourceIdentifier: String?) -> NSManagedObjectID? {
+    public func objectId(for entity: NSEntityDescription, with resourceIdentifier: String?) -> NSManagedObjectID? {
         guard let entityName = entity.name,
             let resourceIdentifier = resourceIdentifier else {
                 return nil
@@ -931,7 +954,7 @@ open class AFIncrementalStore: NSIncrementalStore {
         return registeredObjectIdsByEntityNameAndNestedResourceIdentifier[entityName]?[resourceIdentifier] as? NSManagedObjectID ?? newObjectID(for: entity, referenceObject: resourceIdentifier)
     }
 
-    private func objectIdForBackingObject(for entity: NSEntityDescription, with resourceIdentifier: String?) -> NSManagedObjectID? {
+    public func objectIdForBackingObject(for entity: NSEntityDescription, with resourceIdentifier: String?) -> NSManagedObjectID? {
         guard let entityName = entity.name,
             let resourceIdentifier = resourceIdentifier,
             let objectId = self.objectId(for: entity, with: resourceIdentifier) else {
@@ -1145,7 +1168,7 @@ open class AFIncrementalStore: NSIncrementalStore {
             throw NSError()
         }
         guard let model = persistentStoreCoordinator?.managedObjectModel.copy() as? NSManagedObjectModel else {
-                return
+            return
         }
         self.metadata = [
             NSStoreUUIDKey: ProcessInfo.processInfo.globallyUniqueString,
