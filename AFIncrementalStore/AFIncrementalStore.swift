@@ -505,8 +505,17 @@ open class AFIncrementalStore: NSIncrementalStore {
         print("implemented in child")
     }
 
-    @objc open func afterInsertOrUpdateObjects(_ context: NSManagedObjectContext?, parentObject: NSManagedObject) {
-        context?.refresh(parentObject, mergeChanges: true)
+    @objc open func updateContextObjects(_ context: NSManagedObjectContext?, childObjectIds: [NSManagedObjectID]) {
+        context?.performAndWait {
+            for childObjectId in childObjectIds {
+                guard let parentObject = context?.object(with: childObjectId) else {
+                    continue
+                }
+
+                context?.refresh(parentObject, mergeChanges: true)
+
+            }
+        }
     }
 
     // MARK: - Optional Methods
@@ -560,16 +569,8 @@ open class AFIncrementalStore: NSIncrementalStore {
                         childContext.performAndWait {
                             childObjectIds = childObjects.map{$0.objectID}
                         }
-                        context?.performAndWait {
-                            for childObjectId in childObjectIds {
-                                guard let parentObject = context?.object(with: childObjectId) else {
-                                    continue
-                                }
 
-                                self.afterInsertOrUpdateObjects(context, parentObject: parentObject)
-
-                            }
-                        }
+                        self.updateContextObjects(context, childObjectIds: childObjectIds)
 
                         self.notify(context: context, about: operation, for: fetchRequest, fetchedObjectIds: objects.map{$0.objectID}, didFetch: true)
                     }
