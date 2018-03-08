@@ -404,9 +404,9 @@ private func AFSaveManagedObjectContextOrThrowInternalConsistencyException(_ con
     }
 }
 
-fileprivate extension NSManagedObject {
+public extension NSManagedObject {
 
-    fileprivate var af_resourceIdentifier: String? {
+    var af_resourceIdentifier: String? {
         get {
             let identifier = objc_getAssociatedObject(self, &kAFResourceIdentifierObjectKey) as? String
             if identifier == nil {
@@ -665,6 +665,16 @@ open class AFIncrementalStore: NSIncrementalStore {
     /**
 
      */
+    open func getResourceIdentifierInsertRequest(_ context: NSManagedObjectContext?,
+                                                 insertedObject: NSManagedObject) -> String? {
+
+        var UUID = CFUUIDCreate(kCFAllocatorDefault)
+        let resourceIdentifier = CFUUIDCreateString(kCFAllocatorDefault, UUID)
+        UUID = nil
+
+        return resourceIdentifier as! String
+    }
+
     open func executeSaveChangesRequest(_ saveChangesRequest: NSSaveChangesRequest?, with context: NSManagedObjectContext?) throws -> Any? {
         let operation_dispatch_group = DispatchGroup()
         var operations = [URLSessionTask]()
@@ -674,9 +684,8 @@ open class AFIncrementalStore: NSIncrementalStore {
             if request == nil,
                 let entityName = insertedObject.entity.name {
                 backingContext.performAndWait {
-                    var UUID = CFUUIDCreate(kCFAllocatorDefault)
-                    let resourceIdentifier = CFUUIDCreateString(kCFAllocatorDefault, UUID)
-                    UUID = nil
+                    let resourceIdentifier = getResourceIdentifierInsertRequest(context,
+                                                                                insertedObject: insertedObject)
                     let backingObject = NSEntityDescription.insertNewObject(forEntityName: entityName, into: backingContext)
                     _ = try? backingObject.managedObjectContext?.obtainPermanentIDs(for: [backingObject])
                     backingObject.setValue(resourceIdentifier, forKey: kAFIncrementalStoreResourceIdentifierAttributeName)
