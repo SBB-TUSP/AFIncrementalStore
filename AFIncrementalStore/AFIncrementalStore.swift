@@ -1,6 +1,6 @@
 //
 //  AFIncrementalStore.swift
-//  
+//
 //
 //  Created by Alessandro Ranaldi on 06/02/2018.
 //
@@ -397,6 +397,9 @@ private var kAFReferenceObjectPrefix: String {
 }
 
 private func AFSaveManagedObjectContextOrThrowInternalConsistencyException(_ context: NSManagedObjectContext) {
+    guard context.hasChanges else {
+        return
+    }
     do {
         try context.save()
     } catch let error as NSError {
@@ -689,7 +692,7 @@ open class AFIncrementalStore: NSIncrementalStore {
         }
 
         for insertedObject in saveChangesRequest?.insertedObjects ?? [] {
-            let request = httpClient?.request?(forInsertedObject: insertedObject)
+
             if let entityName = insertedObject.entity.name {
                 backingContext.performAndWait {
                     let resourceIdentifier = getResourceIdentifierInsertRequest(context,
@@ -698,7 +701,14 @@ open class AFIncrementalStore: NSIncrementalStore {
                     _ = try? backingObject.managedObjectContext?.obtainPermanentIDs(for: [backingObject])
                     backingObject.setValue(resourceIdentifier, forKey: kAFIncrementalStoreResourceIdentifierAttributeName)
                     update(backingObject, withAttributeAndRelationshipValuesFrom: insertedObject)
-                    _ = try? backingContext.save()
+                    guard backingContext.hasChanges else {
+                        return
+                    }
+                    do {
+                        try backingContext.save()
+                    }catch let e {
+                        print("\(e)")
+                    }
                 }
                 context?.performAndWait {
                     insertedObject.willChangeValue(forKey: "objectID")
@@ -706,11 +716,11 @@ open class AFIncrementalStore: NSIncrementalStore {
                     insertedObject.didChangeValue(forKey: "objectID")
                 }
             }
-            guard request != nil else {
-                continue
-            }
+
+            guard let request = httpClient?.request?(forInsertedObject: insertedObject) else { continue }
+
             operation_dispatch_group.enter()
-            let operation = httpClient?.dataTask(with: request!, uploadProgress: nil, downloadProgress: nil, completionHandler: { (urlResponse, responseObject, error) in
+            let operation = httpClient?.dataTask(with: request, uploadProgress: nil, downloadProgress: nil, completionHandler: { (urlResponse, responseObject, error) in
 
                 guard error == nil else {
 
@@ -788,18 +798,24 @@ open class AFIncrementalStore: NSIncrementalStore {
 
         for updatedObject in saveChangesRequest?.updatedObjects ?? [] {
             let backingObjectId = objectIdForBackingObject(for: updatedObject.entity, with: AFResourceIdentifier(from: referenceObject(for: updatedObject.objectID)))
-            let request = httpClient?.request?(forUpdatedObject: updatedObject)
-            if request == nil {
-                backingContext.performAndWait {
-                    let backingObject = backingObjectId == nil ? nil : try? backingContext.existingObject(with: backingObjectId!)
-                    self.update(backingObject, withAttributeAndRelationshipValuesFrom: updatedObject)
-                    _ = try? backingContext.save()
+
+            backingContext.performAndWait {
+                let backingObject = backingObjectId == nil ? nil : try? backingContext.existingObject(with: backingObjectId!)
+                self.update(backingObject, withAttributeAndRelationshipValuesFrom: updatedObject)
+                guard backingContext.hasChanges else {
+                    return
                 }
-                continue
+                do {
+                    try backingContext.save()
+                }catch let e {
+                    print("\(e)")
+                }
             }
 
+            guard let request = httpClient?.request?(forUpdatedObject: updatedObject) else { continue }
+
             operation_dispatch_group.enter()
-            let operation = self.httpClient?.dataTask(with: request!, uploadProgress: nil, downloadProgress: nil, completionHandler: { (urlResponse, responseObject, error) in
+            let operation = self.httpClient?.dataTask(with: request, uploadProgress: nil, downloadProgress: nil, completionHandler: { (urlResponse, responseObject, error) in
 
                 guard error == nil else {
 
@@ -816,24 +832,37 @@ open class AFIncrementalStore: NSIncrementalStore {
 
                     guard let httpUrlResponse  = urlResponse as? HTTPURLResponse else { return }
 
-                    if let dictionary = self.httpClient?.attributes(forRepresentation: representation, ofEntity: updatedObject.entity, from: httpUrlResponse) {
-                        updatedObject.managedObjectContext?.performAndWait {
-                            updatedObject.setValuesForKeys(dictionary)
+                    _ = try? self.insertOrUpdateObjects(from: representationOrArrayOfRepresentations, of: updatedObject.entity, from: httpUrlResponse, with: childContext) {
+                        objects, backingObjects in
+                        var childObjects = Set<NSManagedObject>()
+                        childContext.performAndWait {
+                            childObjects = childContext.registeredObjects
+                            AFSaveManagedObjectContextOrThrowInternalConsistencyException(childContext)
                         }
-                        if let backingObjectId = backingObjectId {
-                            backingContext.performAndWait {
-                                if let backingObject = try? backingContext.existingObject(with: backingObjectId) {
-                                    self.update(backingObject, withAttributeAndRelationshipValuesFrom: updatedObject)
-                                    _ = try? backingContext.save()
+                        let backingContext = self.backingManagedObjectContext
+                        backingContext.performAndWait {
+                            AFSaveManagedObjectContextOrThrowInternalConsistencyException(backingContext)
+                        }
+                        var childObjectIds = [NSManagedObjectID]()
+                        childContext.performAndWait {
+                            childObjectIds = childObjects.map{$0.objectID}
+                        }
+
+                        context?.performAndWait {
+                            for childObjectId in childObjectIds {
+                                guard let parentObject = context?.object(with: childObjectId) else {
+                                    continue
                                 }
+
+                                context?.refresh(parentObject, mergeChanges: true)
+
                             }
                         }
-                    }
-                    context?.performAndWait {
-                        context?.refresh(updatedObject, mergeChanges: true)
+
+                        operation_dispatch_group.leave()
+
                     }
                 }
-                operation_dispatch_group.leave()
             })
 
             if let operation = operation {
@@ -843,21 +872,27 @@ open class AFIncrementalStore: NSIncrementalStore {
         }
         for deletedObject in saveChangesRequest?.deletedObjects ?? [] {
             let backingObjectId = self.objectIdForBackingObject(for: deletedObject.entity, with: AFResourceIdentifier(from: referenceObject(for: deletedObject.objectID)))
-            let request = self.httpClient?.request?(forDeletedObject: deletedObject)
-            if request == nil {
-                backingContext.performAndWait {
-                    if let backingObjectId = backingObjectId,
-                        let backingObject = try? backingContext.existingObject(with: backingObjectId) {
-                        backingContext.delete(backingObject)
-                        self.backingObjectIdByObjectId.removeObject(forKey: deletedObject.objectID)
-                        _ = try? backingContext.save()
+
+            backingContext.performAndWait {
+                if let backingObjectId = backingObjectId,
+                    let backingObject = try? backingContext.existingObject(with: backingObjectId) {
+                    backingContext.delete(backingObject)
+                    self.backingObjectIdByObjectId.removeObject(forKey: deletedObject.objectID)
+                    guard backingContext.hasChanges else {
+                        return
+                    }
+                    do {
+                        try backingContext.save()
+                    }catch let e {
+                        print("\(e)")
                     }
                 }
-                continue
             }
 
+            guard let request = self.httpClient?.request?(forDeletedObject: deletedObject) else { continue }
+
             operation_dispatch_group.enter()
-            let operation = self.httpClient?.dataTask(with: request!, uploadProgress: nil, downloadProgress: nil, completionHandler: { (urlResponse, responseObject, error) in
+            let operation = self.httpClient?.dataTask(with: request, uploadProgress: nil, downloadProgress: nil, completionHandler: { (urlResponse, responseObject, error) in
                 guard error == nil else {
                     operation_dispatch_group.leave()
                     return
@@ -868,7 +903,14 @@ open class AFIncrementalStore: NSIncrementalStore {
                         let backingObject = try? backingContext.existingObject(with: backingObjectId) {
                         backingContext.delete(backingObject)
                         self.backingObjectIdByObjectId.removeObject(forKey: deletedObject.objectID)
-                        _ = try? backingContext.save()
+                        guard backingContext.hasChanges else {
+                            return
+                        }
+                        do {
+                            try backingContext.save()
+                        }catch let e {
+                            print("\(e)")
+                        }
                     }
                 }
                 operation_dispatch_group.leave()
