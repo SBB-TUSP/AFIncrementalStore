@@ -679,6 +679,15 @@ open class AFIncrementalStore: NSIncrementalStore {
         let operation_dispatch_group = DispatchGroup()
         var operations = [URLSessionTask]()
         let backingContext = backingManagedObjectContext
+
+        let childContext = NSManagedObjectContext(concurrencyType: .privateQueueConcurrencyType)
+        childContext.parent = context
+        if #available(iOS 10.0, *) {
+            childContext.mergePolicy = NSMergePolicy.mergeByPropertyObjectTrump
+        } else {
+            childContext.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
+        }
+
         for insertedObject in saveChangesRequest?.insertedObjects ?? [] {
             let request = httpClient?.request?(forInsertedObject: insertedObject)
             if let entityName = insertedObject.entity.name {
@@ -740,35 +749,36 @@ open class AFIncrementalStore: NSIncrementalStore {
                     return
                 }
 
-                let resourceIdentifier = self.httpClient?.resourceIdentifier(forRepresentation: representation, ofEntity: insertedObject.entity, from: httpUrlResponse)
-                let backingObjectId = self.objectIdForBackingObject(for: insertedObject.entity, with: resourceIdentifier)
-                insertedObject.af_resourceIdentifier = resourceIdentifier
-                if let dictionary = self.httpClient?.attributes(forRepresentation: representation, ofEntity: insertedObject.entity, from: httpUrlResponse) {
-                    insertedObject.managedObjectContext?.performAndWait {
-                        insertedObject.setValuesForKeys(dictionary)
+                _ = try? self.insertOrUpdateObjects(from: representationOrArrayOfRepresentations, of: insertedObject.entity, from: httpUrlResponse, with: childContext) {
+                    objects, backingObjects in
+                    var childObjects = Set<NSManagedObject>()
+                    childContext.performAndWait {
+                        childObjects = childContext.registeredObjects
+                        AFSaveManagedObjectContextOrThrowInternalConsistencyException(childContext)
                     }
-                }
-                var backingObject: NSManagedObject?
-                backingContext.performAndWait {
-                    if let backingObjectId = backingObjectId {
-                        backingObject = try? backingContext.existingObject(with: backingObjectId)
+                    let backingContext = self.backingManagedObjectContext
+                    backingContext.performAndWait {
+                        AFSaveManagedObjectContextOrThrowInternalConsistencyException(backingContext)
                     }
-                    if backingObject == nil {
-                        backingObject = NSEntityDescription.insertNewObject(forEntityName: entityName, into: backingContext)
-                        _ = try? backingObject!.managedObjectContext?.obtainPermanentIDs(for: [backingObject!])
+                    var childObjectIds = [NSManagedObjectID]()
+                    childContext.performAndWait {
+                        childObjectIds = childObjects.map{$0.objectID}
                     }
-                    backingObject?.setValue(resourceIdentifier, forKey: kAFIncrementalStoreResourceIdentifierAttributeName)
-                    self.update(backingObject, withAttributeAndRelationshipValuesFrom: insertedObject)
-                    _ = try? backingContext.save()
-                }
-                context?.performAndWait {
-                    insertedObject.willChangeValue(forKey: "objectID")
-                    _ = try? context?.obtainPermanentIDs(for: [insertedObject])
-                    insertedObject.didChangeValue(forKey: "objectID")
-                    context?.refresh(insertedObject, mergeChanges: false)
-                }
 
-                operation_dispatch_group.leave()
+                    context?.performAndWait {
+                        for childObjectId in childObjectIds {
+                            guard let parentObject = context?.object(with: childObjectId) else {
+                                continue
+                            }
+
+                            context?.refresh(parentObject, mergeChanges: true)
+
+                        }
+                    }
+
+                    operation_dispatch_group.leave()
+
+                }
             })
 
             if let operation = operation {
