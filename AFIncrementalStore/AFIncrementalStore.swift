@@ -681,8 +681,7 @@ open class AFIncrementalStore: NSIncrementalStore {
         let backingContext = backingManagedObjectContext
         for insertedObject in saveChangesRequest?.insertedObjects ?? [] {
             let request = httpClient?.request?(forInsertedObject: insertedObject)
-            if request == nil,
-                let entityName = insertedObject.entity.name {
+            if let entityName = insertedObject.entity.name {
                 backingContext.performAndWait {
                     let resourceIdentifier = getResourceIdentifierInsertRequest(context,
                                                                                 insertedObject: insertedObject)
@@ -697,6 +696,8 @@ open class AFIncrementalStore: NSIncrementalStore {
                     _ = try? context?.obtainPermanentIDs(for: [insertedObject])
                     insertedObject.didChangeValue(forKey: "objectID")
                 }
+            }
+            guard request != nil else {
                 continue
             }
             operation_dispatch_group.enter()
