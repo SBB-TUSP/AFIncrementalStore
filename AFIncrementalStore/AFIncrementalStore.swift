@@ -357,6 +357,8 @@ public extension Notification.Name {
  */
 public let AFIncrementalStoreRequestOperationsKey: String = "AFIncrementalStoreRequestOperations"
 
+public let AFIncrementalStoreRequestErrorsKey: String = "AFIncrementalStoreRequestErrors"
+
 /**
  A key in the `userInfo` dictionary in a `AFIncrementalStoreContextWillFetchRemoteValues` or `AFIncrementalStoreContextDidFetchRemoteValues` notification.
  The corresponding value is an `NSArray` of `NSManagedObjectIDs` for the objects returned by the remote HTTP request for the associated fetch request.
@@ -534,7 +536,7 @@ open class AFIncrementalStore: NSIncrementalStore {
             operation = httpClient?.dataTask(with: request, uploadProgress: nil, downloadProgress: nil, completionHandler: { (urlResponse, responseObject, error) in
 
                 guard error == nil else {
-                    self.notify(context: context, about: operation, for: fetchRequest, fetchedObjectIds: nil, didFetch: true)
+                    self.notify(context: context, about: operation, error: error as NSError?, for: fetchRequest, fetchedObjectIds: nil, didFetch: true)
                     return
                 }
 
@@ -575,12 +577,12 @@ open class AFIncrementalStore: NSIncrementalStore {
 
                         self.updateContextObjects(context, childObjectIds: childObjectIds)
 
-                        self.notify(context: context, about: operation, for: fetchRequest, fetchedObjectIds: objects.map{$0.objectID}, didFetch: true)
+                        self.notify(context: context, about: operation, error: nil, for: fetchRequest, fetchedObjectIds: objects.map{$0.objectID}, didFetch: true)
                     }
                 }
 
             })
-            notify(context: context, about: operation, for: fetchRequest, fetchedObjectIds: nil, didFetch: false)
+            notify(context: context, about: operation, error: nil, for: fetchRequest, fetchedObjectIds: nil, didFetch: false)
             operation?.resume()
         }
         let backingContext = backingManagedObjectContext
@@ -681,6 +683,7 @@ open class AFIncrementalStore: NSIncrementalStore {
     open func executeSaveChangesRequest(_ saveChangesRequest: NSSaveChangesRequest?, with context: NSManagedObjectContext?) throws -> Any? {
         let operation_dispatch_group = DispatchGroup()
         var operations = [URLSessionTask]()
+        var operationErrors = [NSError?]()
         let backingContext = backingManagedObjectContext
 
         let childContext = NSManagedObjectContext(concurrencyType: .privateQueueConcurrencyType)
@@ -720,9 +723,11 @@ open class AFIncrementalStore: NSIncrementalStore {
             guard let request = httpClient?.request?(forInsertedObject: insertedObject) else { continue }
 
             operation_dispatch_group.enter()
+            var insertOperationError: NSError?
             let operation = httpClient?.dataTask(with: request, uploadProgress: nil, downloadProgress: nil, completionHandler: { (urlResponse, responseObject, error) in
 
                 guard error == nil else {
+                    insertOperationError = error as NSError?
 
                     // Reset destination objects to prevent dangling relationships
                     for relationship in insertedObject.entity.relationshipsByName.map({$1}) {
@@ -793,6 +798,7 @@ open class AFIncrementalStore: NSIncrementalStore {
 
             if let operation = operation {
                 operations.append(operation)
+                operationErrors.append(insertOperationError)
             }
         }
 
@@ -815,10 +821,11 @@ open class AFIncrementalStore: NSIncrementalStore {
             guard let request = httpClient?.request?(forUpdatedObject: updatedObject) else { continue }
 
             operation_dispatch_group.enter()
+            var updateOperationError: NSError?
             let operation = self.httpClient?.dataTask(with: request, uploadProgress: nil, downloadProgress: nil, completionHandler: { (urlResponse, responseObject, error) in
 
                 guard error == nil else {
-
+                    updateOperationError = error as NSError?
                     context?.performAndWait {
                         context?.refresh(updatedObject, mergeChanges: true)
                     }
@@ -867,6 +874,7 @@ open class AFIncrementalStore: NSIncrementalStore {
 
             if let operation = operation {
                 operations.append(operation)
+                operationErrors.append(updateOperationError)
             }
 
         }
@@ -892,8 +900,10 @@ open class AFIncrementalStore: NSIncrementalStore {
             guard let request = self.httpClient?.request?(forDeletedObject: deletedObject) else { continue }
 
             operation_dispatch_group.enter()
+            var deleteOperationError: NSError?
             let operation = self.httpClient?.dataTask(with: request, uploadProgress: nil, downloadProgress: nil, completionHandler: { (urlResponse, responseObject, error) in
                 guard error == nil else {
+                    deleteOperationError = error as NSError?
                     operation_dispatch_group.leave()
                     return
                 }
@@ -917,25 +927,26 @@ open class AFIncrementalStore: NSIncrementalStore {
             })
             if let operation = operation {
                 operations.append(operation)
+                operationErrors.append(deleteOperationError)
             }
         }
         // NSManagedObjectContext removes object references from an NSSaveChangesRequest as each object is saved, so create a copy of the original in order to send useful information in AFIncrementalStoreContextDidSaveRemoteValues notification.
         let saveChangesRequestCopy = NSSaveChangesRequest(inserted: saveChangesRequest?.insertedObjects, updated: saveChangesRequest?.updatedObjects, deleted: saveChangesRequest?.deletedObjects, locked: saveChangesRequest?.lockedObjects)
-        notify(context: context, about: operations, for: saveChangesRequestCopy, didSave: false)
+        notify(context: context, about: operations, errors: nil, for: saveChangesRequestCopy, didSave: false)
 
         operations.forEach { (operation) in
             operation.resume()
         }
 
         operation_dispatch_group.notify(queue: .main) {
-            self.notify(context: context, about: operations, for: saveChangesRequestCopy, didSave: true)
+            self.notify(context: context, about: operations, errors: operationErrors, for: saveChangesRequestCopy, didSave: true)
         }
         return [Any]()
     }
 
     // MARK: -
 
-    private func notify(context: NSManagedObjectContext?, about operation: URLSessionTask?, for fetchRequest: NSFetchRequest<NSFetchRequestResult>?, fetchedObjectIds: [NSManagedObjectID]?, didFetch: Bool) {
+    private func notify(context: NSManagedObjectContext?, about operation: URLSessionTask?, error: NSError?, for fetchRequest: NSFetchRequest<NSFetchRequestResult>?, fetchedObjectIds: [NSManagedObjectID]?, didFetch: Bool) {
         guard let context = context,
             let operation = operation,
             let fetchRequest = fetchRequest else {
@@ -946,42 +957,55 @@ open class AFIncrementalStore: NSIncrementalStore {
             AFIncrementalStoreRequestOperationsKey: [operation],
             AFIncrementalStorePersistentStoreRequestKey: fetchRequest
         ]
-        if didFetch,
-            let fetchedObjectIds = fetchedObjectIds {
-            userInfo[AFIncrementalStoreFetchedObjectIDsKey] = fetchedObjectIds
+        if didFetch {
+            if let fetchedObjectIds = fetchedObjectIds {
+                userInfo[AFIncrementalStoreFetchedObjectIDsKey] = fetchedObjectIds
+            }
+            if let error = error {
+                userInfo[AFIncrementalStoreRequestErrorsKey] = [error]
+            }
         }
         NotificationCenter.default.post(name: name, object: context, userInfo: userInfo)
     }
 
-    private func notify(context: NSManagedObjectContext?, about operations: [URLSessionTask]?, for request: NSSaveChangesRequest?, didSave: Bool) {
+    private func notify(context: NSManagedObjectContext?, about operations: [URLSessionTask]?, errors: [NSError?]?, for request: NSSaveChangesRequest?, didSave: Bool) {
         guard let context = context,
             let operations = operations,
             let request = request else {
                 return
         }
         let name: Notification.Name = didSave ? .AFIncrementalStoreContextDidSaveRemoteValues : .AFIncrementalStoreContextWillSaveRemoteValues
-        let userInfo: [AnyHashable: Any] = [
+        var userInfo: [AnyHashable: Any] = [
             AFIncrementalStoreRequestOperationsKey: operations,
             AFIncrementalStorePersistentStoreRequestKey: request
         ]
+        if didSave,
+            let errors = errors {
+            userInfo[AFIncrementalStoreRequestErrorsKey] = errors
+        }
         NotificationCenter.default.post(name: name, object: context, userInfo: userInfo)
     }
 
-    private func notify(context: NSManagedObjectContext?, about operation: URLSessionTask?, forNewValuesForObjectWithId objectId: NSManagedObjectID?, didFetch: Bool) {
+    private func notify(context: NSManagedObjectContext?, about operation: URLSessionTask?, error: NSError?, forNewValuesForObjectWithId objectId: NSManagedObjectID?, didFetch: Bool) {
         guard let context = context,
             let operation = operation,
             let objectId = objectId else {
                 return
         }
         let name: Notification.Name = didFetch ? .AFIncrementalStoreContextDidFetchNewValuesForObject : .AFIncrementalStoreContextWillFetchNewValuesForObject
-        let userInfo: [AnyHashable: Any] = [
+        var userInfo: [AnyHashable: Any] = [
             AFIncrementalStoreRequestOperationsKey: [operation],
             AFIncrementalStoreFaultingObjectIDKey: objectId
         ]
+        if didFetch,
+            let error = error {
+            userInfo[AFIncrementalStoreRequestErrorsKey] = [error]
+
+        }
         NotificationCenter.default.post(name: name, object: context, userInfo: userInfo)
     }
 
-    private func notify(context: NSManagedObjectContext?, about operation: URLSessionTask?, forNewValuesFor relationship: NSRelationshipDescription?, forObjectWithId objectId: NSManagedObjectID?, didFetch: Bool) {
+    private func notify(context: NSManagedObjectContext?, about operation: URLSessionTask?, error: NSError?, forNewValuesFor relationship: NSRelationshipDescription?, forObjectWithId objectId: NSManagedObjectID?, didFetch: Bool) {
         guard let context = context,
             let operation = operation,
             let relationship = relationship,
@@ -989,11 +1013,15 @@ open class AFIncrementalStore: NSIncrementalStore {
                 return
         }
         let name: Notification.Name = didFetch ? .AFIncrementalStoreContextDidFetchNewValuesForRelationship : .AFIncrementalStoreContextWillFetchNewValuesForRelationship
-        let userInfo: [AnyHashable: Any] = [
+        var userInfo: [AnyHashable: Any] = [
             AFIncrementalStoreRequestOperationsKey: [operation],
             AFIncrementalStoreFaultingObjectIDKey: objectId,
             AFIncrementalStoreFaultingRelationshipKey: relationship
         ]
+        if didFetch,
+            let error = error {
+            userInfo[AFIncrementalStoreRequestErrorsKey] = [error]
+        }
         NotificationCenter.default.post(name: name, object: context, userInfo: userInfo)
     }
 
@@ -1344,7 +1372,7 @@ open class AFIncrementalStore: NSIncrementalStore {
         operation = httpClient?.dataTask(with: request, uploadProgress: nil, downloadProgress: nil, completionHandler: { (urlResponse, responseObject, error) in
             guard error == nil else {
 
-                self.notify(context: context, about: operation, forNewValuesForObjectWithId: objectID, didFetch: true)
+                self.notify(context: context, about: operation, error: error as NSError?, forNewValuesForObjectWithId: objectID, didFetch: true)
 
                 return
             }
@@ -1379,10 +1407,10 @@ open class AFIncrementalStore: NSIncrementalStore {
                     AFSaveManagedObjectContextOrThrowInternalConsistencyException(backingContext)
                 }
             }
-            self.notify(context: context, about: operation, forNewValuesForObjectWithId: objectID, didFetch: true)
+            self.notify(context: context, about: operation, error: nil, forNewValuesForObjectWithId: objectID, didFetch: true)
         })
 
-        notify(context: context, about: operation, forNewValuesForObjectWithId: objectID, didFetch: false)
+        notify(context: context, about: operation, error: nil, forNewValuesForObjectWithId: objectID, didFetch: false)
         operation?.resume()
 
         if let error = error {
@@ -1415,7 +1443,7 @@ open class AFIncrementalStore: NSIncrementalStore {
             var operation: URLSessionTask?
             operation = httpClient?.dataTask(with: request!, uploadProgress: nil, downloadProgress: nil, completionHandler: { (urlResponse, responseObject, error) in
                 guard error == nil else {
-                    self.notify(context: context, about: operation, forNewValuesFor: relationship, forObjectWithId: objectID, didFetch: true)
+                    self.notify(context: context, about: operation, error: error as NSError?, forNewValuesFor: relationship, forObjectWithId: objectID, didFetch: true)
                     return
                 }
 
@@ -1467,10 +1495,10 @@ open class AFIncrementalStore: NSIncrementalStore {
                         }
                     }
                 }
-                self.notify(context: context, about: operation, forNewValuesFor: relationship, forObjectWithId: objectID, didFetch: true)
+                self.notify(context: context, about: operation, error: nil, forNewValuesFor: relationship, forObjectWithId: objectID, didFetch: true)
             })
 
-            notify(context: context, about: operation, forNewValuesFor: relationship, forObjectWithId: objectID, didFetch: false)
+            notify(context: context, about: operation, error: nil, forNewValuesFor: relationship, forObjectWithId: objectID, didFetch: false)
             operation?.resume()
         }
         var toReturn: Any!
