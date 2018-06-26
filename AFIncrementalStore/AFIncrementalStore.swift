@@ -357,6 +357,11 @@ public extension Notification.Name {
  */
 public let AFIncrementalStoreRequestOperationsKey: String = "AFIncrementalStoreRequestOperations"
 
+/**
+ A key in the `userInfo` dictionary in a `AFIncrementalStoreContextDidFetchRemoteValues` as well as `AFIncrementalStoreContextDidSaveRemoteValues` or `AFIncrementalStoreContextDidFetchNewValuesForObject` or `AFIncrementalStoreContextDidFetchNewValuesForRelationship` notification.
+ The corresponding value is an `NSArray` of `NSError` containing 1 element if there was an error.
+ For the `AFIncrementalStoreContextDidSaveRemoteValues` notification it is a dictionary with `NSManagedObjectID` as keys and `NSError` as elements, to contain any errors with the associated API requests.
+ */
 public let AFIncrementalStoreRequestErrorsKey: String = "AFIncrementalStoreRequestErrors"
 
 /**
