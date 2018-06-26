@@ -683,7 +683,7 @@ open class AFIncrementalStore: NSIncrementalStore {
     open func executeSaveChangesRequest(_ saveChangesRequest: NSSaveChangesRequest?, with context: NSManagedObjectContext?) throws -> Any? {
         let operation_dispatch_group = DispatchGroup()
         var operations = [URLSessionTask]()
-        var operationErrors = [NSError?]()
+        var operationErrors = [NSManagedObjectID: NSError]()
         let backingContext = backingManagedObjectContext
 
         let childContext = NSManagedObjectContext(concurrencyType: .privateQueueConcurrencyType)
@@ -723,11 +723,10 @@ open class AFIncrementalStore: NSIncrementalStore {
             guard let request = httpClient?.request?(forInsertedObject: insertedObject) else { continue }
 
             operation_dispatch_group.enter()
-            var insertOperationError: NSError?
             let operation = httpClient?.dataTask(with: request, uploadProgress: nil, downloadProgress: nil, completionHandler: { (urlResponse, responseObject, error) in
 
                 guard error == nil else {
-                    insertOperationError = error as NSError?
+                    operationErrors[insertedObject.objectID] = error! as NSError
 
                     // Reset destination objects to prevent dangling relationships
                     for relationship in insertedObject.entity.relationshipsByName.map({$1}) {
@@ -798,7 +797,6 @@ open class AFIncrementalStore: NSIncrementalStore {
 
             if let operation = operation {
                 operations.append(operation)
-                operationErrors.append(insertOperationError)
             }
         }
 
@@ -821,11 +819,10 @@ open class AFIncrementalStore: NSIncrementalStore {
             guard let request = httpClient?.request?(forUpdatedObject: updatedObject) else { continue }
 
             operation_dispatch_group.enter()
-            var updateOperationError: NSError?
             let operation = self.httpClient?.dataTask(with: request, uploadProgress: nil, downloadProgress: nil, completionHandler: { (urlResponse, responseObject, error) in
 
                 guard error == nil else {
-                    updateOperationError = error as NSError?
+                    operationErrors[updatedObject.objectID] = error! as NSError
                     context?.performAndWait {
                         context?.refresh(updatedObject, mergeChanges: true)
                     }
@@ -874,7 +871,6 @@ open class AFIncrementalStore: NSIncrementalStore {
 
             if let operation = operation {
                 operations.append(operation)
-                operationErrors.append(updateOperationError)
             }
 
         }
@@ -900,10 +896,9 @@ open class AFIncrementalStore: NSIncrementalStore {
             guard let request = self.httpClient?.request?(forDeletedObject: deletedObject) else { continue }
 
             operation_dispatch_group.enter()
-            var deleteOperationError: NSError?
             let operation = self.httpClient?.dataTask(with: request, uploadProgress: nil, downloadProgress: nil, completionHandler: { (urlResponse, responseObject, error) in
                 guard error == nil else {
-                    deleteOperationError = error as NSError?
+                    operationErrors[deletedObject.objectID] = error! as NSError
                     operation_dispatch_group.leave()
                     return
                 }
@@ -927,7 +922,6 @@ open class AFIncrementalStore: NSIncrementalStore {
             })
             if let operation = operation {
                 operations.append(operation)
-                operationErrors.append(deleteOperationError)
             }
         }
         // NSManagedObjectContext removes object references from an NSSaveChangesRequest as each object is saved, so create a copy of the original in order to send useful information in AFIncrementalStoreContextDidSaveRemoteValues notification.
@@ -968,7 +962,7 @@ open class AFIncrementalStore: NSIncrementalStore {
         NotificationCenter.default.post(name: name, object: context, userInfo: userInfo)
     }
 
-    private func notify(context: NSManagedObjectContext?, about operations: [URLSessionTask]?, errors: [NSError?]?, for request: NSSaveChangesRequest?, didSave: Bool) {
+    private func notify(context: NSManagedObjectContext?, about operations: [URLSessionTask]?, errors: [NSManagedObjectID: NSError]?, for request: NSSaveChangesRequest?, didSave: Bool) {
         guard let context = context,
             let operations = operations,
             let request = request else {
