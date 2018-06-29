@@ -807,7 +807,7 @@ open class AFIncrementalStore: NSIncrementalStore {
                 guard error == nil else {
                     operationErrors[updatedObject.objectID] = error! as NSError
                     context?.performAndWait {
-                        context?.refresh(updatedObject, mergeChanges: true)
+                        context?.refresh(updatedObject, mergeChanges: false)
                     }
                     operation_dispatch_group.leave()
                     return
