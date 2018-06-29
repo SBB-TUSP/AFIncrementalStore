@@ -784,16 +784,7 @@ open class AFIncrementalStore: NSIncrementalStore {
                         childObjectIds = childObjects.map{$0.objectID}
                     }
 
-                    context?.performAndWait {
-                        for childObjectId in childObjectIds {
-                            guard let parentObject = context?.object(with: childObjectId) else {
-                                continue
-                            }
-
-                            context?.refresh(parentObject, mergeChanges: true)
-
-                        }
-                    }
+                    self.updateContextObjects(context, childObjectIds: childObjectIds)
 
                     operation_dispatch_group.leave()
 
@@ -857,16 +848,7 @@ open class AFIncrementalStore: NSIncrementalStore {
                             childObjectIds = childObjects.map{$0.objectID}
                         }
 
-                        context?.performAndWait {
-                            for childObjectId in childObjectIds {
-                                guard let parentObject = context?.object(with: childObjectId) else {
-                                    continue
-                                }
-
-                                context?.refresh(parentObject, mergeChanges: true)
-
-                            }
-                        }
+                        self.updateContextObjects(context, childObjectIds: childObjectIds)
 
                         operation_dispatch_group.leave()
 
