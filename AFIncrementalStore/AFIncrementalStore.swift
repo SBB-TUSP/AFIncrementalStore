@@ -521,7 +521,7 @@ open class AFIncrementalStore: NSIncrementalStore {
                                          childObjectIds: [NSManagedObjectID],
                                          completitionHandle: @escaping () -> Void) {
 
-        guard let parentContext = context?.parent else { return }
+        guard let parentContext = context?.parent else { completitionHandle(); return }
         parentContext.perform {
             childObjectIds.forEach({ (childObjectId) in
                 let parentObject = parentContext.object(with: childObjectId)
@@ -546,70 +546,89 @@ open class AFIncrementalStore: NSIncrementalStore {
     /**
 
      */
-    open func executeFetchRequest(_ fetchRequest: NSFetchRequest<NSFetchRequestResult>?, with context: NSManagedObjectContext?) throws -> Any? {
+    open func executeFetchRequest(_ fetchRequest: NSFetchRequest<NSFetchRequestResult>?,
+                                  with context: NSManagedObjectContext?) throws -> Any? {
         var error: NSError?
         let request = httpClient?.request(for: fetchRequest, with: context)
         if let _ = request?.url, let request = request {
             var operation: URLSessionTask?
-            operation = httpClient?.dataTask(with: request, uploadProgress: nil, downloadProgress: nil, completionHandler: { (urlResponse, responseObject, error) in
+            operation = httpClient?.dataTask(with: request,
+                                             uploadProgress: nil,
+                                             downloadProgress: nil,
+                                             completionHandler: { (urlResponse, responseObject, error) in
 
-                guard error == nil else {
-                    self.notify(context: context, about: operation, error: error as NSError?, for: fetchRequest, fetchedObjectIds: nil, didFetch: true)
-                    return
-                }
+                                                guard error == nil else {
+                                                    self.notify(context: context,
+                                                                about: operation,
+                                                                error: error as NSError?,
+                                                                for: fetchRequest,
+                                                                fetchedObjectIds: nil,
+                                                                didFetch: true)
+                                                    return
+                                                }
 
-                let representationOrArrayOfRepresentations = self.httpClient?.representationOrArrayOfRepresentations(ofEntity: fetchRequest?.entity, fromResponseObject: responseObject)
-                let childContext = NSManagedObjectContext(concurrencyType: .privateQueueConcurrencyType)
-                childContext.parent = context
-                if #available(iOS 10.0, *) {
-                    childContext.mergePolicy = NSMergePolicy.mergeByPropertyObjectTrump
-                } else {
-                    childContext.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
-                }
+                                                let representationOrArrayOfRepresentations = self.httpClient?.representationOrArrayOfRepresentations(
+                                                    ofEntity: fetchRequest?.entity, fromResponseObject: responseObject)
+                                                let childContext = NSManagedObjectContext(concurrencyType: .privateQueueConcurrencyType)
+                                                childContext.parent = context
+                                                if #available(iOS 10.0, *) {
+                                                    childContext.mergePolicy = NSMergePolicy.mergeByPropertyObjectTrump
+                                                } else {
+                                                    childContext.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
+                                                }
 
-                guard let httpUrlResponse  = urlResponse as? HTTPURLResponse else { return }
+                                                guard let httpUrlResponse  = urlResponse as? HTTPURLResponse else { return }
 
-                self.beforeInsertOrUpdateObjects(from: representationOrArrayOfRepresentations,
-                                                 of: fetchRequest,
-                                                 from: httpUrlResponse,
-                                                 with: childContext,
-                                                 with: self.backingManagedObjectContext,
-                                                 with: self.backingObjectIdByObjectId) {
+                                                self.beforeInsertOrUpdateObjects(from: representationOrArrayOfRepresentations,
+                                                                                 of: fetchRequest,
+                                                                                 from: httpUrlResponse,
+                                                                                 with: childContext,
+                                                                                 with: self.backingManagedObjectContext,
+                                                                                 with: self.backingObjectIdByObjectId) {
 
-                                                    _ = try? self.insertOrUpdateObjects(from: representationOrArrayOfRepresentations, of: fetchRequest?.entity, from: httpUrlResponse, with: childContext) {
-                                                        objects, backingObjects in
+                                                                                    _ = try? self.insertOrUpdateObjects(
+                                                                                        from: representationOrArrayOfRepresentations,
+                                                                                        of: fetchRequest?.entity,
+                                                                                        from: httpUrlResponse,
+                                                                                        with: childContext) {
+                                                                                            objects, backingObjects in
 
-                                                        var childObjects = Set<NSManagedObject>()
-                                                        childContext.performAndWait {
-                                                            childObjects = childContext.registeredObjects
-                                                            AFSaveManagedObjectContextOrThrowInternalConsistencyException(childContext)
-                                                        }
+                                                                                            var childObjects = Set<NSManagedObject>()
+                                                                                            childContext.performAndWait {
+                                                                                                childObjects = childContext.registeredObjects
+                                                                                                AFSaveManagedObjectContextOrThrowInternalConsistencyException(childContext)
+                                                                                            }
 
-                                                        let backingContext = self.backingManagedObjectContext
-                                                        backingContext.performAndWait {
-                                                            AFSaveManagedObjectContextOrThrowInternalConsistencyException(backingContext)
-                                                        }
+                                                                                            let backingContext = self.backingManagedObjectContext
+                                                                                            backingContext.performAndWait {
+                                                                                                AFSaveManagedObjectContextOrThrowInternalConsistencyException(backingContext)
+                                                                                            }
 
-                                                        var childObjectIds = [NSManagedObjectID]()
-                                                        childContext.performAndWait {
-                                                            childObjectIds = childObjects.map{$0.objectID}
-                                                        }
+                                                                                            var childObjectIds = [NSManagedObjectID]()
+                                                                                            childContext.performAndWait {
+                                                                                                childObjectIds = childObjects.map{$0.objectID}
+                                                                                            }
 
-                                                        self.updateContextObjects(childContext,
-                                                                                  childObjectIds: childObjectIds,
-                                                                                  completitionHandle: {
-                                                                                    self.notify(context: context,
-                                                                                                about: operation,
-                                                                                                error: nil,
-                                                                                                for: fetchRequest,
-                                                                                                fetchedObjectIds: objects.map{$0.objectID},
-                                                                                                didFetch: true)
-                                                        })
-                                                    }
-                }
+                                                                                            self.updateContextObjects(childContext,
+                                                                                                                      childObjectIds: childObjectIds,
+                                                                                                                      completitionHandle: {
+                                                                                                                        self.notify(context: context,
+                                                                                                                                    about: operation,
+                                                                                                                                    error: nil,
+                                                                                                                                    for: fetchRequest,
+                                                                                                                                    fetchedObjectIds: objects.map{$0.objectID},
+                                                                                                                                    didFetch: true)
+                                                                                            })
+                                                                                    }
+                                                }
 
             })
-            notify(context: context, about: operation, error: nil, for: fetchRequest, fetchedObjectIds: nil, didFetch: false)
+            notify(context: context,
+                   about: operation,
+                   error: nil,
+                   for: fetchRequest,
+                   fetchedObjectIds: nil,
+                   didFetch: false)
             operation?.resume()
         }
         let backingContext = backingManagedObjectContext
@@ -654,7 +673,8 @@ open class AFIncrementalStore: NSIncrementalStore {
                         let backingObjectIds = try backingContext.fetch(backingFetchRequest!) as? [NSManagedObjectID]
                         for backingObjectId in backingObjectIds ?? [] {
                             let backingObject = backingContext.object(with: backingObjectId)
-                            guard let resourceId = backingObject.value(forKey: kAFIncrementalStoreResourceIdentifierAttributeName) as? String,
+                            guard let resourceId = backingObject.value(
+                                forKey: kAFIncrementalStoreResourceIdentifierAttributeName) as? String,
                                 let objectId = self.objectId(for: fetchRequestEntity, with: resourceId) else {
                                     continue
                             }
@@ -707,14 +727,18 @@ open class AFIncrementalStore: NSIncrementalStore {
         return resourceIdentifier as! String
     }
 
-    open func executeSaveChangesRequest(_ saveChangesRequest: NSSaveChangesRequest?, with context: NSManagedObjectContext?) throws -> Any? {
+    open func executeSaveChangesRequest(_ saveChangesRequest: NSSaveChangesRequest?,
+                                        with context: NSManagedObjectContext?) throws -> Any? {
         let operation_dispatch_group = DispatchGroup()
         var operations = [URLSessionTask]()
         var operationErrors = [NSManagedObjectID: NSError]()
         let backingContext = backingManagedObjectContext
 
         // NSManagedObjectContext removes object references from an NSSaveChangesRequest as each object is saved, so create a copy of the original in order to send useful information in AFIncrementalStoreContextDidSaveRemoteValues notification.
-        let saveChangesRequestCopy = NSSaveChangesRequest(inserted: saveChangesRequest?.insertedObjects, updated: saveChangesRequest?.updatedObjects, deleted: saveChangesRequest?.deletedObjects, locked: saveChangesRequest?.lockedObjects)
+        let saveChangesRequestCopy = NSSaveChangesRequest(inserted: saveChangesRequest?.insertedObjects,
+                                                          updated: saveChangesRequest?.updatedObjects,
+                                                          deleted: saveChangesRequest?.deletedObjects,
+                                                          locked: saveChangesRequest?.lockedObjects)
 
         let childContext = NSManagedObjectContext(concurrencyType: .privateQueueConcurrencyType)
         childContext.parent = context
@@ -751,75 +775,82 @@ open class AFIncrementalStore: NSIncrementalStore {
             }
 
             operation_dispatch_group.enter()
-            let operation = httpClient?.dataTask(with: request, uploadProgress: nil, downloadProgress: nil, completionHandler: { (urlResponse, responseObject, error) in
+            let operation = httpClient?.dataTask(with: request,
+                                                 uploadProgress: nil,
+                                                 downloadProgress: nil,
+                                                 completionHandler: { (urlResponse, responseObject, error) in
 
-                guard error == nil else {
+                                                    guard error == nil else {
 
-                    operationErrors[insertedObject.objectID] = error! as NSError
+                                                        operationErrors[insertedObject.objectID] = error! as NSError
 
-                    // Reset destination objects to prevent dangling relationships
-                    for relationship in insertedObject.entity.relationshipsByName.map({$1}) {
-                        if relationship.inverseRelationship == nil {
-                            continue
-                        }
-                        let destinationObjects: [NSManagedObject]
-                        if relationship.isToMany {
-                            destinationObjects = (insertedObject.value(forKey: relationship.name) as? [NSManagedObject]) ?? []
-                        } else if let destinationObject = insertedObject.value(forKey: relationship.name) as? NSManagedObject {
-                            destinationObjects = [destinationObject]
-                        } else {
-                            destinationObjects = []
-                        }
-                        for destinationObject in destinationObjects {
-                            context?.performAndWait {
-                                context?.refresh(destinationObject, mergeChanges: false)
-                            }
-                        }
-                    }
+                                                        // Reset destination objects to prevent dangling relationships
+                                                        for relationship in insertedObject.entity.relationshipsByName.map({$1}) {
+                                                            if relationship.inverseRelationship == nil {
+                                                                continue
+                                                            }
+                                                            let destinationObjects: [NSManagedObject]
+                                                            if relationship.isToMany {
+                                                                destinationObjects = (insertedObject.value(forKey: relationship.name) as? [NSManagedObject]) ?? []
+                                                            } else if let destinationObject = insertedObject.value(forKey: relationship.name) as? NSManagedObject {
+                                                                destinationObjects = [destinationObject]
+                                                            } else {
+                                                                destinationObjects = []
+                                                            }
+                                                            for destinationObject in destinationObjects {
+                                                                context?.performAndWait {
+                                                                    context?.refresh(destinationObject, mergeChanges: false)
+                                                                }
+                                                            }
+                                                        }
 
-                    context?.performAndWait {
-                        context?.refresh(insertedObject, mergeChanges: false)
-                    }
+                                                        context?.performAndWait {
+                                                            context?.refresh(insertedObject, mergeChanges: false)
+                                                        }
 
-                    return
+                                                        return
 
-                }
+                                                    }
 
-                let representationOrArrayOfRepresentations = self.httpClient?.representationOrArrayOfRepresentations(ofEntity: insertedObject.entity, fromResponseObject: responseObject)
-                guard let representation = representationOrArrayOfRepresentations as? [String: Any],
-                    let _ = insertedObject.entity.name else {
-                        return
-                }
+                                                    let representationOrArrayOfRepresentations = self.httpClient?.representationOrArrayOfRepresentations(
+                                                        ofEntity: insertedObject.entity, fromResponseObject: responseObject)
+                                                    guard let representation = representationOrArrayOfRepresentations as? [String: Any],
+                                                        let _ = insertedObject.entity.name else {
+                                                            return
+                                                    }
 
-                guard let httpUrlResponse  = urlResponse as? HTTPURLResponse else {
-                    return
-                }
+                                                    guard let httpUrlResponse  = urlResponse as? HTTPURLResponse else {
+                                                        return
+                                                    }
 
-                _ = try? self.insertOrUpdateObjects(from: representationOrArrayOfRepresentations, of: insertedObject.entity, from: httpUrlResponse, with: childContext) {
-                    objects, backingObjects in
+                                                    _ = try? self.insertOrUpdateObjects(from: representationOrArrayOfRepresentations,
+                                                                                        of: insertedObject.entity,
+                                                                                        from: httpUrlResponse,
+                                                                                        with: childContext) {
+                                                                                            objects, backingObjects in
 
-                    var childObjects = Set<NSManagedObject>()
-                    childContext.performAndWait {
-                        childObjects = childContext.registeredObjects
-                        AFSaveManagedObjectContextOrThrowInternalConsistencyException(childContext)
-                    }
+                                                                                            var childObjects = Set<NSManagedObject>()
+                                                                                            childContext.performAndWait {
+                                                                                                childObjects = childContext.registeredObjects
+                                                                                                AFSaveManagedObjectContextOrThrowInternalConsistencyException(childContext)
+                                                                                            }
 
-                    let backingContext = self.backingManagedObjectContext
-                    backingContext.performAndWait {
-                        AFSaveManagedObjectContextOrThrowInternalConsistencyException(backingContext)
-                    }
+                                                                                            let backingContext = self.backingManagedObjectContext
+                                                                                            backingContext.performAndWait {
+                                                                                                AFSaveManagedObjectContextOrThrowInternalConsistencyException(backingContext)
+                                                                                            }
 
-                    var childObjectIds = [NSManagedObjectID]()
-                    childContext.performAndWait {
-                        childObjectIds = childObjects.map{$0.objectID}
-                    }
+                                                                                            var childObjectIds = [NSManagedObjectID]()
+                                                                                            childContext.performAndWait {
+                                                                                                childObjectIds = childObjects.map{$0.objectID}
+                                                                                            }
 
-                    self.updateContextObjects(childContext,
-                                              childObjectIds: childObjectIds,
-                                              completitionHandle: {
-                                                operation_dispatch_group.leave()
-                    })
-                }
+                                                                                            self.updateContextObjects(childContext,
+                                                                                                                      childObjectIds: childObjectIds,
+                                                                                                                      completitionHandle: {
+                                                                                                                        operation_dispatch_group.leave()
+                                                                                            })
+                                                    }
             })
 
             if let operation = operation {
@@ -828,7 +859,9 @@ open class AFIncrementalStore: NSIncrementalStore {
         }
 
         for updatedObject in saveChangesRequest?.updatedObjects ?? [] {
-            let backingObjectId = objectIdForBackingObject(for: updatedObject.entity, with: AFResourceIdentifier(from: referenceObject(for: updatedObject.objectID)))
+            let backingObjectId = objectIdForBackingObject(
+                for: updatedObject.entity,
+                with: AFResourceIdentifier(from: referenceObject(for: updatedObject.objectID)))
 
             backingContext.performAndWait {
                 let backingObject = backingObjectId == nil ? nil : try? backingContext.existingObject(with: backingObjectId!)
