@@ -741,11 +741,11 @@ open class AFIncrementalStore: NSIncrementalStore {
                     }catch let e {
                         print("\(e)")
                     }
+                    assignPermanentID(context: context, insertedObject: insertedObject)
                 }
             }
 
             guard let request = httpClient?.request?(forInsertedObject: insertedObject) else {
-                assignPermanentID(context: context, insertedObject: insertedObject)
                 continue
             }
 
@@ -776,9 +776,9 @@ open class AFIncrementalStore: NSIncrementalStore {
                         }
                     }
 
-                    self.assignPermanentID(context: context, insertedObject: insertedObject, completitionHandle: {
-                        operation_dispatch_group.leave()
-                    })
+                    context?.performAndWait {
+                        context?.refresh(insertedObject, mergeChanges: false)
+                    }
 
                     return
 
@@ -794,13 +794,12 @@ open class AFIncrementalStore: NSIncrementalStore {
                     return
                 }
 
-                let resourceIdentifier = self.httpClient?.resourceIdentifier(forRepresentation: representation, ofEntity: insertedObject.entity, from: httpUrlResponse)
-                insertedObject.af_resourceIdentifier = resourceIdentifier
-
                 _ = try? self.insertOrUpdateObjects(from: representationOrArrayOfRepresentations, of: insertedObject.entity, from: httpUrlResponse, with: childContext) {
                     objects, backingObjects in
 
+                    var childObjects = Set<NSManagedObject>()
                     childContext.performAndWait {
+                        childObjects = childContext.registeredObjects
                         AFSaveManagedObjectContextOrThrowInternalConsistencyException(childContext)
                     }
 
@@ -809,10 +808,15 @@ open class AFIncrementalStore: NSIncrementalStore {
                         AFSaveManagedObjectContextOrThrowInternalConsistencyException(backingContext)
                     }
 
-                    self.assignPermanentID(context: context,
-                                           insertedObject: insertedObject,
-                                           completitionHandle: {
-                                            operation_dispatch_group.leave()
+                    var childObjectIds = [NSManagedObjectID]()
+                    childContext.performAndWait {
+                        childObjectIds = childObjects.map{$0.objectID}
+                    }
+
+                    self.updateContextObjects(childContext,
+                                              childObjectIds: childObjectIds,
+                                              completitionHandle: {
+                                                operation_dispatch_group.leave()
                     })
                 }
             })
