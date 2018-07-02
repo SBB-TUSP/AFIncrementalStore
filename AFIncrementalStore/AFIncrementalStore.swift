@@ -511,18 +511,33 @@ open class AFIncrementalStore: NSIncrementalStore {
                                                 from response: HTTPURLResponse?,
                                                 with childContext: NSManagedObjectContext,
                                                 with backingContext: NSManagedObjectContext,
-                                                with backingObjectIdByObjectId: NSCache<NSManagedObjectID, NSManagedObjectID>) {
+                                                with backingObjectIdByObjectId: NSCache<NSManagedObjectID, NSManagedObjectID>,
+                                                completitionHandle: @escaping () -> Void ) {
         print("implemented in child")
+        completitionHandle()
     }
 
-    @objc open func updateContextObjects(_ context: NSManagedObjectContext?) {
+    @objc open func updateContextObjects(_ context: NSManagedObjectContext?, completitionHandle: @escaping () -> Void) {
         guard let parentContext = context?.parent else { return }
-        parentContext.performAndWait {
+        parentContext.perform {
             let objects = context?.registeredObjects
             objects?.forEach({ (obj) in
                 let parentObject = parentContext.object(with: obj.objectID)
                 parentContext.refresh(parentObject, mergeChanges: false)
             })
+            completitionHandle()
+        }
+    }
+
+    private func assignPermanentID(context: NSManagedObjectContext?,
+                                   insertedObject: NSManagedObject,
+                                   completitionHandle: (() -> Void)? = nil) {
+        context?.perform {
+            insertedObject.willChangeValue(forKey: "objectID")
+            _ = try? context?.obtainPermanentIDs(for: [insertedObject])
+            insertedObject.didChangeValue(forKey: "objectID")
+            context?.refresh(insertedObject, mergeChanges: false)
+            completitionHandle?()
         }
     }
 
@@ -543,39 +558,43 @@ open class AFIncrementalStore: NSIncrementalStore {
                     return
                 }
 
-                context?.performAndWait {
-                    let representationOrArrayOfRepresentations = self.httpClient?.representationOrArrayOfRepresentations(ofEntity: fetchRequest?.entity, fromResponseObject: responseObject)
-                    let childContext = NSManagedObjectContext(concurrencyType: .privateQueueConcurrencyType)
-                    childContext.parent = context
-                    if #available(iOS 10.0, *) {
-                        childContext.mergePolicy = NSMergePolicy.mergeByPropertyObjectTrump
-                    } else {
-                        childContext.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
-                    }
+                let representationOrArrayOfRepresentations = self.httpClient?.representationOrArrayOfRepresentations(ofEntity: fetchRequest?.entity, fromResponseObject: responseObject)
+                let childContext = NSManagedObjectContext(concurrencyType: .privateQueueConcurrencyType)
+                childContext.parent = context
+                if #available(iOS 10.0, *) {
+                    childContext.mergePolicy = NSMergePolicy.mergeByPropertyObjectTrump
+                } else {
+                    childContext.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
+                }
 
-                    guard let httpUrlResponse  = urlResponse as? HTTPURLResponse else { return }
+                guard let httpUrlResponse  = urlResponse as? HTTPURLResponse else { return }
 
-                    self.beforeInsertOrUpdateObjects(from: representationOrArrayOfRepresentations,
-                                                     of: fetchRequest,
-                                                     from: httpUrlResponse,
-                                                     with: childContext,
-                                                     with: self.backingManagedObjectContext,
-                                                     with: self.backingObjectIdByObjectId)
+                self.beforeInsertOrUpdateObjects(from: representationOrArrayOfRepresentations,
+                                                 of: fetchRequest,
+                                                 from: httpUrlResponse,
+                                                 with: childContext,
+                                                 with: self.backingManagedObjectContext,
+                                                 with: self.backingObjectIdByObjectId) {
 
-                    _ = try? self.insertOrUpdateObjects(from: representationOrArrayOfRepresentations, of: fetchRequest?.entity, from: httpUrlResponse, with: childContext) {
-                        objects, backingObjects in
-                        childContext.performAndWait {
-                            AFSaveManagedObjectContextOrThrowInternalConsistencyException(childContext)
-                        }
-                        let backingContext = self.backingManagedObjectContext
-                        backingContext.performAndWait {
-                            AFSaveManagedObjectContextOrThrowInternalConsistencyException(backingContext)
-                        }
+                                                    _ = try? self.insertOrUpdateObjects(from: representationOrArrayOfRepresentations, of: fetchRequest?.entity, from: httpUrlResponse, with: childContext) {
+                                                        objects, backingObjects in
+                                                        childContext.performAndWait {
+                                                            AFSaveManagedObjectContextOrThrowInternalConsistencyException(childContext)
+                                                        }
+                                                        let backingContext = self.backingManagedObjectContext
+                                                        backingContext.performAndWait {
+                                                            AFSaveManagedObjectContextOrThrowInternalConsistencyException(backingContext)
+                                                        }
 
-                        self.updateContextObjects(childContext)
-
-                        self.notify(context: context, about: operation, error: nil, for: fetchRequest, fetchedObjectIds: objects.map{$0.objectID}, didFetch: true)
-                    }
+                                                        self.updateContextObjects(childContext, completitionHandle: {
+                                                            self.notify(context: context,
+                                                                        about: operation,
+                                                                        error: nil,
+                                                                        for: fetchRequest,
+                                                                        fetchedObjectIds: objects.map{$0.objectID},
+                                                                        didFetch: true)
+                                                        })
+                                                    }
                 }
 
             })
@@ -677,15 +696,6 @@ open class AFIncrementalStore: NSIncrementalStore {
         return resourceIdentifier as! String
     }
 
-    private func assignPermanentID(context: NSManagedObjectContext?, insertedObject: NSManagedObject) {
-        context?.performAndWait {
-            insertedObject.willChangeValue(forKey: "objectID")
-            _ = try? context?.obtainPermanentIDs(for: [insertedObject])
-            insertedObject.didChangeValue(forKey: "objectID")
-            context?.refresh(insertedObject, mergeChanges: false)
-        }
-    }
-
     open func executeSaveChangesRequest(_ saveChangesRequest: NSSaveChangesRequest?, with context: NSManagedObjectContext?) throws -> Any? {
         let operation_dispatch_group = DispatchGroup()
         var operations = [URLSessionTask]()
@@ -785,10 +795,9 @@ open class AFIncrementalStore: NSIncrementalStore {
                         AFSaveManagedObjectContextOrThrowInternalConsistencyException(backingContext)
                     }
 
-                    self.assignPermanentID(context: context, insertedObject: insertedObject)
-
-                    operation_dispatch_group.leave()
-
+                    self.assignPermanentID(context: context, insertedObject: insertedObject, completitionHandle: {
+                        operation_dispatch_group.leave()
+                    })
                 }
             })
 
@@ -845,10 +854,9 @@ open class AFIncrementalStore: NSIncrementalStore {
                             AFSaveManagedObjectContextOrThrowInternalConsistencyException(backingContext)
                         }
 
-                        self.updateContextObjects(childContext)
-
-                        operation_dispatch_group.leave()
-
+                        self.updateContextObjects(childContext, completitionHandle: {
+                            operation_dispatch_group.leave()
+                        })
                     }
                 }
             })
