@@ -532,14 +532,12 @@ open class AFIncrementalStore: NSIncrementalStore {
     }
 
     private func assignPermanentID(context: NSManagedObjectContext?,
-                                   insertedObject: NSManagedObject,
-                                   completitionHandle: (() -> Void)? = nil) {
-        context?.perform {
+                                   insertedObject: NSManagedObject) {
+        context?.performAndWait {
             insertedObject.willChangeValue(forKey: "objectID")
             _ = try? context?.obtainPermanentIDs(for: [insertedObject])
             insertedObject.didChangeValue(forKey: "objectID")
             context?.refresh(insertedObject, mergeChanges: false)
-            completitionHandle?()
         }
     }
 
