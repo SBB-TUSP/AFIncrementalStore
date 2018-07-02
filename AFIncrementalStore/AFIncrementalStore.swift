@@ -713,6 +713,9 @@ open class AFIncrementalStore: NSIncrementalStore {
         var operationErrors = [NSManagedObjectID: NSError]()
         let backingContext = backingManagedObjectContext
 
+        // NSManagedObjectContext removes object references from an NSSaveChangesRequest as each object is saved, so create a copy of the original in order to send useful information in AFIncrementalStoreContextDidSaveRemoteValues notification.
+        let saveChangesRequestCopy = NSSaveChangesRequest(inserted: saveChangesRequest?.insertedObjects, updated: saveChangesRequest?.updatedObjects, deleted: saveChangesRequest?.deletedObjects, locked: saveChangesRequest?.lockedObjects)
+
         let childContext = NSManagedObjectContext(concurrencyType: .privateQueueConcurrencyType)
         childContext.parent = context
         if #available(iOS 10.0, *) {
@@ -943,8 +946,7 @@ open class AFIncrementalStore: NSIncrementalStore {
                 operations.append(operation)
             }
         }
-        // NSManagedObjectContext removes object references from an NSSaveChangesRequest as each object is saved, so create a copy of the original in order to send useful information in AFIncrementalStoreContextDidSaveRemoteValues notification.
-        let saveChangesRequestCopy = NSSaveChangesRequest(inserted: saveChangesRequest?.insertedObjects, updated: saveChangesRequest?.updatedObjects, deleted: saveChangesRequest?.deletedObjects, locked: saveChangesRequest?.lockedObjects)
+
         notify(context: context, about: operations, errors: nil, for: saveChangesRequestCopy, didSave: false)
 
         operations.forEach { (operation) in
