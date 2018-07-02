@@ -517,12 +517,14 @@ open class AFIncrementalStore: NSIncrementalStore {
         completitionHandle()
     }
 
-    @objc open func updateContextObjects(_ context: NSManagedObjectContext?, completitionHandle: @escaping () -> Void) {
+    @objc open func updateContextObjects(_ context: NSManagedObjectContext?,
+                                         childObjectIds: [NSManagedObjectID],
+                                         completitionHandle: @escaping () -> Void) {
+
         guard let parentContext = context?.parent else { return }
         parentContext.perform {
-            let objects = context?.registeredObjects
-            objects?.forEach({ (obj) in
-                let parentObject = parentContext.object(with: obj.objectID)
+            childObjectIds.forEach({ (childObjectId) in
+                let parentObject = parentContext.object(with: childObjectId)
                 parentContext.refresh(parentObject, mergeChanges: false)
             })
             completitionHandle()
@@ -578,21 +580,32 @@ open class AFIncrementalStore: NSIncrementalStore {
 
                                                     _ = try? self.insertOrUpdateObjects(from: representationOrArrayOfRepresentations, of: fetchRequest?.entity, from: httpUrlResponse, with: childContext) {
                                                         objects, backingObjects in
+
+                                                        var childObjects = Set<NSManagedObject>()
                                                         childContext.performAndWait {
+                                                            childObjects = childContext.registeredObjects
                                                             AFSaveManagedObjectContextOrThrowInternalConsistencyException(childContext)
                                                         }
+
                                                         let backingContext = self.backingManagedObjectContext
                                                         backingContext.performAndWait {
                                                             AFSaveManagedObjectContextOrThrowInternalConsistencyException(backingContext)
                                                         }
 
-                                                        self.updateContextObjects(childContext, completitionHandle: {
-                                                            self.notify(context: context,
-                                                                        about: operation,
-                                                                        error: nil,
-                                                                        for: fetchRequest,
-                                                                        fetchedObjectIds: objects.map{$0.objectID},
-                                                                        didFetch: true)
+                                                        var childObjectIds = [NSManagedObjectID]()
+                                                        childContext.performAndWait {
+                                                            childObjectIds = childObjects.map{$0.objectID}
+                                                        }
+
+                                                        self.updateContextObjects(childContext,
+                                                                                  childObjectIds: childObjectIds,
+                                                                                  completitionHandle: {
+                                                                                    self.notify(context: context,
+                                                                                                about: operation,
+                                                                                                error: nil,
+                                                                                                for: fetchRequest,
+                                                                                                fetchedObjectIds: objects.map{$0.objectID},
+                                                                                                didFetch: true)
                                                         })
                                                     }
                 }
@@ -741,8 +754,6 @@ open class AFIncrementalStore: NSIncrementalStore {
 
                 guard error == nil else {
 
-                    self.assignPermanentID(context: context, insertedObject: insertedObject)
-
                     operationErrors[insertedObject.objectID] = error! as NSError
 
                     // Reset destination objects to prevent dangling relationships
@@ -765,7 +776,10 @@ open class AFIncrementalStore: NSIncrementalStore {
                         }
                     }
 
-                    operation_dispatch_group.leave()
+                    self.assignPermanentID(context: context, insertedObject: insertedObject, completitionHandle: {
+                        operation_dispatch_group.leave()
+                    })
+
                     return
 
                 }
@@ -795,8 +809,10 @@ open class AFIncrementalStore: NSIncrementalStore {
                         AFSaveManagedObjectContextOrThrowInternalConsistencyException(backingContext)
                     }
 
-                    self.assignPermanentID(context: context, insertedObject: insertedObject, completitionHandle: {
-                        operation_dispatch_group.leave()
+                    self.assignPermanentID(context: context,
+                                           insertedObject: insertedObject,
+                                           completitionHandle: {
+                                            operation_dispatch_group.leave()
                     })
                 }
             })
@@ -845,7 +861,9 @@ open class AFIncrementalStore: NSIncrementalStore {
                     _ = try? self.insertOrUpdateObjects(from: representationOrArrayOfRepresentations, of: updatedObject.entity, from: httpUrlResponse, with: childContext) {
                         objects, backingObjects in
 
+                        var childObjects = Set<NSManagedObject>()
                         childContext.performAndWait {
+                            childObjects = childContext.registeredObjects
                             AFSaveManagedObjectContextOrThrowInternalConsistencyException(childContext)
                         }
 
@@ -854,8 +872,15 @@ open class AFIncrementalStore: NSIncrementalStore {
                             AFSaveManagedObjectContextOrThrowInternalConsistencyException(backingContext)
                         }
 
-                        self.updateContextObjects(childContext, completitionHandle: {
-                            operation_dispatch_group.leave()
+                        var childObjectIds = [NSManagedObjectID]()
+                        childContext.performAndWait {
+                            childObjectIds = childObjects.map{$0.objectID}
+                        }
+
+                        self.updateContextObjects(childContext,
+                                                  childObjectIds: childObjectIds,
+                                                  completitionHandle: {
+                                                    operation_dispatch_group.leave()
                         })
                     }
                 }
