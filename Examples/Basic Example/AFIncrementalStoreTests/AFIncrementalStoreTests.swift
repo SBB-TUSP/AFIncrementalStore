@@ -489,13 +489,9 @@ class AFIncrementalStoreTests: XCTestCase {
     }
 
     func test_newValuesForObjectWithId_shouldSendNotifications() {
-
         let context: NSManagedObjectContext = NSManagedObjectContext(concurrencyType: .mainQueueConcurrencyType)
         var artist: Artist?
-
         let didSaveRemoteValues = expectation(description: "should send save new values notification")
-        didSaveRemoteValues.assertForOverFulfill = false
-
         var observerSave: NSObjectProtocol!
         observerSave = NotificationCenter.default.addObserver(forName: Notification.Name("AFIncrementalStoreContextDidSaveRemoteValues"), object: nil, queue: .main) {
             notification in
@@ -513,10 +509,7 @@ class AFIncrementalStoreTests: XCTestCase {
                 didSaveRemoteValues.fulfill()
             }
         }
-
         let willFetchNewValues = expectation(description: "should send will fetch new values notification")
-        willFetchNewValues.assertForOverFulfill = false
-
         var observer1: NSObjectProtocol!
         observer1 = NotificationCenter.default.addObserver(forName: Notification.Name("AFIncrementalStoreContextWillFetchNewValuesForObject"), object: nil, queue: .main) {
             notification in
@@ -535,9 +528,7 @@ class AFIncrementalStoreTests: XCTestCase {
             XCTAssertTrue(id.uriRepresentation().lastPathComponent.contains("TEST-ID"))
             willFetchNewValues.fulfill()
         }
-
         let didFetchNewValues = expectation(description: "should send did fetch new values notification")
-        didFetchNewValues.assertForOverFulfill = false
         var observer2: NSObjectProtocol!
         observer2 = NotificationCenter.default.addObserver(forName: NSNotification.Name("AFIncrementalStoreContextDidFetchNewValuesForObject"), object: nil, queue: .main) {
             notification in
@@ -604,14 +595,11 @@ class AFIncrementalStoreTests: XCTestCase {
         }
         let fakeClient = FakeClientSubclass6()
         context.persistentStoreCoordinator = coordinator
-
         store.httpClient = fakeClient
-
         context.perform {
             artist = Artist(entity: NSEntityDescription.entity(forEntityName: "Artist", in: context)!, insertInto: context)
             try! context.save()
         }
-
         wait(for: [didSaveRemoteValues, willFetchNewValues, didFetchNewValues], timeout: 20)
     }
 
