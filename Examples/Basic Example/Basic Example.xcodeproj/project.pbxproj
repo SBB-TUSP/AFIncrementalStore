@@ -257,7 +257,6 @@
 				6620235E2019D0E3000F684D /* Frameworks */,
 				6620235F2019D0E3000F684D /* Resources */,
 				997C0AB9A3A969A5F0E9F6B5 /* [CP] Embed Pods Frameworks */,
-				D70BFC5E81CFBE026C348ED2 /* [CP] Copy Pods Resources */,
 			);
 			buildRules = (
 			);
@@ -278,7 +277,6 @@
 				F8AFAFAA15AB4F28003FE5BB /* Frameworks */,
 				F8AFAFAB15AB4F28003FE5BB /* Resources */,
 				716A91EF8690B8408711AEEA /* [CP] Embed Pods Frameworks */,
-				2AEA3173C6D0AFA3405668EA /* [CP] Copy Pods Resources */,
 			);
 			buildRules = (
 			);
@@ -346,21 +344,6 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
-		2AEA3173C6D0AFA3405668EA /* [CP] Copy Pods Resources */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputPaths = (
-			);
-			name = "[CP] Copy Pods Resources";
-			outputPaths = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-AFIncrementalStore-Songs/Pods-AFIncrementalStore-Songs-resources.sh\"\n";
-			showEnvVarsInLog = 0;
-		};
 		6C9DE78EA47F420FA2611AE0 /* [CP] Check Pods Manifest.lock */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
@@ -439,21 +422,6 @@
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
 			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-AFIncrementalStore-AFIncrementalStoreTests/Pods-AFIncrementalStore-AFIncrementalStoreTests-frameworks.sh\"\n";
-			showEnvVarsInLog = 0;
-		};
-		D70BFC5E81CFBE026C348ED2 /* [CP] Copy Pods Resources */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputPaths = (
-			);
-			name = "[CP] Copy Pods Resources";
-			outputPaths = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-AFIncrementalStore-AFIncrementalStoreTests/Pods-AFIncrementalStore-AFIncrementalStoreTests-resources.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
 /* End PBXShellScriptBuildPhase section */

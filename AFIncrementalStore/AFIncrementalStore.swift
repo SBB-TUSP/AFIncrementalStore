@@ -677,6 +677,15 @@ open class AFIncrementalStore: NSIncrementalStore {
         return resourceIdentifier as! String
     }
 
+    private func assignPermanentID(context: NSManagedObjectContext?, insertedObject: NSManagedObject) {
+        context?.performAndWait {
+            insertedObject.willChangeValue(forKey: "objectID")
+            _ = try? context?.obtainPermanentIDs(for: [insertedObject])
+            insertedObject.didChangeValue(forKey: "objectID")
+            context?.refresh(insertedObject, mergeChanges: false)
+        }
+    }
+
     open func executeSaveChangesRequest(_ saveChangesRequest: NSSaveChangesRequest?, with context: NSManagedObjectContext?) throws -> Any? {
         let operation_dispatch_group = DispatchGroup()
         var operations = [URLSessionTask]()
@@ -710,19 +719,20 @@ open class AFIncrementalStore: NSIncrementalStore {
                         print("\(e)")
                     }
                 }
-                context?.performAndWait {
-                    insertedObject.willChangeValue(forKey: "objectID")
-                    _ = try? context?.obtainPermanentIDs(for: [insertedObject])
-                    insertedObject.didChangeValue(forKey: "objectID")
-                }
             }
 
-            guard let request = httpClient?.request?(forInsertedObject: insertedObject) else { continue }
+            guard let request = httpClient?.request?(forInsertedObject: insertedObject) else {
+                assignPermanentID(context: context, insertedObject: insertedObject)
+                continue
+            }
 
             operation_dispatch_group.enter()
             let operation = httpClient?.dataTask(with: request, uploadProgress: nil, downloadProgress: nil, completionHandler: { (urlResponse, responseObject, error) in
 
                 guard error == nil else {
+
+                    self.assignPermanentID(context: context, insertedObject: insertedObject)
+
                     operationErrors[insertedObject.objectID] = error! as NSError
 
                     // Reset destination objects to prevent dangling relationships
@@ -752,7 +762,7 @@ open class AFIncrementalStore: NSIncrementalStore {
 
                 let representationOrArrayOfRepresentations = self.httpClient?.representationOrArrayOfRepresentations(ofEntity: insertedObject.entity, fromResponseObject: responseObject)
                 guard let representation = representationOrArrayOfRepresentations as? [String: Any],
-                    let entityName = insertedObject.entity.name else {
+                    let _ = insertedObject.entity.name else {
                         return
                 }
 
@@ -760,18 +770,22 @@ open class AFIncrementalStore: NSIncrementalStore {
                     return
                 }
 
+                let resourceIdentifier = self.httpClient?.resourceIdentifier(forRepresentation: representation, ofEntity: insertedObject.entity, from: httpUrlResponse)
+                insertedObject.af_resourceIdentifier = resourceIdentifier
+
                 _ = try? self.insertOrUpdateObjects(from: representationOrArrayOfRepresentations, of: insertedObject.entity, from: httpUrlResponse, with: childContext) {
                     objects, backingObjects in
 
                     childContext.performAndWait {
                         AFSaveManagedObjectContextOrThrowInternalConsistencyException(childContext)
                     }
+
                     let backingContext = self.backingManagedObjectContext
                     backingContext.performAndWait {
                         AFSaveManagedObjectContextOrThrowInternalConsistencyException(backingContext)
                     }
 
-                    self.updateContextObjects(childContext)
+                    self.assignPermanentID(context: context, insertedObject: insertedObject)
 
                     operation_dispatch_group.leave()
 
@@ -1415,50 +1429,49 @@ open class AFIncrementalStore: NSIncrementalStore {
 
                 guard let httpUrlResponse  = urlResponse as? HTTPURLResponse else { return }
 
-                childContext.performAndWait {
-                    _ = try? self.insertOrUpdateObjects(from: representationOrArrayOfRepresentations, of: relationship.destinationEntity, from: httpUrlResponse, with: childContext) {
-                        objects, backingObjects in
-                        var object: NSManagedObject?
-                        childContext.performAndWait {
-                            object = childContext.object(with: objectID)
-                        }
-                        var backingObject: NSManagedObject?
-                        backingContext.performAndWait {
-                            let backingObjectId = self.objectIdForBackingObject(for: objectID.entity, with: AFResourceIdentifier(from: self.referenceObject(for: objectID)))
-                            backingObject = backingObjectId == nil ? nil : try? backingContext.existingObject(with: backingObjectId!)
-                        }
-                        if relationship.isToMany {
-                            if relationship.isOrdered {
-                                childContext.performAndWait {
-                                    object?.setValue(objects, forKey: relationship.name)
-                                }
-                                backingContext.performAndWait {
-                                    backingObject?.setValue(backingObjects, forKey: relationship.name)
-                                }
-                            } else {
-                                childContext.performAndWait {
-                                    object?.setValue(Set<NSManagedObject>(objects), forKey: relationship.name)
-                                }
-                                backingContext.performAndWait {
-                                    backingObject?.setValue(Set<NSManagedObject>(backingObjects), forKey: relationship.name)
-                                }
+                _ = try? self.insertOrUpdateObjects(from: representationOrArrayOfRepresentations, of: relationship.destinationEntity, from: httpUrlResponse, with: childContext) {
+                    objects, backingObjects in
+                    var object: NSManagedObject?
+                    childContext.performAndWait {
+                        object = childContext.object(with: objectID)
+                    }
+                    var backingObject: NSManagedObject?
+                    backingContext.performAndWait {
+                        let backingObjectId = self.objectIdForBackingObject(for: objectID.entity, with: AFResourceIdentifier(from: self.referenceObject(for: objectID)))
+                        backingObject = backingObjectId == nil ? nil : try? backingContext.existingObject(with: backingObjectId!)
+                    }
+                    if relationship.isToMany {
+                        if relationship.isOrdered {
+                            childContext.performAndWait {
+                                object?.setValue(objects, forKey: relationship.name)
+                            }
+                            backingContext.performAndWait {
+                                backingObject?.setValue(backingObjects, forKey: relationship.name)
                             }
                         } else {
                             childContext.performAndWait {
-                                object?.setValue(objects.last, forKey: relationship.name)
+                                object?.setValue(Set<NSManagedObject>(objects), forKey: relationship.name)
                             }
                             backingContext.performAndWait {
-                                backingObject?.setValue(backingObjects.last, forKey: relationship.name)
+                                backingObject?.setValue(Set<NSManagedObject>(backingObjects), forKey: relationship.name)
                             }
                         }
+                    } else {
                         childContext.performAndWait {
-                            AFSaveManagedObjectContextOrThrowInternalConsistencyException(childContext)
+                            object?.setValue(objects.last, forKey: relationship.name)
                         }
                         backingContext.performAndWait {
-                            AFSaveManagedObjectContextOrThrowInternalConsistencyException(backingContext)
+                            backingObject?.setValue(backingObjects.last, forKey: relationship.name)
                         }
                     }
+                    childContext.performAndWait {
+                        AFSaveManagedObjectContextOrThrowInternalConsistencyException(childContext)
+                    }
+                    backingContext.performAndWait {
+                        AFSaveManagedObjectContextOrThrowInternalConsistencyException(backingContext)
+                    }
                 }
+
                 self.notify(context: context, about: operation, error: nil, forNewValuesFor: relationship, forObjectWithId: objectID, didFetch: true)
             })
 
